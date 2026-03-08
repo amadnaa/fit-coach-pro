@@ -6,7 +6,7 @@ import { XAxis, YAxis, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Calendar } from '@/components/ui/calendar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, formatDistanceToNow } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
