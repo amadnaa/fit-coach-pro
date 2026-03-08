@@ -87,13 +87,14 @@ export default function ProfileView() {
       .maybeSingle()
       .then(async ({ data }) => {
         const defaultPink = '330 81% 60%';
-        const isCustomized = data?.accent_color_customized ?? false;
-        const color = isCustomized ? (data?.accent_color || defaultPink) : defaultPink;
+        const pref = data as { accent_color?: string | null; accent_color_customized?: boolean } | null;
+        const isCustomized = pref?.accent_color_customized ?? false;
+        const color = isCustomized ? (pref?.accent_color || defaultPink) : defaultPink;
 
         setSelectedColor(color);
         applyAccentColor(color);
 
-        if (!isCustomized && data?.accent_color !== defaultPink) {
+        if (!isCustomized && pref?.accent_color !== defaultPink) {
           await supabase.from('user_preferences').upsert(
             {
               user_id: user.id,
