@@ -1,0 +1,1 @@
+ALTER TABLE public.user_preferences ALTER COLUMN accent_color SET DEFAULT '330 81% 60%';
