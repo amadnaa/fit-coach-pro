@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface SetLog {
@@ -49,6 +49,7 @@ const mockExercises: ExerciseState[] = [
 export default function WorkoutView() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [currentExercise, setCurrentExercise] = useState(0);
   const [exercises, setExercises] = useState<ExerciseState[]>(mockExercises);
   const [currentSet, setCurrentSet] = useState(0);
@@ -106,8 +107,10 @@ export default function WorkoutView() {
       }
 
       setActiveWorkouts(workoutsData);
-      // Auto-select first workout
-      setSelectedWorkoutId(workoutsData[0].id);
+      // Auto-select from query param or first workout
+      const dayParam = searchParams.get('day');
+      const matchedWorkout = dayParam ? workoutsData.find(w => w.id === dayParam) : null;
+      setSelectedWorkoutId(matchedWorkout ? matchedWorkout.id : workoutsData[0].id);
       setLoadingPlan(false);
     };
     loadPlan();

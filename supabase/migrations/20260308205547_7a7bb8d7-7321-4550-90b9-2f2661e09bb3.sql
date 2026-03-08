@@ -1,0 +1,1 @@
+ALTER TABLE public.scheduled_sessions ADD COLUMN workout_id uuid REFERENCES public.workouts(id) ON DELETE SET NULL DEFAULT NULL;
