@@ -34,6 +34,7 @@ export default function CoachDashboard() {
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [recentCheckins, setRecentCheckins] = useState<RecentCheckIn[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [weeklyWorkouts, setWeeklyWorkouts] = useState<string>('—');
   const [creating, setCreating] = useState(false);
   const [newClient, setNewClient] = useState({
     full_name: '',
