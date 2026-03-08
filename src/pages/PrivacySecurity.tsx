@@ -54,12 +54,19 @@ export default function PrivacySecurity() {
     if (!user) return;
     setExporting(true);
     try {
-      const tableNames = ['profiles', 'bodyweight_logs', 'workout_logs', 'food_logs', 'step_logs', 'cardio_logs', 'weekly_check_ins'];
       const results: Record<string, unknown> = {};
-      for (const table of tableNames) {
-        const { data } = await supabase.from(table as 'profiles').select('*').eq('user_id' as any, user.id);
-        results[table] = data || [];
-      }
+      const { data: d1 } = await supabase.from('profiles').select('*').eq('user_id', user.id);
+      results.profiles = d1 || [];
+      const { data: d2 } = await supabase.from('bodyweight_logs').select('*').eq('user_id', user.id);
+      results.bodyweight_logs = d2 || [];
+      const { data: d3 } = await supabase.from('workout_logs').select('*').eq('user_id', user.id);
+      results.workout_logs = d3 || [];
+      const { data: d4 } = await supabase.from('food_logs').select('*').eq('user_id', user.id);
+      results.food_logs = d4 || [];
+      const { data: d5 } = await supabase.from('step_logs').select('*').eq('user_id', user.id);
+      results.step_logs = d5 || [];
+      const { data: d6 } = await supabase.from('weekly_check_ins').select('*').eq('user_id', user.id);
+      results.weekly_check_ins = d6 || [];
       const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
