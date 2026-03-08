@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Scale, Footprints, Dumbbell, CalendarIcon, Plus, X, ChevronRight } from 'lucide-react';
+import { Scale, Moon, Dumbbell, CalendarIcon, Plus, X, ChevronRight } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { XAxis, YAxis, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Calendar } from '@/components/ui/calendar';
