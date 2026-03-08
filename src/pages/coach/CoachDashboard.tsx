@@ -34,6 +34,7 @@ export default function CoachDashboard() {
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [recentCheckins, setRecentCheckins] = useState<RecentCheckIn[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [weeklyWorkouts, setWeeklyWorkouts] = useState<string>('—');
   const [creating, setCreating] = useState(false);
   const [newClient, setNewClient] = useState({
     full_name: '',
@@ -74,6 +75,20 @@ export default function CoachDashboard() {
         ...ci,
         client_name: profileMap.get(ci.user_id) || 'Unknown',
       })));
+    }
+
+    // Compute avg workouts/week across all clients (last 4 weeks)
+    const fourWeeksAgo = new Date();
+    fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+    const { count: totalSessions } = await supabase.from('workout_sessions')
+      .select('id', { count: 'exact', head: true })
+      .in('user_id', clientIds)
+      .eq('completed', true)
+      .gte('started_at', fourWeeksAgo.toISOString());
+
+    if (totalSessions !== null && clientIds.length > 0) {
+      const avg = (totalSessions / 4 / clientIds.length).toFixed(1);
+      setWeeklyWorkouts(avg);
     }
   };
 
@@ -124,8 +139,8 @@ export default function CoachDashboard() {
         <div className="grid grid-cols-3 gap-3">
           {[
             { icon: Users, value: String(clients.length), label: 'Active' },
-            { icon: TrendingUp, value: '—', label: 'Avg Adherence' },
-            { icon: Dumbbell, value: '—', label: 'Workouts/wk' },
+            { icon: Dumbbell, value: weeklyWorkouts, label: 'Workouts/wk' },
+            { icon: TrendingUp, value: String(recentCheckins.length), label: 'Check-ins' },
           ].map((stat, i) => (
             <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="p-3 rounded-xl bg-card border border-border text-center">
               <stat.icon className="h-4 w-4 text-primary mx-auto mb-1" />

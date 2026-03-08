@@ -36,6 +36,12 @@ interface RecentSession {
   workout_name?: string;
 }
 
+interface TodayWorkout {
+  workoutName: string;
+  exerciseCount: number;
+  workoutId: string | null;
+}
+
 export default function ClientDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -56,6 +62,8 @@ export default function ClientDashboard() {
   const [savingWeight, setSavingWeight] = useState(false);
   const [totalVolume, setTotalVolume] = useState(0);
   const [selectedVideo, setSelectedVideo] = useState<WarmupVideo | null>(null);
+  const [todayWorkout, setTodayWorkout] = useState<TodayWorkout | null>(null);
+  const [loadingTodayWorkout, setLoadingTodayWorkout] = useState(true);
 
   const handleLogWeight = async () => {
     if (!user || !newWeight) return;
@@ -128,6 +136,61 @@ export default function ClientDashboard() {
       .eq('user_id', user.id).eq('week_start', weekStart)
       .maybeSingle()
       .then(({ data }) => { if (data) setCheckInSubmitted(true); });
+
+    // Fetch today's workout from scheduled sessions or active plan
+    const fetchTodayWorkout = async () => {
+      setLoadingTodayWorkout(true);
+      const todayStr = format(today, 'yyyy-MM-dd');
+
+      // 1. Check scheduled session for today with a linked workout
+      const { data: scheduled } = await supabase
+        .from('scheduled_sessions')
+        .select('title, workout_id')
+        .eq('user_id', user.id)
+        .eq('session_date', todayStr)
+        .not('workout_id', 'is', null)
+        .limit(1)
+        .maybeSingle();
+
+      if (scheduled && scheduled.workout_id) {
+        // Get exercise count for this workout
+        const { count } = await supabase
+          .from('workout_exercises')
+          .select('id', { count: 'exact', head: true })
+          .eq('workout_id', scheduled.workout_id);
+        setTodayWorkout({ workoutName: scheduled.title, exerciseCount: count || 0, workoutId: scheduled.workout_id });
+        setLoadingTodayWorkout(false);
+        return;
+      }
+
+      // 2. Fall back to first workout from active plan
+      const { data: plan } = await supabase
+        .from('workout_plans')
+        .select('id')
+        .eq('client_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (plan) {
+        const { data: firstWorkout } = await supabase
+          .from('workouts')
+          .select('id, name')
+          .eq('plan_id', plan.id)
+          .order('day_number')
+          .limit(1)
+          .maybeSingle();
+
+        if (firstWorkout) {
+          const { count } = await supabase
+            .from('workout_exercises')
+            .select('id', { count: 'exact', head: true })
+            .eq('workout_id', firstWorkout.id);
+          setTodayWorkout({ workoutName: firstWorkout.name, exerciseCount: count || 0, workoutId: firstWorkout.id });
+        }
+      }
+      setLoadingTodayWorkout(false);
+    };
+    fetchTodayWorkout();
   }, [user]);
 
   const getWeekStart = (date: Date) => {
@@ -184,14 +247,20 @@ export default function ClientDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold text-lg">Today's Workout</p>
-                <p className="text-sm opacity-80">Push Day · 4 exercises · ~60 min</p>
+                {loadingTodayWorkout ? (
+                  <p className="text-sm opacity-80">Loading...</p>
+                ) : todayWorkout ? (
+                  <p className="text-sm opacity-80">{todayWorkout.workoutName} · {todayWorkout.exerciseCount} exercises</p>
+                ) : (
+                  <p className="text-sm opacity-80">No workout scheduled</p>
+                )}
               </div>
               <div className="w-12 h-12 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
                 <Dumbbell className="h-6 w-6" />
               </div>
             </div>
             <button
-              onClick={() => navigate('/workout')}
+              onClick={() => navigate(todayWorkout?.workoutId ? `/workout?day=${todayWorkout.workoutId}` : '/workout')}
               className="w-full py-3 rounded-xl bg-primary-foreground/20 text-center font-semibold text-sm backdrop-blur-sm hover:bg-primary-foreground/30 transition-colors"
             >
               Start Workout

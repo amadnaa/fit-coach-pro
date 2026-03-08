@@ -39,23 +39,16 @@ interface ExerciseState {
   description?: string;
 }
 
-const mockExercises: ExerciseState[] = [
-  { name: 'Barbell Bench Press', targetSets: 3, repMin: 8, repMax: 12, targetWeight: 70, sets: [], muscleGroup: 'Chest' },
-  { name: 'Overhead Press', targetSets: 3, repMin: 8, repMax: 12, targetWeight: 40, sets: [], muscleGroup: 'Shoulders' },
-  { name: 'Tricep Pushdown', targetSets: 3, repMin: 10, repMax: 15, targetWeight: 25, sets: [], muscleGroup: 'Triceps' },
-  { name: 'Incline Dumbbell Fly', targetSets: 3, repMin: 10, repMax: 15, targetWeight: 14, sets: [], muscleGroup: 'Chest' },
-];
-
 export default function WorkoutView() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [currentExercise, setCurrentExercise] = useState(0);
-  const [exercises, setExercises] = useState<ExerciseState[]>(mockExercises);
+  const [exercises, setExercises] = useState<ExerciseState[]>([]);
   const [currentSet, setCurrentSet] = useState(0);
   const [reps, setReps] = useState(0);
-  const [weight, setWeight] = useState(mockExercises[0].targetWeight);
-  const [completedSets, setCompletedSets] = useState<SetLog[][]>(mockExercises.map(() => []));
+  const [weight, setWeight] = useState(0);
+  const [completedSets, setCompletedSets] = useState<SetLog[][]>([]);
   const [workoutStarted, setWorkoutStarted] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [startTime, setStartTime] = useState<Date | null>(null);
@@ -89,7 +82,7 @@ export default function WorkoutView() {
 
       if (!planData) {
         setLoadingPlan(false);
-        return; // Will fall back to mock exercises
+        return;
       }
 
       setPlanInfo({ cycle_week: planData.cycle_week, name: planData.name });
@@ -328,7 +321,7 @@ export default function WorkoutView() {
         <div className="px-5 pt-6 space-y-6">
           <h1 className="text-2xl font-display font-bold">{workoutName}</h1>
           <p className="text-muted-foreground text-sm">
-            {planInfo ? `${planInfo.name} · Cycle ${planInfo.cycle_week}` : 'Week 2 · Cycle 1'}
+            {planInfo ? `${planInfo.name} · Cycle ${planInfo.cycle_week}` : ''}
           </p>
 
           {/* Workout Day Selector */}
@@ -351,6 +344,15 @@ export default function WorkoutView() {
             </div>
           )}
 
+          {loadingPlan ? (
+            <div className="p-8 text-center text-muted-foreground text-sm">Loading workout plan...</div>
+          ) : exercises.length === 0 ? (
+            <div className="p-8 text-center space-y-2">
+              <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto" />
+              <p className="text-sm text-muted-foreground">No workout plan assigned yet</p>
+              <p className="text-xs text-muted-foreground">Your coach will set up your program</p>
+            </div>
+          ) : (
           <div className="space-y-3">
             {exercises.map((ex, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
@@ -428,10 +430,13 @@ export default function WorkoutView() {
               </motion.div>
             ))}
           </div>
+          )}
 
+          {exercises.length > 0 && (
           <Button onClick={handleStartWorkout} className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base">
             <Play className="h-5 w-5 mr-2" /> Start Workout
           </Button>
+          )}
         </div>
 
         {/* Swap Alternatives Dialog */}
