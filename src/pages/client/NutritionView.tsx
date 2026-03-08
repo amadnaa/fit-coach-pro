@@ -129,7 +129,7 @@ export default function NutritionView() {
         fat: Math.round(selectedLogRecipe.fat * servings),
       };
     } else if (logMode === 'custom' && customMeal.name) {
-      entry = { ...customMeal };
+      entry = { food_name: customMeal.name, calories: customMeal.calories, protein: customMeal.protein, carbs: customMeal.carbs, fat: customMeal.fat };
     } else {
       toast.error('Please select a recipe or enter custom meal details');
       setSavingLog(false);
