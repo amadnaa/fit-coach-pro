@@ -53,6 +53,7 @@ export default function ClientDashboard() {
   const [newWeight, setNewWeight] = useState('');
   const [savingWeight, setSavingWeight] = useState(false);
   const [totalVolume, setTotalVolume] = useState(0);
+  const [selectedVideo, setSelectedVideo] = useState<WarmupVideo | null>(null);
 
   const handleLogWeight = async () => {
     if (!user || !newWeight) return;
