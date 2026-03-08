@@ -48,7 +48,23 @@ export default function ProgressView() {
     if (!user) return;
     fetchSessions();
     fetchWorkoutDays();
+    fetchBodyweight();
+    fetchSteps();
   }, [user]);
+
+  const fetchBodyweight = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('bodyweight_logs').select('weight, logged_at')
+      .eq('user_id', user.id).order('logged_at', { ascending: true }).limit(30);
+    if (data) setBodyweightData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), value: d.weight })));
+  };
+
+  const fetchSteps = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('step_logs').select('steps, logged_at')
+      .eq('user_id', user.id).order('logged_at', { ascending: true }).limit(14);
+    if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), value: d.steps })));
+  };
 
   const fetchSessions = async () => {
     if (!user) return;
