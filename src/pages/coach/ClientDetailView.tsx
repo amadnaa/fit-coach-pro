@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Dumbbell, TrendingUp, Footprints, ClipboardList, Settings2, Clock, Trophy } from 'lucide-react';
+import { ChevronLeft, Dumbbell, TrendingUp, Footprints, ClipboardList, Settings2, Clock, Trophy, UtensilsCrossed } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
