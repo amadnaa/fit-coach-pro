@@ -70,6 +70,10 @@ export default function ClientDetailView() {
   const [addExerciseDialog, setAddExerciseDialog] = useState<string | null>(null);
   const [selectedNewExercise, setSelectedNewExercise] = useState('');
   const [generatingPlan, setGeneratingPlan] = useState(false);
+  const [showCreatePlanDialog, setShowCreatePlanDialog] = useState(false);
+  const [newPlanName, setNewPlanName] = useState('');
+  const [newPlanSplit, setNewPlanSplit] = useState('push_pull_legs');
+  const [newPlanFrequency, setNewPlanFrequency] = useState(3);
 
   const generatePlanFromOnboarding = async () => {
     if (!clientId) return;
@@ -347,6 +351,31 @@ export default function ClientDetailView() {
     fetchPlanWorkouts();
   };
 
+  const createPlanFromScratch = async () => {
+    if (!clientId || !newPlanName.trim()) { toast.error('Plan name is required'); return; }
+    try {
+      const { error } = await supabase.from('workout_plans').insert({
+        client_id: clientId,
+        name: newPlanName.trim(),
+        split_type: newPlanSplit,
+        frequency: newPlanFrequency,
+        cycle_week: 1,
+        is_active: true,
+      });
+      if (error) throw error;
+      toast.success('Plan created! Add workouts and exercises.');
+      setShowCreatePlanDialog(false);
+      setNewPlanName('');
+      const { data: newPlans } = await supabase.from('workout_plans').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
+      if (newPlans) {
+        setPlans(newPlans as WorkoutPlan[]);
+        setSelectedPlanId(newPlans[0]?.id || null);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create plan');
+    }
+  };
+
   return (
     <MobileLayout>
       <div className="px-5 pt-6 space-y-4 pb-24">
@@ -392,15 +421,25 @@ export default function ClientDetailView() {
               <div className="py-8 text-center space-y-3">
                 <Dumbbell className="h-10 w-10 text-muted-foreground mx-auto" />
                 <p className="text-sm text-muted-foreground">No workout plans yet</p>
-                <p className="text-xs text-muted-foreground">Generate a plan from the client's onboarding data, or create one manually.</p>
-                <Button
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={generatePlanFromOnboarding}
-                  disabled={generatingPlan}
-                >
-                  {generatingPlan ? 'Generating...' : 'Generate from Onboarding'}
-                </Button>
+                <p className="text-xs text-muted-foreground">Generate a plan from onboarding data, or create one from scratch.</p>
+                <div className="flex flex-col gap-2 items-center">
+                  <Button
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={generatePlanFromOnboarding}
+                    disabled={generatingPlan}
+                  >
+                    {generatingPlan ? 'Generating...' : 'Generate from Onboarding'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={() => setShowCreatePlanDialog(true)}
+                  >
+                    Create from Scratch
+                  </Button>
+                </div>
               </div>
             ) : (
               <>
@@ -700,6 +739,40 @@ export default function ClientDetailView() {
               className="w-full gradient-primary text-primary-foreground rounded-xl"
             >
               Add to Workout
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Plan from Scratch Dialog */}
+      <Dialog open={showCreatePlanDialog} onOpenChange={setShowCreatePlanDialog}>
+        <DialogContent className="max-w-sm mx-auto">
+          <DialogHeader>
+            <DialogTitle>Create Workout Plan</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Plan Name *</label>
+              <Input value={newPlanName} onChange={e => setNewPlanName(e.target.value)} placeholder="e.g. Push / Pull / Legs" className="rounded-xl" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Split Type</label>
+              <Select value={newPlanSplit} onValueChange={setNewPlanSplit}>
+                <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="full_body">Full Body</SelectItem>
+                  <SelectItem value="upper_lower">Upper / Lower</SelectItem>
+                  <SelectItem value="push_pull_legs">Push / Pull / Legs</SelectItem>
+                  <SelectItem value="body_part_split">Body Part Split</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Frequency (days/week)</label>
+              <Input type="number" min={1} max={7} value={newPlanFrequency} onChange={e => setNewPlanFrequency(Number(e.target.value))} className="rounded-xl" />
+            </div>
+            <Button onClick={createPlanFromScratch} disabled={!newPlanName.trim()} className="w-full gradient-primary text-primary-foreground rounded-xl">
+              Create Plan
             </Button>
           </div>
         </DialogContent>

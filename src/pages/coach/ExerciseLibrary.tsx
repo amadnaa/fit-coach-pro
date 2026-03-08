@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Play, X, Upload } from 'lucide-react';
+import { Search, Plus, Play, X, Upload, Pencil, Trash2, ChevronLeft } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -29,6 +30,12 @@ interface ExerciseRow {
   category: string;
 }
 
+const defaultForm = {
+  name: '', description: '', video_url: '', muscle_group: 'chest' as string,
+  movement_type: 'compound' as string, difficulty_level: 'intermediate',
+  rep_range_min: 8, rep_range_max: 12, category: 'other' as string,
+};
+
 export default function ExerciseLibrary() {
   const { user } = useAuth();
   const [search, setSearch] = useState('');
@@ -38,12 +45,16 @@ export default function ExerciseLibrary() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
-  const [form, setForm] = useState({
-    name: '', description: '', video_url: '', muscle_group: 'chest' as string,
-    movement_type: 'compound' as string, difficulty_level: 'intermediate',
-    rep_range_min: 8, rep_range_max: 12, category: 'other' as string,
-  });
+  const [form, setForm] = useState({ ...defaultForm });
+
+  // Detail / Edit state
+  const [selectedExercise, setSelectedExercise] = useState<ExerciseRow | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ ...defaultForm });
+  const [editUploading, setEditUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchExercises = async () => {
     const { data } = await supabase.from('exercises').select('id, name, description, video_url, muscle_group, movement_type, difficulty_level, rep_range_min, rep_range_max, category').order('name');
@@ -58,42 +69,32 @@ export default function ExerciseLibrary() {
     return matchesSearch && matchesCat;
   });
 
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'create' | 'edit') => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    const maxSize = 20 * 1024 * 1024; // 20MB
-    if (file.size > maxSize) {
-      toast.error('File too large. Max 20MB.');
-      return;
-    }
+    const maxSize = 20 * 1024 * 1024;
+    if (file.size > maxSize) { toast.error('File too large. Max 20MB.'); return; }
 
-    setUploading(true);
+    if (target === 'create') setUploading(true);
+    else setEditUploading(true);
+
     const ext = file.name.split('.').pop();
     const filePath = `${user.id}/${Date.now()}.${ext}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('exercise-videos')
-      .upload(filePath, file, { contentType: file.type });
-
+    const { error: uploadError } = await supabase.storage.from('exercise-videos').upload(filePath, file, { contentType: file.type });
     if (uploadError) {
       toast.error('Upload failed: ' + uploadError.message);
-      setUploading(false);
+      if (target === 'create') setUploading(false); else setEditUploading(false);
       return;
     }
 
-    const { data: urlData } = supabase.storage
-      .from('exercise-videos')
-      .getPublicUrl(filePath);
-
-    // Since bucket is private, we use a signed URL approach
-    const { data: signedData } = await supabase.storage
-      .from('exercise-videos')
-      .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
-
+    const { data: signedData } = await supabase.storage.from('exercise-videos').createSignedUrl(filePath, 60 * 60 * 24 * 365);
+    const { data: urlData } = supabase.storage.from('exercise-videos').getPublicUrl(filePath);
     const videoUrl = signedData?.signedUrl || urlData.publicUrl;
-    setForm(f => ({ ...f, video_url: videoUrl }));
-    setUploading(false);
+
+    if (target === 'create') { setForm(f => ({ ...f, video_url: videoUrl })); setUploading(false); }
+    else { setEditForm(f => ({ ...f, video_url: videoUrl })); setEditUploading(false); }
     toast.success('Video uploaded!');
   };
 
@@ -116,13 +117,81 @@ export default function ExerciseLibrary() {
     if (error) { toast.error(error.message); return; }
     toast.success('Exercise added!');
     setShowForm(false);
-    setForm({ name: '', description: '', video_url: '', muscle_group: 'chest', movement_type: 'compound', difficulty_level: 'intermediate', rep_range_min: 8, rep_range_max: 12, category: 'other' });
+    setForm({ ...defaultForm });
     fetchExercises();
+  };
+
+  const openDetail = (ex: ExerciseRow) => {
+    setSelectedExercise(ex);
+    setIsEditing(false);
+    setEditForm({
+      name: ex.name,
+      description: ex.description || '',
+      video_url: ex.video_url || '',
+      muscle_group: ex.muscle_group,
+      movement_type: ex.movement_type,
+      difficulty_level: ex.difficulty_level,
+      rep_range_min: ex.rep_range_min,
+      rep_range_max: ex.rep_range_max,
+      category: ex.category,
+    });
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedExercise || !editForm.name.trim()) { toast.error('Name is required'); return; }
+    setSaving(true);
+    const { error } = await supabase.from('exercises').update({
+      name: editForm.name.trim(),
+      description: editForm.description.trim() || null,
+      video_url: editForm.video_url || null,
+      muscle_group: editForm.muscle_group,
+      movement_type: editForm.movement_type,
+      difficulty_level: editForm.difficulty_level,
+      rep_range_min: editForm.rep_range_min,
+      rep_range_max: editForm.rep_range_max,
+      category: editForm.category,
+    }).eq('id', selectedExercise.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Exercise updated!');
+    setSelectedExercise(null);
+    setIsEditing(false);
+    fetchExercises();
+  };
+
+  const handleDelete = async () => {
+    if (!selectedExercise) return;
+    setDeleting(true);
+    const { error } = await supabase.from('exercises').delete().eq('id', selectedExercise.id);
+    setDeleting(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Exercise deleted');
+    setSelectedExercise(null);
+    fetchExercises();
+  };
+
+  const isVideoUrl = (url: string) => {
+    if (!url) return false;
+    return url.includes('youtube') || url.includes('youtu.be') || url.includes('vimeo');
+  };
+
+  const renderVideoSection = (url: string | null) => {
+    if (!url) return <p className="text-xs text-muted-foreground py-4 text-center">No video attached</p>;
+    if (isVideoUrl(url)) {
+      return (
+        <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-xl bg-secondary text-sm text-primary hover:underline">
+          <Play className="h-4 w-4" /> Watch Video
+        </a>
+      );
+    }
+    return (
+      <video src={url} controls className="w-full rounded-xl max-h-48 bg-secondary" />
+    );
   };
 
   return (
     <MobileLayout>
-      <div className="px-5 pt-6 space-y-4">
+      <div className="px-5 pt-6 space-y-4 pb-24">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-display font-bold">Exercises</h1>
           <button onClick={() => setShowForm(true)} className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground">
@@ -144,7 +213,14 @@ export default function ExerciseLibrary() {
 
         <div className="space-y-2">
           {filtered.map((ex, i) => (
-            <motion.div key={ex.id} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+            <motion.div
+              key={ex.id}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.02 }}
+              onClick={() => openDetail(ex)}
+              className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border cursor-pointer active:scale-[0.98] transition-transform"
+            >
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 {ex.video_url ? <Play className="h-4 w-4 text-primary" /> : <Play className="h-4 w-4 text-muted-foreground" />}
               </div>
@@ -161,6 +237,143 @@ export default function ExerciseLibrary() {
           {filtered.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">No exercises found</p>}
         </div>
       </div>
+
+      {/* Exercise Detail / Edit Dialog */}
+      <Dialog open={!!selectedExercise} onOpenChange={open => { if (!open) { setSelectedExercise(null); setIsEditing(false); } }}>
+        <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? 'Edit Exercise' : selectedExercise?.name}</DialogTitle>
+            <DialogDescription className="capitalize">
+              {!isEditing && selectedExercise && `${selectedExercise.category} · ${selectedExercise.muscle_group} · ${selectedExercise.movement_type}`}
+              {isEditing && 'Update exercise details below'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedExercise && !isEditing && (
+            <div className="space-y-4">
+              {renderVideoSection(selectedExercise.video_url)}
+
+              {selectedExercise.description && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Description</p>
+                  <p className="text-sm">{selectedExercise.description}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center p-2 rounded-xl bg-secondary">
+                  <p className="text-lg font-bold">{selectedExercise.rep_range_min}-{selectedExercise.rep_range_max}</p>
+                  <p className="text-[10px] text-muted-foreground">Rep Range</p>
+                </div>
+                <div className="text-center p-2 rounded-xl bg-secondary">
+                  <p className="text-lg font-bold capitalize">{selectedExercise.difficulty_level}</p>
+                  <p className="text-[10px] text-muted-foreground">Difficulty</p>
+                </div>
+                <div className="text-center p-2 rounded-xl bg-secondary">
+                  <p className="text-lg font-bold capitalize">{selectedExercise.movement_type}</p>
+                  <p className="text-[10px] text-muted-foreground">Type</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={() => setIsEditing(true)} variant="outline" className="flex-1 rounded-xl">
+                  <Pencil className="h-4 w-4 mr-1" /> Edit
+                </Button>
+                <Button onClick={handleDelete} variant="destructive" disabled={deleting} className="rounded-xl">
+                  <Trash2 className="h-4 w-4 mr-1" /> {deleting ? '...' : 'Delete'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {selectedExercise && isEditing && (
+            <div className="space-y-3">
+              <input ref={editFileInputRef} type="file" accept="video/*" onChange={(e) => handleVideoUpload(e, 'edit')} className="hidden" />
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Name *</label>
+                <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="rounded-xl" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Description</label>
+                <Textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} className="rounded-xl" rows={2} />
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Video</label>
+                {editForm.video_url ? (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary">
+                    <Play className="h-4 w-4 text-primary" />
+                    <span className="text-xs text-muted-foreground flex-1 truncate">Video attached</span>
+                    <button onClick={() => setEditForm(f => ({ ...f, video_url: '' }))} className="text-destructive"><X className="h-4 w-4" /></button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Button variant="outline" onClick={() => editFileInputRef.current?.click()} disabled={editUploading} className="w-full rounded-xl">
+                      <Upload className="h-4 w-4 mr-2" /> {editUploading ? 'Uploading...' : 'Upload Video'}
+                    </Button>
+                    <Input placeholder="https://youtube.com/watch?v=..." onChange={e => setEditForm(f => ({ ...f, video_url: e.target.value }))} className="rounded-xl text-xs" />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Category</label>
+                  <Select value={editForm.category} onValueChange={v => setEditForm(f => ({ ...f, category: v }))}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>{allCategories.map(c => <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Muscle Group</label>
+                  <Select value={editForm.muscle_group} onValueChange={v => setEditForm(f => ({ ...f, muscle_group: v }))}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>{muscleGroups.map(g => <SelectItem key={g} value={g} className="capitalize">{g}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Movement Type</label>
+                  <Select value={editForm.movement_type} onValueChange={v => setEditForm(f => ({ ...f, movement_type: v }))}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>{movementTypes.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Difficulty</label>
+                  <Select value={editForm.difficulty_level} onValueChange={v => setEditForm(f => ({ ...f, difficulty_level: v }))}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Rep Min</label>
+                  <Input type="number" value={editForm.rep_range_min} onChange={e => setEditForm(f => ({ ...f, rep_range_min: Number(e.target.value) }))} className="rounded-xl" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Rep Max</label>
+                  <Input type="number" value={editForm.rep_range_max} onChange={e => setEditForm(f => ({ ...f, rep_range_max: Number(e.target.value) }))} className="rounded-xl" />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleUpdate} disabled={saving} className="flex-1 rounded-xl gradient-primary text-primary-foreground">
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
+                <Button variant="outline" onClick={() => setIsEditing(false)} className="rounded-xl">Cancel</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Add Exercise Modal */}
       <AnimatePresence>
@@ -182,10 +395,9 @@ export default function ExerciseLibrary() {
                   <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="rounded-xl" rows={2} placeholder="Optional description..." maxLength={500} />
                 </div>
 
-                {/* Video Upload or Link */}
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Video</label>
-                  <input ref={fileInputRef} type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+                  <input ref={fileInputRef} type="file" accept="video/*" onChange={(e) => handleVideoUpload(e, 'create')} className="hidden" />
                   {form.video_url ? (
                     <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary">
                       <Play className="h-4 w-4 text-primary" />
@@ -203,11 +415,7 @@ export default function ExerciseLibrary() {
                         <span>or paste a link</span>
                         <div className="flex-1 h-px bg-border" />
                       </div>
-                      <Input
-                        placeholder="https://youtube.com/watch?v=..."
-                        onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))}
-                        className="rounded-xl text-xs"
-                      />
+                      <Input placeholder="https://youtube.com/watch?v=..." onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))} className="rounded-xl text-xs" />
                     </div>
                   )}
                 </div>
