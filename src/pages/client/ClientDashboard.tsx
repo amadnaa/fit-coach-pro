@@ -383,6 +383,37 @@ export default function ClientDashboard() {
           )}
         </motion.div>
       </div>
+
+      {/* Log Weight Dialog */}
+      <Dialog open={weightDialogOpen} onOpenChange={setWeightDialogOpen}>
+        <DialogContent className="max-w-xs mx-auto">
+          <DialogHeader>
+            <DialogTitle>Log Bodyweight</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {bodyweightData.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Last: <span className="font-medium text-foreground">{bodyweightData[bodyweightData.length - 1].weight} kg</span>
+              </p>
+            )}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Weight (kg)</label>
+              <Input
+                type="number"
+                step="0.1"
+                placeholder="e.g. 75.5"
+                value={newWeight}
+                onChange={(e) => setNewWeight(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogWeight()}
+                autoFocus
+              />
+            </div>
+            <Button onClick={handleLogWeight} disabled={savingWeight || !newWeight} className="w-full gradient-primary text-primary-foreground">
+              {savingWeight ? 'Saving...' : 'Log Weight'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </MobileLayout>
   );
 }
