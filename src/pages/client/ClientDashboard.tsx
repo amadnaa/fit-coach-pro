@@ -229,28 +229,52 @@ export default function ClientDashboard() {
           )}
         </motion.div>
 
-        {/* Progress Graphs */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-2xl bg-card border border-border space-y-2 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setWeightDialogOpen(true)}>
-            <div className="flex items-center gap-1.5">
-              <TrendingUp className="h-3.5 w-3.5 text-primary" />
-              <p className="text-xs font-medium">Bodyweight</p>
-              <Scale className="h-3 w-3 text-muted-foreground ml-auto" />
+        {/* Bodyweight Graph */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <div className="p-4 rounded-2xl bg-card border border-border space-y-3 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setWeightDialogOpen(true)}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                <p className="text-sm font-medium">Bodyweight</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {bodyweightData.length >= 2 && (() => {
+                  const delta = bodyweightData[bodyweightData.length - 1].weight - bodyweightData[0].weight;
+                  const sign = delta > 0 ? '+' : '';
+                  const color = delta > 0 ? 'text-red-500' : delta < 0 ? 'text-green-500' : 'text-muted-foreground';
+                  return (
+                    <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full bg-secondary", color)}>
+                      {sign}{delta.toFixed(1)} kg
+                    </span>
+                  );
+                })()}
+                <Scale className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
             </div>
-            {bodyweightData.length > 1 ? (
-              <ResponsiveContainer width="100%" height={80}>
-                <LineChart data={bodyweightData}>
-                  <XAxis dataKey="date" hide />
-                  <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
-                  <Line type="monotone" dataKey="weight" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+            {bodyweightData.length >= 1 ? (
+              <ResponsiveContainer width="100%" height={120}>
+                <LineChart data={bodyweightData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} unit=" kg" />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', fontSize: '12px' }}
+                    labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
+                    formatter={(value: number) => [`${value} kg`, 'Weight']}
+                  />
+                  <Line type="monotone" dataKey="weight" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--primary))' }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-20 flex items-center justify-center">
-                <p className="text-[10px] text-muted-foreground">Tap to log weight</p>
+              <div className="h-28 flex items-center justify-center">
+                <p className="text-xs text-muted-foreground">Tap to log your first weight</p>
               </div>
             )}
           </div>
+        </motion.div>
+
+        {/* Steps */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <div className="p-3 rounded-2xl bg-card border border-border space-y-2">
             <div className="flex items-center gap-1.5">
               <Footprints className="h-3.5 w-3.5 text-primary" />
