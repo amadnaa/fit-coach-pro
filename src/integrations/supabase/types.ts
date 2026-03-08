@@ -390,6 +390,7 @@ export type Database = {
           session_date: string
           title: string
           user_id: string
+          workout_id: string | null
         }
         Insert: {
           created_at?: string
@@ -398,6 +399,7 @@ export type Database = {
           session_date: string
           title?: string
           user_id: string
+          workout_id?: string | null
         }
         Update: {
           created_at?: string
@@ -406,8 +408,17 @@ export type Database = {
           session_date?: string
           title?: string
           user_id?: string
+          workout_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_sessions_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       step_logs: {
         Row: {
