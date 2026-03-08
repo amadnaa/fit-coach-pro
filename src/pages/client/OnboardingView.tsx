@@ -249,7 +249,7 @@ export default function OnboardingView() {
 
       const finalSplit = plan?.split || 'full_body';
 
-      const { error } = await supabase.from('client_onboarding').insert({
+      const { error } = await supabase.from('client_onboarding').upsert({
         user_id: user.id,
         training_focus: focusMap[data.fitness_goal || 'general_fitness'] || 'full_body',
         training_frequency: (data.training_frequency as number) || 3,
@@ -261,7 +261,7 @@ export default function OnboardingView() {
         equipment_access: (data.equipment_access as string) || 'full_gym',
         cardio_preference: (data.cardio_preference as string) || 'some',
         completed: true,
-      });
+      }, { onConflict: 'user_id' });
 
       if (error) throw error;
       setOnboardingCompleted(true);
