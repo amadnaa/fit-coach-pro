@@ -84,6 +84,13 @@ export default function Login() {
           </Button>
         </form>
 
+        <button
+          onClick={() => navigate('/forgot-password')}
+          className="block w-full text-center text-sm text-muted-foreground hover:text-primary transition-colors"
+        >
+          Forgot password?
+        </button>
+
         <p className="text-center text-xs text-muted-foreground">
           Your coach will provide your login credentials
         </p>
