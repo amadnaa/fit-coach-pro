@@ -70,6 +70,10 @@ export default function ClientDetailView() {
   const [addExerciseDialog, setAddExerciseDialog] = useState<string | null>(null);
   const [selectedNewExercise, setSelectedNewExercise] = useState('');
   const [generatingPlan, setGeneratingPlan] = useState(false);
+  const [showCreatePlanDialog, setShowCreatePlanDialog] = useState(false);
+  const [newPlanName, setNewPlanName] = useState('');
+  const [newPlanSplit, setNewPlanSplit] = useState('push_pull_legs');
+  const [newPlanFrequency, setNewPlanFrequency] = useState(3);
 
   const generatePlanFromOnboarding = async () => {
     if (!clientId) return;
