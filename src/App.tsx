@@ -22,7 +22,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, onboardingCompleted } = useAuth();
 
   if (loading) {
     return (
@@ -37,6 +37,16 @@ function AppRoutes() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  // Client first login → onboarding
+  if (role === 'client' && onboardingCompleted === false) {
+    return (
+      <Routes>
+        <Route path="/onboarding" element={<OnboardingView />} />
+        <Route path="*" element={<Navigate to="/onboarding" replace />} />
       </Routes>
     );
   }

@@ -8,6 +8,7 @@ interface AuthContextType {
   session: Session | null;
   role: UserRole | null;
   loading: boolean;
+  onboardingCompleted: boolean | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -19,6 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -28,17 +30,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           setTimeout(async () => {
-            const { data } = await supabase
+            const { data: roleData } = await supabase
               .from('user_roles')
               .select('role')
               .eq('user_id', session.user.id)
               .maybeSingle();
-            if (data) {
-              setRole(data.role as UserRole);
+            
+            const userRole = roleData?.role as UserRole | null;
+            setRole(userRole);
+
+            // Check onboarding only for clients
+            if (userRole === 'client') {
+              const { data: onb } = await supabase
+                .from('client_onboarding')
+                .select('completed')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+              setOnboardingCompleted(onb?.completed ?? false);
+            } else {
+              setOnboardingCompleted(true);
             }
           }, 0);
         } else {
           setRole(null);
+          setOnboardingCompleted(null);
         }
         setLoading(false);
       }
@@ -63,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, role, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, role, loading, onboardingCompleted, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
