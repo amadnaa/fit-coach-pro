@@ -52,6 +52,7 @@ export default function ClientDashboard() {
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [savingWeight, setSavingWeight] = useState(false);
+  const [totalVolume, setTotalVolume] = useState(0);
 
   const handleLogWeight = async () => {
     if (!user || !newWeight) return;
