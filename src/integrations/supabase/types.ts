@@ -262,6 +262,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_broadcast: boolean | null
+          read: boolean | null
+          recipient_id: string | null
+          sender_id: string | null
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_broadcast?: boolean | null
+          read?: boolean | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          title?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_broadcast?: boolean | null
+          read?: boolean | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -337,6 +370,33 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          session_date: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          session_date: string
+          title?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          session_date?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       step_logs: {
         Row: {
           id: string
@@ -354,6 +414,30 @@ export type Database = {
           id?: string
           logged_at?: string
           steps?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          accent_color: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accent_color?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accent_color?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

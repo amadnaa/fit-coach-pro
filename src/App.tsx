@@ -15,6 +15,7 @@ import OnboardingView from "./pages/client/OnboardingView";
 import ProfileView from "./pages/ProfileView";
 import ExerciseLibrary from "./pages/coach/ExerciseLibrary";
 import RecipeManager from "./pages/coach/RecipeManager";
+import NotificationCentre from "./pages/NotificationCentre";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ function AppRoutes() {
       <Route path="/nutrition" element={<NutritionView />} />
       <Route path="/onboarding" element={<OnboardingView />} />
       <Route path="/profile" element={<ProfileView />} />
+      <Route path="/notifications" element={<NotificationCentre />} />
 
       {/* Coach Routes */}
       <Route path="/coach" element={<CoachDashboard />} />
