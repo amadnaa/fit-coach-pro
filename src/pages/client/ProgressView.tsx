@@ -6,7 +6,7 @@ import { XAxis, YAxis, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Calendar } from '@/components/ui/calendar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, formatDistanceToNow } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -43,6 +43,7 @@ export default function ProgressView() {
   const [eventType, setEventType] = useState<'workout' | 'other' | null>(null);
   const [bodyweightData, setBodyweightData] = useState<{ date: string; value: number }[]>([]);
   const [stepsData, setStepsData] = useState<{ date: string; value: number }[]>([]);
+  const [workoutHistory, setWorkoutHistory] = useState<{ id: string; started_at: string; ended_at: string | null; duration_seconds: number | null; exercises_completed: number | null; total_exercises: number | null; completed: boolean }[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -50,6 +51,7 @@ export default function ProgressView() {
     fetchWorkoutDays();
     fetchBodyweight();
     fetchSteps();
+    fetchWorkoutHistory();
   }, [user]);
 
   const fetchBodyweight = async () => {
@@ -64,6 +66,13 @@ export default function ProgressView() {
     const { data } = await supabase.from('step_logs').select('steps, logged_at')
       .eq('user_id', user.id).order('logged_at', { ascending: true }).limit(14);
     if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), value: d.steps })));
+  };
+
+  const fetchWorkoutHistory = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('workout_sessions').select('id, started_at, ended_at, duration_seconds, exercises_completed, total_exercises, completed')
+      .eq('user_id', user.id).eq('completed', true).order('ended_at', { ascending: false }).limit(10);
+    if (data) setWorkoutHistory(data);
   };
 
   const fetchSessions = async () => {
@@ -348,20 +357,29 @@ export default function ProgressView() {
             <Dumbbell className="h-4 w-4 text-primary" />
             <h3 className="font-semibold text-sm">Workout History</h3>
           </div>
-          {['Push Day', 'Pull Day', 'Leg Day', 'Push Day', 'Pull Day'].map((name, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Dumbbell className="h-4 w-4 text-primary" />
+          {workoutHistory.length > 0 ? workoutHistory.map((session) => {
+            const duration = session.duration_seconds ? `${Math.floor(session.duration_seconds / 60)} min` : '';
+            const timeAgo = formatDistanceToNow(new Date(session.ended_at || session.started_at), { addSuffix: true });
+            return (
+              <div key={session.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Dumbbell className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">
+                    {session.exercises_completed}/{session.total_exercises} exercises · {duration}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{timeAgo}</p>
+                </div>
+                <span className="text-xs text-primary">✓</span>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{name}</p>
-                <p className="text-xs text-muted-foreground">{i + 1} day{i > 0 ? 's' : ''} ago</p>
-              </div>
-              <span className="text-xs text-primary">✓</span>
-            </div>
-          ))}
+            );
+          }) : (
+            <p className="text-xs text-muted-foreground">No completed workouts yet</p>
+          )}
         </motion.div>
       </div>
     </MobileLayout>
   );
 }
+
