@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 interface Recipe {
   id: string;
@@ -37,6 +38,7 @@ interface FoodLogEntry {
 
 export default function NutritionView() {
   const { user } = useAuth();
+  const { flags } = useFeatureFlags();
   const [activeFilter, setActiveFilter] = useState('All');
   const [tab, setTab] = useState<'recipes' | 'tracker'>('recipes');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -241,7 +243,8 @@ export default function NutritionView() {
           <h1 className="text-2xl font-display font-bold">Nutrition</h1>
         </motion.div>
 
-        {/* Tab Toggle */}
+        {/* Tab Toggle - only show tracker tab if food tracking is enabled */}
+        {flags.food_tracking_enabled && (
         <div className="flex gap-1 p-1 rounded-xl bg-secondary">
           {(['recipes', 'tracker'] as const).map(t => (
             <button
@@ -254,6 +257,7 @@ export default function NutritionView() {
             >{t}</button>
           ))}
         </div>
+        )}
 
         {tab === 'tracker' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">

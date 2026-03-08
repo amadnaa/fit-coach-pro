@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 const weightData = [
   { week: 'W1', value: 82 }, { week: 'W2', value: 81.5 }, { week: 'W3', value: 81.2 },
@@ -31,6 +32,7 @@ interface ScheduledSession {
 
 export default function ProgressView() {
   const { user } = useAuth();
+  const { flags } = useFeatureFlags();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sessions, setSessions] = useState<ScheduledSession[]>([]);
   const [showAddSession, setShowAddSession] = useState(false);
@@ -156,7 +158,8 @@ export default function ProgressView() {
           </div>
         </motion.div>
 
-        {/* Steps Chart */}
+        {/* Steps Chart - only show if enabled */}
+        {flags.step_tracking_enabled && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
           className="p-4 rounded-2xl bg-card border border-border space-y-3">
           <div className="flex items-center gap-2">
@@ -180,6 +183,7 @@ export default function ProgressView() {
             </ResponsiveContainer>
           </div>
         </motion.div>
+        )}
 
         {/* Workout History */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-3">

@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 const warmupCategories = ['Legs', 'Full Body', 'Running', 'Arms / Hands', 'Mobility', 'Stretching'];
 
@@ -38,6 +39,7 @@ interface RecentSession {
 export default function ClientDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { flags } = useFeatureFlags();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'Athlete';
   const today = new Date();
 
@@ -271,7 +273,8 @@ export default function ClientDashboard() {
             )}
           </div>
 
-          {/* Steps */}
+          {/* Steps - only show if enabled */}
+          {flags.step_tracking_enabled && (
           <div className="p-3 rounded-2xl bg-card border border-border space-y-2">
             <div className="flex items-center gap-1">
               <Footprints className="h-3 w-3 text-primary" />
@@ -291,6 +294,7 @@ export default function ClientDashboard() {
               </div>
             )}
           </div>
+          )}
         </motion.div>
 
         {/* Weekly Check-in */}
