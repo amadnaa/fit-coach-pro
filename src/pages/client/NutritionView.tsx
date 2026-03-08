@@ -52,6 +52,7 @@ export default function NutritionView() {
   const [logMode, setLogMode] = useState<'recipe' | 'custom'>('recipe');
   const [todayLogs, setTodayLogs] = useState<FoodLogEntry[]>([]);
   const [savingLog, setSavingLog] = useState(false);
+  const [recipeSearch, setRecipeSearch] = useState('');
 
   useEffect(() => {
     if (!user) return;
