@@ -21,6 +21,7 @@ import PrivacySecurity from "./pages/PrivacySecurity";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
+import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient();
 
