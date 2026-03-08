@@ -100,7 +100,7 @@ export default function ProfileView() {
               user_id: user.id,
               accent_color: defaultPink,
               accent_color_customized: false,
-            },
+            } as any,
             { onConflict: 'user_id' }
           );
         }
