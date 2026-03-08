@@ -82,7 +82,20 @@ export default function ClientDashboard() {
     toast.success(`Logged ${w} kg`);
   };
 
-  useEffect(() => {
+  const handleLogSleep = async () => {
+    if (!user || !newSleepHours) return;
+    const h = parseFloat(newSleepHours);
+    if (isNaN(h) || h <= 0 || h > 24) { toast.error('Enter valid hours (0-24)'); return; }
+    setSavingSleep(true);
+    const { error } = await supabase.from('sleep_logs').insert({ user_id: user.id, hours: h });
+    if (error) { toast.error('Failed to log sleep'); setSavingSleep(false); return; }
+    setSleepData(prev => [...prev, { date: format(new Date(), 'MM/dd'), hours: h }]);
+    setNewSleepHours('');
+    setSleepDialogOpen(false);
+    setSavingSleep(false);
+    toast.success(`Logged ${h}h sleep`);
+  };
+
     if (!user) return;
 
     // Fetch warmup AND stretching exercises
