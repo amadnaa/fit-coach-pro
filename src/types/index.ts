@@ -20,6 +20,8 @@ export interface Client {
   onboarding_completed: boolean;
 }
 
+export type ExerciseCategory = 'warmup' | 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'legs' | 'glutes' | 'hamstrings' | 'quads' | 'core' | 'cardio' | 'stretching' | 'other';
+
 export interface Exercise {
   id: string;
   name: string;
@@ -31,6 +33,7 @@ export interface Exercise {
   rep_range_max: number;
   difficulty_level: 'beginner' | 'intermediate' | 'advanced';
   alternatives: string[];
+  category: ExerciseCategory;
 }
 
 export type MuscleGroup = 'glutes' | 'quads' | 'hamstrings' | 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'core';
@@ -45,6 +48,7 @@ export interface WorkoutPlan {
   frequency: number;
   cycle_week: number;
   created_at: string;
+  is_active?: boolean;
 }
 
 export type SplitType = 'push_pull_legs' | 'upper_lower' | 'full_body';
@@ -61,11 +65,12 @@ export interface WorkoutExercise {
   id: string;
   workout_id: string;
   exercise: Exercise;
+  exercise_id: string;
   sets: number;
   rep_range_min: number;
   rep_range_max: number;
   target_weight?: number;
-  order: number;
+  sort_order: number;
 }
 
 export interface WorkoutLog {
@@ -76,6 +81,7 @@ export interface WorkoutLog {
   weight: number;
   completed_at: string;
   arrow_direction?: 'up' | 'maintain' | 'down';
+  user_id: string;
 }
 
 export interface CheckIn {
@@ -85,6 +91,17 @@ export interface CheckIn {
   difficulty: 'easy' | 'normal' | 'hard';
   completed_all_sets: boolean;
   recovery_level: 'good' | 'medium' | 'poor';
+  created_at: string;
+}
+
+export interface WeeklyCheckIn {
+  id: string;
+  user_id: string;
+  week_start: string;
+  training_difficulty: string;
+  recovery_level: string;
+  energy_level: string;
+  notes?: string;
   created_at: string;
 }
 
