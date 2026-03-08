@@ -279,7 +279,7 @@ export default function ExerciseLibrary() {
                 <Button onClick={() => setIsEditing(true)} variant="outline" className="flex-1 rounded-xl">
                   <Pencil className="h-4 w-4 mr-1" /> Edit
                 </Button>
-                <Button onClick={handleDelete} variant="destructive" disabled={deleting} className="rounded-xl">
+                <Button onClick={handleDelete} disabled={deleting} className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">
                   <Trash2 className="h-4 w-4 mr-1" /> {deleting ? '...' : 'Delete'}
                 </Button>
               </div>
