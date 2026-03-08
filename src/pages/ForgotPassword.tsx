@@ -39,7 +39,7 @@ export default function ForgotPassword() {
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-sm text-center space-y-4"
         >
-          <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
+          <CheckCircle className="h-12 w-12 text-primary mx-auto" />
           <h1 className="text-2xl font-display font-bold">Check Your Email</h1>
           <p className="text-muted-foreground text-sm">
             We've sent a password reset link to <strong>{email}</strong>. Check your inbox and follow the link.
