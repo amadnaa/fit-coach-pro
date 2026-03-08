@@ -70,6 +70,36 @@ Deno.serve(async (req) => {
     results.push("Client already exists");
   }
 
+  // Create Apple review demo account (client role)
+  const { data: reviewer, error: reviewerErr } = await supabaseAdmin.auth.admin.createUser({
+    email: "demo@fitcoach.app",
+    password: "Review1234!",
+    email_confirm: true,
+    user_metadata: { full_name: "Apple Reviewer" },
+  });
+
+  if (reviewerErr && !reviewerErr.message.includes("already been registered")) {
+    results.push(`Reviewer error: ${reviewerErr.message}`);
+  } else if (reviewer?.user) {
+    await supabaseAdmin.from("user_roles").upsert({ user_id: reviewer.user.id, role: "client" }, { onConflict: "user_id,role" });
+    // Link to coach
+    const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
+    const coachUser = users?.find(u => u.email === "coach@test.com");
+    if (coachUser) {
+      await supabaseAdmin.from("coach_clients").upsert(
+        { coach_id: coachUser.id, client_id: reviewer.user.id },
+        { onConflict: "id" }
+      );
+      await supabaseAdmin.from("feature_flags").upsert(
+        { user_id: reviewer.user.id, food_tracking_enabled: true, sleep_tracking_enabled: true, cardio_tracking_enabled: true },
+        { onConflict: "user_id" }
+      );
+    }
+    results.push("Apple review account created: demo@fitcoach.app");
+  } else {
+    results.push("Apple review account already exists");
+  }
+
   return new Response(JSON.stringify({ results }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
