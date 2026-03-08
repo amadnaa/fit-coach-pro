@@ -61,11 +61,11 @@ export default function ProgressView() {
     if (data) setBodyweightData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), value: d.weight })));
   };
 
-  const fetchSteps = async () => {
+  const fetchSleep = async () => {
     if (!user) return;
-    const { data } = await supabase.from('step_logs').select('steps, logged_at')
+    const { data } = await supabase.from('sleep_logs').select('hours, logged_at')
       .eq('user_id', user.id).order('logged_at', { ascending: true }).limit(14);
-    if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), value: d.steps })));
+    if (data) setSleepData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), value: Number(d.hours) })));
   };
 
   const fetchWorkoutHistory = async () => {
