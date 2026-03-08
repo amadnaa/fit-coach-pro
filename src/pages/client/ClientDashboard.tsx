@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Footprints } from 'lucide-react';
+import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Footprints, Clock } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +19,18 @@ interface WarmupVideo {
   muscle_group: string;
 }
 
+interface RecentSession {
+  id: string;
+  started_at: string;
+  ended_at: string | null;
+  completed: boolean;
+  duration_seconds: number | null;
+  exercises_completed: number | null;
+  total_exercises: number | null;
+  workout_id: string | null;
+  workout_name?: string;
+}
+
 export default function ClientDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -31,13 +43,15 @@ export default function ClientDashboard() {
   const [weeklyCheckIn, setWeeklyCheckIn] = useState({ training_difficulty: '', recovery_level: '', energy_level: '' });
   const [checkInSubmitted, setCheckInSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
+  const [workoutCount, setWorkoutCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
 
-    // Fetch warmup exercises
+    // Fetch warmup AND stretching exercises
     supabase.from('exercises').select('id, name, video_url, category, muscle_group')
-      .eq('category', 'warmup')
+      .in('category', ['warmup', 'stretching'])
       .then(({ data }) => { if (data) setWarmupVideos(data as WarmupVideo[]); });
 
     // Fetch bodyweight logs
@@ -54,6 +68,24 @@ export default function ClientDashboard() {
         if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), steps: d.steps })));
       });
 
+    // Fetch recent completed workout sessions
+    supabase.from('workout_sessions').select('*')
+      .eq('user_id', user.id)
+      .eq('completed', true)
+      .order('ended_at', { ascending: false })
+      .limit(5)
+      .then(({ data }) => {
+        if (data) setRecentSessions(data as RecentSession[]);
+      });
+
+    // Count workouts this month
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+    supabase.from('workout_sessions').select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('completed', true)
+      .gte('started_at', monthStart)
+      .then(({ count }) => { if (count !== null) setWorkoutCount(count); });
+
     // Check if weekly check-in already submitted this week
     const weekStart = getWeekStart(today);
     supabase.from('weekly_check_ins').select('id')
@@ -68,6 +100,11 @@ export default function ClientDashboard() {
     const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     d.setDate(diff);
     return format(d, 'yyyy-MM-dd');
+  };
+
+  const formatDuration = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    return `${m} min`;
   };
 
   const handleSubmitCheckIn = async () => {
@@ -126,16 +163,22 @@ export default function ClientDashboard() {
           </div>
         </motion.div>
 
-        {/* Warmup Videos Carousel */}
+        {/* Warmup Videos Carousel (includes warmup + stretching) */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-3">
-          <h2 className="text-lg font-display font-semibold">Warmup Videos</h2>
+          <h2 className="text-lg font-display font-semibold">Warmup & Stretching</h2>
           {warmupVideos.length > 0 ? (
             <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-5 px-5">
               {warmupVideos.map((video) => (
                 <div key={video.id} className="flex-shrink-0 w-40">
                   <div className="w-40 h-24 rounded-xl bg-secondary flex items-center justify-center relative overflow-hidden">
                     {video.video_url ? (
-                      <video src={video.video_url} className="w-full h-full object-cover rounded-xl" muted />
+                      video.video_url.includes('youtube') || video.video_url.includes('youtu.be') ? (
+                        <div className="w-full h-full bg-secondary flex items-center justify-center cursor-pointer" onClick={() => window.open(video.video_url!, '_blank')}>
+                          <Play className="h-8 w-8 text-primary" />
+                        </div>
+                      ) : (
+                        <video src={video.video_url} className="w-full h-full object-cover rounded-xl" muted />
+                      )
                     ) : (
                       <Play className="h-8 w-8 text-muted-foreground" />
                     )}
@@ -144,7 +187,10 @@ export default function ClientDashboard() {
                       <p className="text-[10px] text-white font-medium truncate">{video.name}</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-1 capitalize">{video.muscle_group}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <p className="text-[10px] text-muted-foreground capitalize">{video.muscle_group}</p>
+                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground capitalize">{video.category}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -261,14 +307,14 @@ export default function ClientDashboard() {
           )}
         </motion.div>
 
-        {/* Quick Stats / Gadgets */}
+        {/* Quick Stats */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-3">
           <h2 className="text-lg font-display font-semibold">Quick Stats</h2>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { icon: Dumbbell, label: 'Workouts', value: '12', sublabel: 'this month' },
+              { icon: Dumbbell, label: 'Workouts', value: String(workoutCount), sublabel: 'this month' },
               { icon: TrendingUp, label: 'Streak', value: '5', sublabel: 'days' },
-            ].map((stat, i) => (
+            ].map((stat) => (
               <div key={stat.label} className="p-4 rounded-2xl bg-card border border-border">
                 <stat.icon className="h-5 w-5 text-primary mb-2" />
                 <p className="text-2xl font-display font-bold">{stat.value}</p>
@@ -278,21 +324,41 @@ export default function ClientDashboard() {
           </div>
         </motion.div>
 
-        {/* Recent Activity */}
+        {/* Recent Activity - from real workout sessions */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="space-y-3">
           <h2 className="text-lg font-display font-semibold">Recent Activity</h2>
-          {['Pull Day - Yesterday', 'Leg Day - 2 days ago', 'Push Day - 3 days ago'].map((item, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Dumbbell className="h-4 w-4 text-primary" />
+          {recentSessions.length > 0 ? (
+            recentSessions.map((session) => (
+              <div key={session.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Dumbbell className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Workout</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{formatDistanceToNow(new Date(session.ended_at || session.started_at), { addSuffix: true })}</span>
+                    {session.duration_seconds && (
+                      <>
+                        <span>·</span>
+                        <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" />{formatDuration(session.duration_seconds)}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-primary font-medium">Completed</span>
+                  {session.exercises_completed != null && session.total_exercises != null && (
+                    <p className="text-[10px] text-muted-foreground">{session.exercises_completed}/{session.total_exercises} exercises</p>
+                  )}
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{item.split(' - ')[0]}</p>
-                <p className="text-xs text-muted-foreground">{item.split(' - ')[1]}</p>
-              </div>
-              <span className="text-xs text-primary font-medium">Completed</span>
+            ))
+          ) : (
+            <div className="p-4 rounded-2xl bg-card border border-border text-center">
+              <p className="text-sm text-muted-foreground">No completed workouts yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Complete a workout to see it here</p>
             </div>
-          ))}
+          )}
         </motion.div>
       </div>
     </MobileLayout>
