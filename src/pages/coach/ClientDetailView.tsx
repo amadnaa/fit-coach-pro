@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Dumbbell, TrendingUp, Footprints, ClipboardList, Settings2, Clock, Trophy } from 'lucide-react';
+import { ChevronLeft, Dumbbell, TrendingUp, Footprints, ClipboardList, Settings2, Clock, Trophy, UtensilsCrossed } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +20,7 @@ export default function ClientDetailView() {
   const [workoutLogs, setWorkoutLogs] = useState<any[]>([]);
   const [weeklyCheckins, setWeeklyCheckins] = useState<any[]>([]);
   const [workoutSessions, setWorkoutSessions] = useState<any[]>([]);
+  const [foodLogs, setFoodLogs] = useState<any[]>([]);
   const [flags, setFlags] = useState({ food_tracking_enabled: false, step_tracking_enabled: true, cardio_tracking_enabled: false });
   const [flagsId, setFlagsId] = useState<string | null>(null);
 
@@ -43,6 +44,9 @@ export default function ClientDetailView() {
 
     supabase.from('workout_sessions').select('*').eq('user_id', clientId).order('started_at', { ascending: false }).limit(20)
       .then(({ data }) => { if (data) setWorkoutSessions(data); });
+
+    supabase.from('food_logs').select('*').eq('user_id', clientId).order('logged_at', { ascending: false }).limit(50)
+      .then(({ data }) => { if (data) setFoodLogs(data); });
 
     supabase.from('feature_flags').select('*').eq('user_id', clientId).maybeSingle()
       .then(({ data }) => {
@@ -81,9 +85,10 @@ export default function ClientDetailView() {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full grid grid-cols-5 rounded-xl bg-secondary h-9">
+          <TabsList className="w-full grid grid-cols-6 rounded-xl bg-secondary h-9">
             <TabsTrigger value="overview" className="text-[10px] rounded-lg">Overview</TabsTrigger>
             <TabsTrigger value="sessions" className="text-[10px] rounded-lg">Sessions</TabsTrigger>
+            <TabsTrigger value="nutrition" className="text-[10px] rounded-lg">Nutrition</TabsTrigger>
             <TabsTrigger value="logs" className="text-[10px] rounded-lg">Logs</TabsTrigger>
             <TabsTrigger value="checkins" className="text-[10px] rounded-lg">Check-ins</TabsTrigger>
             <TabsTrigger value="settings" className="text-[10px] rounded-lg">Settings</TabsTrigger>
@@ -141,6 +146,56 @@ export default function ClientDetailView() {
                   </div>
                 </div>
               ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="nutrition" className="space-y-3 mt-4">
+            {foodLogs.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No nutrition logs yet</p>
+            ) : (
+              <>
+                {/* Daily summary for most recent day */}
+                {(() => {
+                  const today = foodLogs.length > 0 ? format(new Date(foodLogs[0].logged_at), 'yyyy-MM-dd') : '';
+                  const todayLogs = foodLogs.filter(l => format(new Date(l.logged_at), 'yyyy-MM-dd') === today);
+                  const totals = todayLogs.reduce((acc, l) => ({
+                    calories: acc.calories + (l.calories || 0),
+                    protein: acc.protein + (l.protein || 0),
+                    carbs: acc.carbs + (l.carbs || 0),
+                    fat: acc.fat + (l.fat || 0),
+                  }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+                  return (
+                    <div className="p-4 rounded-2xl bg-card border border-border space-y-2">
+                      <div className="flex items-center gap-2">
+                        <UtensilsCrossed className="h-4 w-4 text-primary" />
+                        <p className="text-sm font-medium">Daily Summary – {format(new Date(today), 'MMM d')}</p>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        <div className="text-center"><p className="text-lg font-bold">{totals.calories}</p><p className="text-[9px] text-muted-foreground">kcal</p></div>
+                        <div className="text-center"><p className="text-lg font-bold text-blue-500">{totals.protein}g</p><p className="text-[9px] text-muted-foreground">Protein</p></div>
+                        <div className="text-center"><p className="text-lg font-bold text-amber-500">{totals.carbs}g</p><p className="text-[9px] text-muted-foreground">Carbs</p></div>
+                        <div className="text-center"><p className="text-lg font-bold text-rose-500">{totals.fat}g</p><p className="text-[9px] text-muted-foreground">Fat</p></div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {foodLogs.map(log => (
+                  <div key={log.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <UtensilsCrossed className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{log.food_name}</p>
+                      <p className="text-[10px] text-muted-foreground">{format(new Date(log.logged_at), 'MMM d, HH:mm')}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-medium">{log.calories} kcal</p>
+                      <p className="text-[9px] text-muted-foreground">P{log.protein} C{log.carbs} F{log.fat}</p>
+                    </div>
+                  </div>
+                ))}
+              </>
             )}
           </TabsContent>
 
