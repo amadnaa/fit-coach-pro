@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUp, ArrowRight, ArrowDown, Check, RefreshCw, Play, ChevronLeft, Square, Clock, Trophy, ChevronDown, ChevronUp, Video } from 'lucide-react';
+import { ArrowUp, ArrowRight, ArrowDown, Check, RefreshCw, Play, ChevronLeft, Square, Clock, Trophy, ChevronDown, ChevronUp, Video, Dumbbell } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
