@@ -273,7 +273,8 @@ export default function ClientDashboard() {
             )}
           </div>
 
-          {/* Steps */}
+          {/* Steps - only show if enabled */}
+          {flags.step_tracking_enabled && (
           <div className="p-3 rounded-2xl bg-card border border-border space-y-2">
             <div className="flex items-center gap-1">
               <Footprints className="h-3 w-3 text-primary" />
@@ -293,6 +294,7 @@ export default function ClientDashboard() {
               </div>
             )}
           </div>
+          )}
         </motion.div>
 
         {/* Weekly Check-in */}
