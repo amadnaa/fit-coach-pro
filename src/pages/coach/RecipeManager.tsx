@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, UtensilsCrossed, Trash2, ChevronLeft } from 'lucide-react';
+import { Plus, UtensilsCrossed, Trash2, ChevronLeft, Search } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,6 +27,7 @@ interface Recipe {
 export default function RecipeManager() {
   const { user } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -162,16 +163,23 @@ export default function RecipeManager() {
           </button>
         </div>
 
-        {loading ? (
+        <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search recipes..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
+        </div>
+
+        {(() => {
+          const filtered = recipes.filter(r => r.title.toLowerCase().includes(search.toLowerCase()));
+          return loading ? (
           <div className="py-12 text-center text-sm text-muted-foreground">Loading...</div>
-        ) : recipes.length === 0 ? (
+          ) : filtered.length === 0 ? (
           <div className="py-12 text-center space-y-2">
             <UtensilsCrossed className="h-10 w-10 text-muted-foreground mx-auto" />
-            <p className="text-sm text-muted-foreground">No recipes yet. Tap + to add one.</p>
+            <p className="text-sm text-muted-foreground">{recipes.length === 0 ? 'No recipes yet. Tap + to add one.' : 'No recipes match your search.'}</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {recipes.map((recipe, i) => (
+            {filtered.map((recipe, i) => (
               <motion.div
                 key={recipe.id}
                 initial={{ opacity: 0, y: 10 }}
@@ -202,7 +210,8 @@ export default function RecipeManager() {
               </motion.div>
             ))}
           </div>
-        )}
+        );
+        })()}
       </div>
 
       {/* Add Recipe Dialog */}
