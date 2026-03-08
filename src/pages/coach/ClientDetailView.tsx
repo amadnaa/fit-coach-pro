@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, TrendingUp, Footprints, Settings2, Clock, UtensilsCrossed, Dumbbell, ChevronDown, ChevronUp, Pencil, Check, X, Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, TrendingUp, Moon, Settings2, Clock, UtensilsCrossed, Dumbbell, ChevronDown, ChevronUp, Pencil, Check, X, Plus, Trash2 } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,12 +50,12 @@ export default function ClientDetailView() {
   const navigate = useNavigate();
   const [clientName, setClientName] = useState('');
   const [bodyweightData, setBodyweightData] = useState<{ date: string; weight: number }[]>([]);
-  const [stepsData, setStepsData] = useState<{ date: string; steps: number }[]>([]);
+  const [sleepData, setSleepData] = useState<{ date: string; hours: number }[]>([]);
   
   const [weeklyCheckins, setWeeklyCheckins] = useState<any[]>([]);
   const [workoutSessions, setWorkoutSessions] = useState<any[]>([]);
   const [foodLogs, setFoodLogs] = useState<any[]>([]);
-  const [flags, setFlags] = useState({ food_tracking_enabled: false, step_tracking_enabled: true, cardio_tracking_enabled: false });
+  const [flags, setFlags] = useState({ food_tracking_enabled: false, sleep_tracking_enabled: true, cardio_tracking_enabled: false });
   const [flagsId, setFlagsId] = useState<string | null>(null);
 
   // Program tab state
@@ -185,8 +185,8 @@ export default function ClientDetailView() {
     supabase.from('bodyweight_logs').select('weight, logged_at').eq('user_id', clientId).order('logged_at', { ascending: true }).limit(30)
       .then(({ data }) => { if (data) setBodyweightData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), weight: d.weight }))); });
 
-    supabase.from('step_logs').select('steps, logged_at').eq('user_id', clientId).order('logged_at', { ascending: true }).limit(30)
-      .then(({ data }) => { if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), steps: d.steps }))); });
+    supabase.from('sleep_logs').select('hours, logged_at').eq('user_id', clientId).order('logged_at', { ascending: true }).limit(30)
+      .then(({ data }) => { if (data) setSleepData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), hours: Number(d.hours) }))); });
 
     supabase.from('weekly_check_ins').select('*').eq('user_id', clientId).order('week_start', { ascending: false }).limit(10)
       .then(({ data }) => { if (data) setWeeklyCheckins(data); });
@@ -200,7 +200,7 @@ export default function ClientDetailView() {
     supabase.from('feature_flags').select('*').eq('user_id', clientId).maybeSingle()
       .then(({ data }) => {
         if (data) {
-          setFlags({ food_tracking_enabled: data.food_tracking_enabled ?? false, step_tracking_enabled: data.step_tracking_enabled ?? true, cardio_tracking_enabled: data.cardio_tracking_enabled ?? false });
+          setFlags({ food_tracking_enabled: data.food_tracking_enabled ?? false, sleep_tracking_enabled: data.sleep_tracking_enabled ?? true, cardio_tracking_enabled: data.cardio_tracking_enabled ?? false });
           setFlagsId(data.id);
         }
       });
@@ -377,10 +377,10 @@ export default function ClientDetailView() {
               ) : <p className="text-xs text-muted-foreground text-center py-4">No data</p>}
             </div>
             <div className="p-4 rounded-2xl bg-card border border-border space-y-2">
-              <div className="flex items-center gap-2"><Footprints className="h-4 w-4 text-primary" /><p className="text-sm font-medium">Steps</p></div>
-              {stepsData.length > 1 ? (
+              <div className="flex items-center gap-2"><Moon className="h-4 w-4 text-primary" /><p className="text-sm font-medium">Sleep</p></div>
+              {sleepData.length > 1 ? (
                 <ResponsiveContainer width="100%" height={120}>
-                  <LineChart data={stepsData}><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis hide domain={['dataMin - 500', 'dataMax + 500']} /><Line type="monotone" dataKey="steps" stroke="hsl(var(--info))" strokeWidth={2} dot={false} /></LineChart>
+                  <LineChart data={sleepData}><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis hide domain={[0, 12]} /><Line type="monotone" dataKey="hours" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} /></LineChart>
                 </ResponsiveContainer>
               ) : <p className="text-xs text-muted-foreground text-center py-4">No data</p>}
             </div>
@@ -662,7 +662,7 @@ export default function ClientDetailView() {
               <h3 className="text-sm font-semibold flex items-center gap-2"><Settings2 className="h-4 w-4 text-primary" /> Feature Flags</h3>
               {[
                 { key: 'food_tracking_enabled', label: 'Food Tracker' },
-                { key: 'step_tracking_enabled', label: 'Step Tracking' },
+                { key: 'sleep_tracking_enabled', label: 'Sleep Tracking' },
                 { key: 'cardio_tracking_enabled', label: 'Cardio Tracker' },
               ].map(f => (
                 <div key={f.key} className="flex items-center justify-between">

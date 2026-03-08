@@ -134,7 +134,7 @@ export interface Recipe {
 export interface FeatureFlags {
   food_tracking_enabled: boolean;
   cardio_tracking_enabled: boolean;
-  step_tracking_enabled: boolean;
+  sleep_tracking_enabled: boolean;
 }
 
 export interface BodyWeightLog {

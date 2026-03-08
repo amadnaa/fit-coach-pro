@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
       );
       // Create feature flags for client
       await supabaseAdmin.from("feature_flags").upsert(
-        { user_id: client.user.id, food_tracking_enabled: true, step_tracking_enabled: true, cardio_tracking_enabled: true },
+        { user_id: client.user.id, food_tracking_enabled: true, sleep_tracking_enabled: true, cardio_tracking_enabled: true },
         { onConflict: "user_id" }
       );
     }

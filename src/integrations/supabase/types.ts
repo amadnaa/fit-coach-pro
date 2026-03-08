@@ -222,21 +222,21 @@ export type Database = {
           cardio_tracking_enabled: boolean | null
           food_tracking_enabled: boolean | null
           id: string
-          step_tracking_enabled: boolean | null
+          sleep_tracking_enabled: boolean | null
           user_id: string
         }
         Insert: {
           cardio_tracking_enabled?: boolean | null
           food_tracking_enabled?: boolean | null
           id?: string
-          step_tracking_enabled?: boolean | null
+          sleep_tracking_enabled?: boolean | null
           user_id: string
         }
         Update: {
           cardio_tracking_enabled?: boolean | null
           food_tracking_enabled?: boolean | null
           id?: string
-          step_tracking_enabled?: boolean | null
+          sleep_tracking_enabled?: boolean | null
           user_id?: string
         }
         Relationships: []
@@ -419,6 +419,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sleep_logs: {
+        Row: {
+          hours: number
+          id: string
+          logged_at: string
+          user_id: string
+        }
+        Insert: {
+          hours: number
+          id?: string
+          logged_at?: string
+          user_id: string
+        }
+        Update: {
+          hours?: number
+          id?: string
+          logged_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       step_logs: {
         Row: {

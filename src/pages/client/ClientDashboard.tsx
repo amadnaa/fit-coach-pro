@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Footprints, Clock, Scale, Weight } from 'lucide-react';
+import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Moon, Clock, Scale, Weight } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,7 +51,7 @@ export default function ClientDashboard() {
 
   const [warmupVideos, setWarmupVideos] = useState<WarmupVideo[]>([]);
   const [bodyweightData, setBodyweightData] = useState<{ date: string; weight: number }[]>([]);
-  const [stepsData, setStepsData] = useState<{ date: string; steps: number }[]>([]);
+  const [sleepData, setSleepData] = useState<{ date: string; hours: number }[]>([]);
   const [weeklyCheckIn, setWeeklyCheckIn] = useState({ training_difficulty: '', recovery_level: '', energy_level: '' });
   const [checkInSubmitted, setCheckInSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -64,6 +64,9 @@ export default function ClientDashboard() {
   const [selectedVideo, setSelectedVideo] = useState<WarmupVideo | null>(null);
   const [todayWorkout, setTodayWorkout] = useState<TodayWorkout | null>(null);
   const [loadingTodayWorkout, setLoadingTodayWorkout] = useState(true);
+  const [sleepDialogOpen, setSleepDialogOpen] = useState(false);
+  const [newSleepHours, setNewSleepHours] = useState('');
+  const [savingSleep, setSavingSleep] = useState(false);
 
   const handleLogWeight = async () => {
     if (!user || !newWeight) return;
@@ -77,6 +80,20 @@ export default function ClientDashboard() {
     setWeightDialogOpen(false);
     setSavingWeight(false);
     toast.success(`Logged ${w} kg`);
+  };
+
+  const handleLogSleep = async () => {
+    if (!user || !newSleepHours) return;
+    const h = parseFloat(newSleepHours);
+    if (isNaN(h) || h <= 0 || h > 24) { toast.error('Enter valid hours (0-24)'); return; }
+    setSavingSleep(true);
+    const { error } = await supabase.from('sleep_logs').insert({ user_id: user.id, hours: h });
+    if (error) { toast.error('Failed to log sleep'); setSavingSleep(false); return; }
+    setSleepData(prev => [...prev, { date: format(new Date(), 'MM/dd'), hours: h }]);
+    setNewSleepHours('');
+    setSleepDialogOpen(false);
+    setSavingSleep(false);
+    toast.success(`Logged ${h}h sleep`);
   };
 
   useEffect(() => {
@@ -94,11 +111,11 @@ export default function ClientDashboard() {
         if (data) setBodyweightData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), weight: d.weight })));
       });
 
-    // Fetch step logs
-    supabase.from('step_logs').select('steps, logged_at')
+    // Fetch sleep logs
+    supabase.from('sleep_logs').select('hours, logged_at')
       .eq('user_id', user.id).order('logged_at', { ascending: true }).limit(14)
       .then(({ data }) => {
-        if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), steps: d.steps })));
+        if (data) setSleepData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), hours: Number(d.hours) })));
       });
 
     // Fetch recent completed workout sessions
@@ -342,24 +359,24 @@ export default function ClientDashboard() {
             )}
           </div>
 
-          {/* Steps - only show if enabled */}
-          {flags.step_tracking_enabled && (
-          <div className="p-3 rounded-2xl bg-card border border-border space-y-2">
+          {/* Sleep - only show if enabled */}
+          {flags.sleep_tracking_enabled && (
+          <div className="p-3 rounded-2xl bg-card border border-border space-y-2 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setSleepDialogOpen(true)}>
             <div className="flex items-center gap-1">
-              <Footprints className="h-3 w-3 text-primary" />
-              <p className="text-[11px] font-medium">Steps</p>
+              <Moon className="h-3 w-3 text-primary" />
+              <p className="text-[11px] font-medium">Sleep</p>
             </div>
-            {stepsData.length > 1 ? (
+            {sleepData.length > 1 ? (
               <ResponsiveContainer width="100%" height={80}>
-                <LineChart data={stepsData}>
+                <LineChart data={sleepData}>
                   <XAxis dataKey="date" hide />
-                  <YAxis hide domain={['dataMin - 500', 'dataMax + 500']} />
-                  <Line type="monotone" dataKey="steps" stroke="hsl(var(--info))" strokeWidth={2} dot={false} />
+                  <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
+                  <Line type="monotone" dataKey="hours" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-20 flex items-center justify-center">
-                <p className="text-[10px] text-muted-foreground">No data yet</p>
+                <p className="text-[10px] text-muted-foreground">Tap to log sleep</p>
               </div>
             )}
           </div>
@@ -509,7 +526,39 @@ export default function ClientDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Video Player Dialog */}
+      {/* Log Sleep Dialog */}
+      <Dialog open={sleepDialogOpen} onOpenChange={setSleepDialogOpen}>
+        <DialogContent className="max-w-xs mx-auto">
+          <DialogHeader>
+            <DialogTitle>Log Sleep</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {sleepData.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Last: <span className="font-medium text-foreground">{sleepData[sleepData.length - 1].hours}h</span>
+              </p>
+            )}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Hours slept</label>
+              <Input
+                type="number"
+                step="0.5"
+                min="0"
+                max="24"
+                placeholder="e.g. 7.5"
+                value={newSleepHours}
+                onChange={(e) => setNewSleepHours(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogSleep()}
+                autoFocus
+              />
+            </div>
+            <Button onClick={handleLogSleep} disabled={savingSleep || !newSleepHours} className="w-full gradient-primary text-primary-foreground">
+              {savingSleep ? 'Saving...' : 'Log Sleep'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
         <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
           <DialogHeader className="p-4 pb-2">
