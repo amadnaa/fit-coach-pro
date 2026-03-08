@@ -526,7 +526,39 @@ export default function ClientDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Video Player Dialog */}
+      {/* Log Sleep Dialog */}
+      <Dialog open={sleepDialogOpen} onOpenChange={setSleepDialogOpen}>
+        <DialogContent className="max-w-xs mx-auto">
+          <DialogHeader>
+            <DialogTitle>Log Sleep</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {sleepData.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Last: <span className="font-medium text-foreground">{sleepData[sleepData.length - 1].hours}h</span>
+              </p>
+            )}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Hours slept</label>
+              <Input
+                type="number"
+                step="0.5"
+                min="0"
+                max="24"
+                placeholder="e.g. 7.5"
+                value={newSleepHours}
+                onChange={(e) => setNewSleepHours(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogSleep()}
+                autoFocus
+              />
+            </div>
+            <Button onClick={handleLogSleep} disabled={savingSleep || !newSleepHours} className="w-full gradient-primary text-primary-foreground">
+              {savingSleep ? 'Saving...' : 'Log Sleep'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
         <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
           <DialogHeader className="p-4 pb-2">
