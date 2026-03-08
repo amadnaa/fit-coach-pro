@@ -24,7 +24,7 @@ export function BottomNav() {
     { icon: Home, label: 'Home', path: '/dashboard' },
     { icon: Dumbbell, label: 'Workout', path: '/workout' },
     { icon: BarChart3, label: 'Progress', path: '/progress' },
-    { icon: UtensilsCrossed, label: 'Nutrition', path: '/nutrition' },
+    ...(flags?.food_tracking_enabled !== false ? [{ icon: UtensilsCrossed, label: 'Nutrition', path: '/nutrition' }] : []),
     { icon: User, label: 'Profile', path: '/profile' },
   ];
   
