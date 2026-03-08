@@ -209,7 +209,7 @@ export default function OnboardingView() {
   const [data, setData] = useState<Partial<OnboardingData>>({});
   const [showPlan, setShowPlan] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { user } = useAuth();
+  const { user, setOnboardingCompleted } = useAuth();
   const navigate = useNavigate();
 
   const step = steps[currentStep];
@@ -264,6 +264,7 @@ export default function OnboardingView() {
       });
 
       if (error) throw error;
+      setOnboardingCompleted(true);
       toast.success('Programme generated! Your trainer may customise it further.');
       navigate('/dashboard');
     } catch (err: any) {

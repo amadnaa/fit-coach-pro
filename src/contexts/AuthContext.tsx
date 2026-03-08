@@ -9,6 +9,7 @@ interface AuthContextType {
   role: UserRole | null;
   loading: boolean;
   onboardingCompleted: boolean | null;
+  setOnboardingCompleted: (val: boolean) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, role, loading, onboardingCompleted, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, role, loading, onboardingCompleted, setOnboardingCompleted, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
