@@ -103,6 +103,10 @@ export default function ClientDashboard() {
   useEffect(() => {
     if (!user) return;
 
+    // Fetch avatar
+    supabase.from('profiles').select('avatar_url').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => { if (data?.avatar_url) setAvatarUrl(data.avatar_url); });
+
     // Fetch warmup AND stretching exercises
     supabase.from('exercises').select('id, name, video_url, category, muscle_group')
       .in('category', ['warmup', 'stretching'])
