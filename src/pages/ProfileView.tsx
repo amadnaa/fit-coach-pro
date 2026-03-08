@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { LogOut, Moon, Sun, User, Shield, Bell, ChevronLeft, Palette, Camera, Lock, Check } from 'lucide-react';
+import { LogOut, Moon, Sun, User, Shield, Bell, Palette, Camera, Lock, Check } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,16 +10,51 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const ACCENT_COLORS = [
-  { label: 'Green', value: '142 72% 50%' },
-  { label: 'Blue', value: '210 100% 56%' },
-  { label: 'Purple', value: '262 80% 55%' },
-  { label: 'Orange', value: '25 95% 55%' },
-  { label: 'Red', value: '0 72% 55%' },
-  { label: 'Pink', value: '330 80% 55%' },
-  { label: 'Teal', value: '175 70% 45%' },
-  { label: 'Yellow', value: '50 95% 50%' },
-];
+function hslToHex(h: number, s: number, l: number): string {
+  s /= 100; l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+function hexToHsl(hex: string): [number, number, number] {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) * 60; break;
+      case g: h = ((b - r) / d + 2) * 60; break;
+      case b: h = ((r - g) / d + 4) * 60; break;
+    }
+  }
+  return [Math.round(h), Math.round(s * 100), Math.round(l * 100)];
+}
+
+function applyAccentColor(color: string) {
+  const parts = color.split(' ').map(s => parseFloat(s));
+  const h = parts[0], s = parts[1], l = parts[2];
+  const darkL = Math.max(l - 10, 15);
+  const lightL = Math.min(l + 10, 85);
+  const lightH = (h + 18) % 360;
+
+  document.documentElement.style.setProperty('--primary', color);
+  document.documentElement.style.setProperty('--accent', color);
+  document.documentElement.style.setProperty('--ring', color);
+  document.documentElement.style.setProperty('--sidebar-primary', color);
+  document.documentElement.style.setProperty('--sidebar-ring', color);
+  document.documentElement.style.setProperty('--primary-dark', `${h} ${s}% ${darkL}%`);
+  document.documentElement.style.setProperty('--primary-light', `${lightH} ${Math.min(s + 8, 100)}% ${lightL}%`);
+}
 
 export default function ProfileView() {
   const { user, role, signOut } = useAuth();
@@ -34,6 +69,7 @@ export default function ProfileView() {
   const [passwords, setPasswords] = useState({ current: '', new1: '', new2: '' });
   const [changingPassword, setChangingPassword] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const colorInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -53,22 +89,23 @@ export default function ProfileView() {
       });
   }, [user]);
 
-  const applyAccentColor = (color: string) => {
-    document.documentElement.style.setProperty('--primary', color);
-    document.documentElement.style.setProperty('--accent', color);
-    document.documentElement.style.setProperty('--ring', color);
-    document.documentElement.style.setProperty('--sidebar-primary', color);
-    document.documentElement.style.setProperty('--sidebar-ring', color);
-    document.documentElement.style.setProperty('--success', color);
+  const hexValue = useCallback(() => {
+    const parts = selectedColor.split(' ').map(s => parseFloat(s));
+    return hslToHex(parts[0], parts[1], parts[2]);
+  }, [selectedColor]);
+
+  const handleColorInput = async (hex: string) => {
+    const [h, s, l] = hexToHsl(hex);
+    const hslStr = `${h} ${s}% ${l}%`;
+    setSelectedColor(hslStr);
+    applyAccentColor(hslStr);
   };
 
-  const handleColorChange = async (color: string) => {
-    setSelectedColor(color);
-    applyAccentColor(color);
+  const saveColor = async () => {
     if (!user) return;
     await supabase.from('user_preferences').upsert({
       user_id: user.id,
-      accent_color: color,
+      accent_color: selectedColor,
     }, { onConflict: 'user_id' });
     toast.success('Theme updated!');
   };
@@ -77,12 +114,10 @@ export default function ProfileView() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
-
     const ext = file.name.split('.').pop();
     const path = `${user.id}/avatar.${ext}`;
     const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
     if (error) { toast.error(error.message); return; }
-
     const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
     const url = urlData.publicUrl + '?t=' + Date.now();
     setAvatarUrl(url);
@@ -162,15 +197,50 @@ export default function ProfileView() {
             <Palette className="h-4 w-4 text-primary" />
             <p className="text-sm font-semibold">Accent Color</p>
           </div>
-          <div className="grid grid-cols-4 gap-3">
-            {ACCENT_COLORS.map(c => (
-              <button key={c.value} onClick={() => handleColorChange(c.value)}
-                className={cn("h-10 rounded-xl border-2 transition-all flex items-center justify-center",
-                  selectedColor === c.value ? "border-foreground scale-105" : "border-transparent")}
-                style={{ backgroundColor: `hsl(${c.value})` }}>
-                {selectedColor === c.value && <Check className="h-4 w-4 text-white drop-shadow" />}
-              </button>
-            ))}
+          <div className="flex items-center gap-4">
+            <div
+              className="relative w-14 h-14 rounded-2xl border-2 border-border cursor-pointer overflow-hidden shrink-0"
+              onClick={() => colorInputRef.current?.click()}
+              style={{ backgroundColor: `hsl(${selectedColor})` }}
+            >
+              <input
+                ref={colorInputRef}
+                type="color"
+                value={hexValue()}
+                onChange={e => handleColorInput(e.target.value)}
+                onBlur={saveColor}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              />
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-xs text-muted-foreground">Tap the swatch to pick any color</p>
+              <div className="flex items-center gap-2">
+                <div className="h-2 flex-1 rounded-full bg-primary/30" />
+                <div className="h-2 w-8 rounded-full bg-primary" />
+              </div>
+            </div>
+          </div>
+          {/* Quick presets */}
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { hex: '#22c55e', label: 'Green' },
+              { hex: '#3b82f6', label: 'Blue' },
+              { hex: '#a855f7', label: 'Purple' },
+              { hex: '#f97316', label: 'Orange' },
+              { hex: '#ec4899', label: 'Pink' },
+              { hex: '#14b8a6', label: 'Teal' },
+            ].map(p => {
+              const [h, s, l] = hexToHsl(p.hex);
+              const hsl = `${h} ${s}% ${l}%`;
+              return (
+                <button key={p.hex} onClick={() => { handleColorInput(p.hex); setTimeout(saveColor, 50); }}
+                  className={cn("h-8 w-8 rounded-full border-2 transition-all",
+                    Math.abs(parseFloat(selectedColor) - h) < 5 ? "border-foreground scale-110" : "border-transparent")}
+                  style={{ backgroundColor: p.hex }}
+                  title={p.label}
+                />
+              );
+            })}
           </div>
         </motion.div>
 
@@ -181,7 +251,7 @@ export default function ProfileView() {
             { icon: Lock, label: 'Change Password', action: () => setShowPasswordForm(!showPasswordForm) },
             { icon: Bell, label: 'Notifications', action: () => navigate('/notifications') },
             { icon: darkMode ? Sun : Moon, label: darkMode ? 'Light Mode' : 'Dark Mode', action: toggleDark },
-            { icon: Shield, label: 'Privacy & Security', action: () => {} },
+            { icon: Shield, label: 'Privacy & Security', action: () => navigate('/privacy') },
           ].map((item, i) => (
             <motion.button key={item.label} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
               onClick={item.action}
