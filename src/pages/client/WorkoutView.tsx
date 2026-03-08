@@ -82,7 +82,7 @@ export default function WorkoutView() {
 
       if (!planData) {
         setLoadingPlan(false);
-        return; // Will fall back to mock exercises
+        return;
       }
 
       setPlanInfo({ cycle_week: planData.cycle_week, name: planData.name });

@@ -247,14 +247,20 @@ export default function ClientDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold text-lg">Today's Workout</p>
-                <p className="text-sm opacity-80">Push Day · 4 exercises · ~60 min</p>
+                {loadingTodayWorkout ? (
+                  <p className="text-sm opacity-80">Loading...</p>
+                ) : todayWorkout ? (
+                  <p className="text-sm opacity-80">{todayWorkout.workoutName} · {todayWorkout.exerciseCount} exercises</p>
+                ) : (
+                  <p className="text-sm opacity-80">No workout scheduled</p>
+                )}
               </div>
               <div className="w-12 h-12 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
                 <Dumbbell className="h-6 w-6" />
               </div>
             </div>
             <button
-              onClick={() => navigate('/workout')}
+              onClick={() => navigate(todayWorkout?.workoutId ? `/workout?day=${todayWorkout.workoutId}` : '/workout')}
               className="w-full py-3 rounded-xl bg-primary-foreground/20 text-center font-semibold text-sm backdrop-blur-sm hover:bg-primary-foreground/30 transition-colors"
             >
               Start Workout
