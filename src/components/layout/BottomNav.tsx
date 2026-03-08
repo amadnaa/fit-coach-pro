@@ -2,14 +2,7 @@ import { Home, Dumbbell, BarChart3, UtensilsCrossed, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-
-const clientTabs = [
-  { icon: Home, label: 'Home', path: '/dashboard' },
-  { icon: Dumbbell, label: 'Workout', path: '/workout' },
-  { icon: BarChart3, label: 'Progress', path: '/progress' },
-  { icon: UtensilsCrossed, label: 'Nutrition', path: '/nutrition' },
-  { icon: User, label: 'Profile', path: '/profile' },
-];
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 const coachTabs = [
   { icon: Home, label: 'Clients', path: '/coach' },
@@ -22,6 +15,15 @@ export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { role } = useAuth();
+  const { flags } = useFeatureFlags();
+
+  const clientTabs = [
+    { icon: Home, label: 'Home', path: '/dashboard' },
+    { icon: Dumbbell, label: 'Workout', path: '/workout' },
+    { icon: BarChart3, label: 'Progress', path: '/progress' },
+    ...(flags.food_tracking_enabled ? [{ icon: UtensilsCrossed, label: 'Nutrition', path: '/nutrition' }] : []),
+    { icon: User, label: 'Profile', path: '/profile' },
+  ];
   
   const tabs = role === 'coach' ? coachTabs : clientTabs;
 

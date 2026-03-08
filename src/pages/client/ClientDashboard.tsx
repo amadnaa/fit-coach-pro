@@ -39,6 +39,7 @@ interface RecentSession {
 export default function ClientDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { flags } = useFeatureFlags();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'Athlete';
   const today = new Date();
 
