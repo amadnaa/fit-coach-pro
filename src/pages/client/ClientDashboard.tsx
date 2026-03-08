@@ -96,6 +96,7 @@ export default function ClientDashboard() {
     toast.success(`Logged ${h}h sleep`);
   };
 
+  useEffect(() => {
     if (!user) return;
 
     // Fetch warmup AND stretching exercises
