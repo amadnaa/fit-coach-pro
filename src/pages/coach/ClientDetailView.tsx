@@ -83,11 +83,10 @@ export default function ClientDetailView() {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full grid grid-cols-6 rounded-xl bg-secondary h-9">
+          <TabsList className="w-full grid grid-cols-5 rounded-xl bg-secondary h-9">
             <TabsTrigger value="overview" className="text-[10px] rounded-lg">Overview</TabsTrigger>
             <TabsTrigger value="sessions" className="text-[10px] rounded-lg">Sessions</TabsTrigger>
             <TabsTrigger value="nutrition" className="text-[10px] rounded-lg">Nutrition</TabsTrigger>
-            <TabsTrigger value="logs" className="text-[10px] rounded-lg">Logs</TabsTrigger>
             <TabsTrigger value="checkins" className="text-[10px] rounded-lg">Check-ins</TabsTrigger>
             <TabsTrigger value="settings" className="text-[10px] rounded-lg">Settings</TabsTrigger>
           </TabsList>
