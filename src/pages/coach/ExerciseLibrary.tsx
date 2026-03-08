@@ -182,21 +182,33 @@ export default function ExerciseLibrary() {
                   <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="rounded-xl" rows={2} placeholder="Optional description..." maxLength={500} />
                 </div>
 
-                {/* Video Upload */}
+                {/* Video Upload or Link */}
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Video</label>
                   <input ref={fileInputRef} type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
                   {form.video_url ? (
                     <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary">
                       <Play className="h-4 w-4 text-primary" />
-                      <span className="text-xs text-muted-foreground flex-1 truncate">Video uploaded</span>
+                      <span className="text-xs text-muted-foreground flex-1 truncate">{form.video_url.startsWith('http') && !form.video_url.includes('supabase') ? form.video_url : 'Video uploaded'}</span>
                       <button onClick={() => setForm(f => ({ ...f, video_url: '' }))} className="text-destructive"><X className="h-4 w-4" /></button>
                     </div>
                   ) : (
-                    <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full rounded-xl">
-                      <Upload className="h-4 w-4 mr-2" />
-                      {uploading ? 'Uploading...' : 'Upload Video'}
-                    </Button>
+                    <div className="space-y-2">
+                      <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full rounded-xl">
+                        <Upload className="h-4 w-4 mr-2" />
+                        {uploading ? 'Uploading...' : 'Upload Video'}
+                      </Button>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex-1 h-px bg-border" />
+                        <span>or paste a link</span>
+                        <div className="flex-1 h-px bg-border" />
+                      </div>
+                      <Input
+                        placeholder="https://youtube.com/watch?v=..."
+                        onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))}
+                        className="rounded-xl text-xs"
+                      />
+                    </div>
                   )}
                 </div>
 
