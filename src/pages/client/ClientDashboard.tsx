@@ -51,7 +51,7 @@ export default function ClientDashboard() {
 
   const [warmupVideos, setWarmupVideos] = useState<WarmupVideo[]>([]);
   const [bodyweightData, setBodyweightData] = useState<{ date: string; weight: number }[]>([]);
-  const [stepsData, setStepsData] = useState<{ date: string; steps: number }[]>([]);
+  const [sleepData, setSleepData] = useState<{ date: string; hours: number }[]>([]);
   const [weeklyCheckIn, setWeeklyCheckIn] = useState({ training_difficulty: '', recovery_level: '', energy_level: '' });
   const [checkInSubmitted, setCheckInSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
