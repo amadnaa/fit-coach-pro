@@ -49,6 +49,7 @@ const mockExercises: ExerciseState[] = [
 export default function WorkoutView() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [currentExercise, setCurrentExercise] = useState(0);
   const [exercises, setExercises] = useState<ExerciseState[]>(mockExercises);
   const [currentSet, setCurrentSet] = useState(0);
