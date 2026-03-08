@@ -38,6 +38,7 @@ interface FoodLogEntry {
 
 export default function NutritionView() {
   const { user } = useAuth();
+  const { flags } = useFeatureFlags();
   const [activeFilter, setActiveFilter] = useState('All');
   const [tab, setTab] = useState<'recipes' | 'tracker'>('recipes');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
