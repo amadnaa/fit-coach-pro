@@ -186,7 +186,7 @@ export default function CoachDashboard() {
           <motion.div
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md bg-card border border-border rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-auto"
+            className="w-full max-w-md bg-card border border-border rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-auto pb-20"
           >
             <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card rounded-t-3xl z-10">
               <h2 className="text-lg font-display font-bold">Create Client</h2>

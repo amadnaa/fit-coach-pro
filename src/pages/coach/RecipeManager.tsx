@@ -207,7 +207,7 @@ export default function RecipeManager() {
 
       {/* Add Recipe Dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto pb-24 safe-bottom">
+        <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto pb-32">
           <DialogHeader>
             <DialogTitle>Add Recipe</DialogTitle>
           </DialogHeader>
