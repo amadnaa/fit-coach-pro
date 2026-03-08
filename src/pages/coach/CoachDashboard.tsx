@@ -76,6 +76,20 @@ export default function CoachDashboard() {
         client_name: profileMap.get(ci.user_id) || 'Unknown',
       })));
     }
+
+    // Compute avg workouts/week across all clients (last 4 weeks)
+    const fourWeeksAgo = new Date();
+    fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+    const { count: totalSessions } = await supabase.from('workout_sessions')
+      .select('id', { count: 'exact', head: true })
+      .in('user_id', clientIds)
+      .eq('completed', true)
+      .gte('started_at', fourWeeksAgo.toISOString());
+
+    if (totalSessions !== null && clientIds.length > 0) {
+      const avg = (totalSessions / 4 / clientIds.length).toFixed(1);
+      setWeeklyWorkouts(avg);
+    }
   };
 
   const handleCreateClient = async () => {
