@@ -14,15 +14,6 @@ import { cn } from '@/lib/utils';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useNavigate } from 'react-router-dom';
 
-const weightData = [
-  { week: 'W1', value: 82 }, { week: 'W2', value: 81.5 }, { week: 'W3', value: 81.2 },
-  { week: 'W4', value: 80.8 }, { week: 'W5', value: 80.3 }, { week: 'W6', value: 80.1 }, { week: 'W7', value: 79.6 },
-];
-
-const stepsData = [
-  { day: 'Mon', value: 8200 }, { day: 'Tue', value: 10500 }, { day: 'Wed', value: 7800 },
-  { day: 'Thu', value: 12000 }, { day: 'Fri', value: 9300 }, { day: 'Sat', value: 6500 }, { day: 'Sun', value: 4200 },
-];
 
 interface ScheduledSession {
   id: string;
