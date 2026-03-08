@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, TrendingUp, Footprints, Settings2, Clock, UtensilsCrossed, Dumbbell, ChevronDown, ChevronUp, Pencil, Check, X, Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, TrendingUp, Moon, Settings2, Clock, UtensilsCrossed, Dumbbell, ChevronDown, ChevronUp, Pencil, Check, X, Plus, Trash2 } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
