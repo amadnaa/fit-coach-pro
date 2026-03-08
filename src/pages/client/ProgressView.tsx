@@ -32,6 +32,7 @@ interface ScheduledSession {
 
 export default function ProgressView() {
   const { user } = useAuth();
+  const { flags } = useFeatureFlags();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sessions, setSessions] = useState<ScheduledSession[]>([]);
   const [showAddSession, setShowAddSession] = useState(false);
