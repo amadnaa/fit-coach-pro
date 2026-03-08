@@ -435,6 +435,34 @@ export default function ClientDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Video Player Dialog */}
+      <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-2">
+            <DialogTitle className="text-base">{selectedVideo?.name}</DialogTitle>
+            <p className="text-xs text-muted-foreground capitalize">{selectedVideo?.muscle_group} · {selectedVideo?.category}</p>
+          </DialogHeader>
+          <div className="w-full aspect-video bg-black">
+            {selectedVideo?.video_url ? (
+              selectedVideo.video_url.includes('youtube') || selectedVideo.video_url.includes('youtu.be') ? (
+                <iframe
+                  src={selectedVideo.video_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                  className="w-full h-full"
+                  allow="autoplay; fullscreen"
+                  allowFullScreen
+                />
+              ) : (
+                <video src={selectedVideo.video_url} className="w-full h-full object-contain" controls autoPlay />
+              )
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <p className="text-sm text-muted-foreground">No video available</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </MobileLayout>
   );
 }
