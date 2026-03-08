@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useAccentColor } from "@/hooks/useAccentColor";
 import Login from "./pages/Login";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import CoachDashboard from "./pages/coach/CoachDashboard";
