@@ -662,7 +662,7 @@ export default function ClientDetailView() {
               <h3 className="text-sm font-semibold flex items-center gap-2"><Settings2 className="h-4 w-4 text-primary" /> Feature Flags</h3>
               {[
                 { key: 'food_tracking_enabled', label: 'Food Tracker' },
-                { key: 'step_tracking_enabled', label: 'Step Tracking' },
+                { key: 'sleep_tracking_enabled', label: 'Sleep Tracking' },
                 { key: 'cardio_tracking_enabled', label: 'Cardio Tracker' },
               ].map(f => (
                 <div key={f.key} className="flex items-center justify-between">
