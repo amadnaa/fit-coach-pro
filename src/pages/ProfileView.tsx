@@ -89,10 +89,6 @@ export default function ProfileView() {
       });
   }, [user]);
 
-  const hexValue = useCallback(() => {
-    const parts = selectedColor.split(' ').map(s => parseFloat(s));
-    return hslToHex(parts[0], parts[1], parts[2]);
-  }, [selectedColor]);
 
   const handleColorInput = async (hex: string) => {
     const [h, s, l] = hexToHsl(hex);
