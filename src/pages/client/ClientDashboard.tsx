@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Footprints, Clock } from 'lucide-react';
+import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Footprints, Clock, Scale } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +8,10 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 const warmupCategories = ['Legs', 'Full Body', 'Running', 'Arms / Hands', 'Mobility', 'Stretching'];
 
