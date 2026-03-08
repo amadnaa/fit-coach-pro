@@ -274,6 +274,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          default_morning_reminder_time: string
+          id: string
+          nutrition_reminder_evening: boolean
+          nutrition_reminder_midday: boolean
+          nutrition_reminder_morning: boolean
+          push_notifications_enabled: boolean
+          updated_at: string
+          user_id: string
+          workout_reminder_minutes_before: number
+          workout_reminders_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          default_morning_reminder_time?: string
+          id?: string
+          nutrition_reminder_evening?: boolean
+          nutrition_reminder_midday?: boolean
+          nutrition_reminder_morning?: boolean
+          push_notifications_enabled?: boolean
+          updated_at?: string
+          user_id: string
+          workout_reminder_minutes_before?: number
+          workout_reminders_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          default_morning_reminder_time?: string
+          id?: string
+          nutrition_reminder_evening?: boolean
+          nutrition_reminder_midday?: boolean
+          nutrition_reminder_morning?: boolean
+          push_notifications_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+          workout_reminder_minutes_before?: number
+          workout_reminders_enabled?: boolean
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string

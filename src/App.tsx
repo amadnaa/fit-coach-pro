@@ -18,6 +18,8 @@ import ExerciseLibrary from "./pages/coach/ExerciseLibrary";
 import RecipeManager from "./pages/coach/RecipeManager";
 import NotificationCentre from "./pages/NotificationCentre";
 import PrivacySecurity from "./pages/PrivacySecurity";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +40,7 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -63,7 +66,9 @@ function AppRoutes() {
       <Route path="/onboarding" element={<OnboardingView />} />
       <Route path="/profile" element={<ProfileView />} />
       <Route path="/notifications" element={<NotificationCentre />} />
+      <Route path="/notification-settings" element={<NotificationSettings />} />
       <Route path="/privacy" element={<PrivacySecurity />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
       {/* Coach Routes - redirect clients to /dashboard */}
       <Route path="/coach" element={role === 'coach' ? <CoachDashboard /> : <Navigate to="/dashboard" replace />} />

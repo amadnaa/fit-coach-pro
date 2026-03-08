@@ -183,8 +183,10 @@ export default function ProfileView() {
             { icon: User, label: editMode ? 'Done Editing' : 'Edit Name', action: () => setEditMode(!editMode) },
             { icon: Lock, label: 'Change Password', action: () => setShowPasswordForm(!showPasswordForm) },
             { icon: Bell, label: 'Notifications', action: () => navigate('/notifications') },
+            { icon: Bell, label: 'Notification Settings', action: () => navigate('/notification-settings') },
             { icon: darkMode ? Sun : Moon, label: darkMode ? 'Light Mode' : 'Dark Mode', action: toggleDark },
             { icon: Shield, label: 'Privacy & Security', action: () => navigate('/privacy') },
+            { icon: Shield, label: 'Privacy Policy', action: () => navigate('/privacy-policy') },
           ].map((item, i) => (
             <motion.button key={item.label} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
               onClick={item.action}
