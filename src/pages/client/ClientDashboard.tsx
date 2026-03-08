@@ -53,6 +53,7 @@ export default function ClientDashboard() {
   const [newWeight, setNewWeight] = useState('');
   const [savingWeight, setSavingWeight] = useState(false);
   const [totalVolume, setTotalVolume] = useState(0);
+  const [selectedVideo, setSelectedVideo] = useState<WarmupVideo | null>(null);
 
   const handleLogWeight = async () => {
     if (!user || !newWeight) return;
@@ -202,19 +203,9 @@ export default function ClientDashboard() {
           {warmupVideos.length > 0 ? (
             <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-5 px-5">
               {warmupVideos.map((video) => (
-                <div key={video.id} className="flex-shrink-0 w-40">
+                <div key={video.id} className="flex-shrink-0 w-40 cursor-pointer" onClick={() => setSelectedVideo(video)}>
                   <div className="w-40 h-24 rounded-xl bg-secondary flex items-center justify-center relative overflow-hidden">
-                    {video.video_url ? (
-                      video.video_url.includes('youtube') || video.video_url.includes('youtu.be') ? (
-                        <div className="w-full h-full bg-secondary flex items-center justify-center cursor-pointer" onClick={() => window.open(video.video_url!, '_blank')}>
-                          <Play className="h-8 w-8 text-primary" />
-                        </div>
-                      ) : (
-                        <video src={video.video_url} className="w-full h-full object-cover rounded-xl" muted />
-                      )
-                    ) : (
-                      <Play className="h-8 w-8 text-muted-foreground" />
-                    )}
+                    <Play className="h-8 w-8 text-primary z-10" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl" />
                     <div className="absolute bottom-2 left-2 right-2">
                       <p className="text-[10px] text-white font-medium truncate">{video.name}</p>
@@ -441,6 +432,34 @@ export default function ClientDashboard() {
             <Button onClick={handleLogWeight} disabled={savingWeight || !newWeight} className="w-full gradient-primary text-primary-foreground">
               {savingWeight ? 'Saving...' : 'Log Weight'}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Video Player Dialog */}
+      <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-2">
+            <DialogTitle className="text-base">{selectedVideo?.name}</DialogTitle>
+            <p className="text-xs text-muted-foreground capitalize">{selectedVideo?.muscle_group} · {selectedVideo?.category}</p>
+          </DialogHeader>
+          <div className="w-full aspect-video bg-black">
+            {selectedVideo?.video_url ? (
+              selectedVideo.video_url.includes('youtube') || selectedVideo.video_url.includes('youtu.be') ? (
+                <iframe
+                  src={selectedVideo.video_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                  className="w-full h-full"
+                  allow="autoplay; fullscreen"
+                  allowFullScreen
+                />
+              ) : (
+                <video src={selectedVideo.video_url} className="w-full h-full object-contain" controls autoPlay />
+              )
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <p className="text-sm text-muted-foreground">No video available</p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
