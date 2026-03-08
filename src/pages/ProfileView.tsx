@@ -64,7 +64,7 @@ export default function ProfileView() {
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || '');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [selectedColor, setSelectedColor] = useState('142 72% 50%');
+  const [selectedColor, setSelectedColor] = useState('330 81% 60%');
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwords, setPasswords] = useState({ current: '', new1: '', new2: '' });
   const [changingPassword, setChangingPassword] = useState(false);
