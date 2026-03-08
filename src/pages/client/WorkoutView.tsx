@@ -323,8 +323,30 @@ export default function WorkoutView() {
     return (
       <MobileLayout>
         <div className="px-5 pt-6 space-y-6">
-          <h1 className="text-2xl font-display font-bold">Push Day</h1>
-          <p className="text-muted-foreground text-sm">Week 2 · Cycle 1</p>
+          <h1 className="text-2xl font-display font-bold">{workoutName}</h1>
+          <p className="text-muted-foreground text-sm">
+            {planInfo ? `${planInfo.name} · Cycle ${planInfo.cycle_week}` : 'Week 2 · Cycle 1'}
+          </p>
+
+          {/* Workout Day Selector */}
+          {activeWorkouts.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {activeWorkouts.map(w => (
+                <button
+                  key={w.id}
+                  onClick={() => setSelectedWorkoutId(w.id)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border",
+                    selectedWorkoutId === w.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border text-muted-foreground hover:border-primary/30"
+                  )}
+                >
+                  Day {w.day_number}: {w.name}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="space-y-3">
             {exercises.map((ex, i) => (

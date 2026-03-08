@@ -283,10 +283,18 @@ export default function ClientDetailView() {
           {/* PROGRAM TAB */}
           <TabsContent value="program" className="space-y-4 mt-4">
             {plans.length === 0 ? (
-              <div className="py-8 text-center space-y-2">
+              <div className="py-8 text-center space-y-3">
                 <Dumbbell className="h-10 w-10 text-muted-foreground mx-auto" />
                 <p className="text-sm text-muted-foreground">No workout plans yet</p>
-                <p className="text-xs text-muted-foreground">Create a plan for this client from the workout builder.</p>
+                <p className="text-xs text-muted-foreground">Generate a plan from the client's onboarding data, or create one manually.</p>
+                <Button
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={generatePlanFromOnboarding}
+                  disabled={generatingPlan}
+                >
+                  {generatingPlan ? 'Generating...' : 'Generate from Onboarding'}
+                </Button>
               </div>
             ) : (
               <>
