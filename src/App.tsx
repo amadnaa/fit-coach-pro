@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import CoachDashboard from "./pages/coach/CoachDashboard";
+import ClientDetailView from "./pages/coach/ClientDetailView";
 import WorkoutView from "./pages/client/WorkoutView";
 import ProgressView from "./pages/client/ProgressView";
 import NutritionView from "./pages/client/NutritionView";
@@ -50,6 +51,7 @@ function AppRoutes() {
 
       {/* Coach Routes */}
       <Route path="/coach" element={<CoachDashboard />} />
+      <Route path="/coach/client/:clientId" element={<ClientDetailView />} />
       <Route path="/coach/exercises" element={<ExerciseLibrary />} />
       <Route path="/coach/recipes" element={<RecipeManager />} />
 

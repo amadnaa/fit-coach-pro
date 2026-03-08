@@ -160,6 +160,7 @@ export type Database = {
       exercises: {
         Row: {
           alternatives: string[] | null
+          category: string
           created_at: string
           created_by: string | null
           description: string | null
@@ -174,6 +175,7 @@ export type Database = {
         }
         Insert: {
           alternatives?: string[] | null
+          category?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -188,6 +190,7 @@ export type Database = {
         }
         Update: {
           alternatives?: string[] | null
+          category?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -370,6 +373,39 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      weekly_check_ins: {
+        Row: {
+          created_at: string
+          energy_level: string
+          id: string
+          notes: string | null
+          recovery_level: string
+          training_difficulty: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          energy_level?: string
+          id?: string
+          notes?: string | null
+          recovery_level?: string
+          training_difficulty?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          energy_level?: string
+          id?: string
+          notes?: string | null
+          recovery_level?: string
+          training_difficulty?: string
+          user_id?: string
+          week_start?: string
         }
         Relationships: []
       }
