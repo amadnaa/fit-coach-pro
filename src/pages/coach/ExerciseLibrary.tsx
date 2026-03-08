@@ -166,7 +166,7 @@ export default function ExerciseLibrary() {
       <AnimatePresence>
         {showForm && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end">
-            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25 }} className="w-full max-h-[85vh] overflow-y-auto bg-card rounded-t-3xl p-5 pb-10 space-y-4 border-t border-border">
+            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25 }} className="w-full max-h-[85vh] overflow-y-auto bg-card rounded-t-3xl p-5 pb-24 safe-bottom space-y-4 border-t border-border">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-display font-semibold">Add Exercise</h2>
                 <button onClick={() => setShowForm(false)}><X className="h-5 w-5 text-muted-foreground" /></button>
