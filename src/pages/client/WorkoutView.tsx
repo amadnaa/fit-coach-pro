@@ -107,8 +107,10 @@ export default function WorkoutView() {
       }
 
       setActiveWorkouts(workoutsData);
-      // Auto-select first workout
-      setSelectedWorkoutId(workoutsData[0].id);
+      // Auto-select from query param or first workout
+      const dayParam = searchParams.get('day');
+      const matchedWorkout = dayParam ? workoutsData.find(w => w.id === dayParam) : null;
+      setSelectedWorkoutId(matchedWorkout ? matchedWorkout.id : workoutsData[0].id);
       setLoadingPlan(false);
     };
     loadPlan();
