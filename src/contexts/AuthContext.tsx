@@ -9,6 +9,7 @@ interface AuthContextType {
   role: UserRole | null;
   loading: boolean;
   onboardingCompleted: boolean | null;
+  setOnboardingCompleted: (val: boolean) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
