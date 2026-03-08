@@ -531,6 +531,62 @@ export type Database = {
         }
         Relationships: []
       }
+      workout_sessions: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          exercises_completed: number | null
+          id: string
+          notes: string | null
+          started_at: string
+          total_exercises: number | null
+          total_reps: number | null
+          total_sets_completed: number | null
+          user_id: string
+          workout_id: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          exercises_completed?: number | null
+          id?: string
+          notes?: string | null
+          started_at?: string
+          total_exercises?: number | null
+          total_reps?: number | null
+          total_sets_completed?: number | null
+          user_id: string
+          workout_id?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          exercises_completed?: number | null
+          id?: string
+          notes?: string | null
+          started_at?: string
+          total_exercises?: number | null
+          total_reps?: number | null
+          total_sets_completed?: number | null
+          user_id?: string
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workouts: {
         Row: {
           created_at: string

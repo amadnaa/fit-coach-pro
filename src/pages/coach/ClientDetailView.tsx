@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Dumbbell, TrendingUp, Footprints, ClipboardList, Settings2 } from 'lucide-react';
+import { ChevronLeft, Dumbbell, TrendingUp, Footprints, ClipboardList, Settings2, Clock, Trophy } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +19,7 @@ export default function ClientDetailView() {
   const [stepsData, setStepsData] = useState<{ date: string; steps: number }[]>([]);
   const [workoutLogs, setWorkoutLogs] = useState<any[]>([]);
   const [weeklyCheckins, setWeeklyCheckins] = useState<any[]>([]);
+  const [workoutSessions, setWorkoutSessions] = useState<any[]>([]);
   const [flags, setFlags] = useState({ food_tracking_enabled: false, step_tracking_enabled: true, cardio_tracking_enabled: false });
   const [flagsId, setFlagsId] = useState<string | null>(null);
 
@@ -40,6 +41,9 @@ export default function ClientDetailView() {
     supabase.from('weekly_check_ins').select('*').eq('user_id', clientId).order('week_start', { ascending: false }).limit(10)
       .then(({ data }) => { if (data) setWeeklyCheckins(data); });
 
+    supabase.from('workout_sessions').select('*').eq('user_id', clientId).order('started_at', { ascending: false }).limit(20)
+      .then(({ data }) => { if (data) setWorkoutSessions(data); });
+
     supabase.from('feature_flags').select('*').eq('user_id', clientId).maybeSingle()
       .then(({ data }) => {
         if (data) {
@@ -60,6 +64,12 @@ export default function ClientDetailView() {
     toast.success('Feature flag updated');
   };
 
+  const formatDuration = (seconds: number | null) => {
+    if (!seconds) return '—';
+    const m = Math.floor(seconds / 60);
+    return `${m} min`;
+  };
+
   return (
     <MobileLayout>
       <div className="px-5 pt-6 space-y-4">
@@ -71,15 +81,15 @@ export default function ClientDetailView() {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full grid grid-cols-4 rounded-xl bg-secondary h-9">
-            <TabsTrigger value="overview" className="text-xs rounded-lg">Overview</TabsTrigger>
-            <TabsTrigger value="logs" className="text-xs rounded-lg">Logs</TabsTrigger>
-            <TabsTrigger value="checkins" className="text-xs rounded-lg">Check-ins</TabsTrigger>
-            <TabsTrigger value="settings" className="text-xs rounded-lg">Settings</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-5 rounded-xl bg-secondary h-9">
+            <TabsTrigger value="overview" className="text-[10px] rounded-lg">Overview</TabsTrigger>
+            <TabsTrigger value="sessions" className="text-[10px] rounded-lg">Sessions</TabsTrigger>
+            <TabsTrigger value="logs" className="text-[10px] rounded-lg">Logs</TabsTrigger>
+            <TabsTrigger value="checkins" className="text-[10px] rounded-lg">Check-ins</TabsTrigger>
+            <TabsTrigger value="settings" className="text-[10px] rounded-lg">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
-            {/* Bodyweight chart */}
             <div className="p-4 rounded-2xl bg-card border border-border space-y-2">
               <div className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /><p className="text-sm font-medium">Bodyweight</p></div>
               {bodyweightData.length > 1 ? (
@@ -88,7 +98,6 @@ export default function ClientDetailView() {
                 </ResponsiveContainer>
               ) : <p className="text-xs text-muted-foreground text-center py-4">No data</p>}
             </div>
-            {/* Steps chart */}
             <div className="p-4 rounded-2xl bg-card border border-border space-y-2">
               <div className="flex items-center gap-2"><Footprints className="h-4 w-4 text-primary" /><p className="text-sm font-medium">Steps</p></div>
               {stepsData.length > 1 ? (
@@ -97,6 +106,42 @@ export default function ClientDetailView() {
                 </ResponsiveContainer>
               ) : <p className="text-xs text-muted-foreground text-center py-4">No data</p>}
             </div>
+          </TabsContent>
+
+          <TabsContent value="sessions" className="space-y-3 mt-4">
+            {workoutSessions.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No workout sessions yet</p> : (
+              workoutSessions.map((session: any) => (
+                <div key={session.id} className="p-4 rounded-2xl bg-card border border-border space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">{format(new Date(session.started_at), 'MMM d, yyyy · HH:mm')}</p>
+                    {session.completed ? (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">Completed</span>
+                    ) : (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-warning/10 text-warning font-medium">Incomplete</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="text-center">
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground mx-auto mb-0.5" />
+                      <p className="text-sm font-medium">{formatDuration(session.duration_seconds)}</p>
+                      <p className="text-[9px] text-muted-foreground">Duration</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">{session.exercises_completed}/{session.total_exercises}</p>
+                      <p className="text-[9px] text-muted-foreground">Exercises</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">{session.total_sets_completed}</p>
+                      <p className="text-[9px] text-muted-foreground">Sets</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">{session.total_reps}</p>
+                      <p className="text-[9px] text-muted-foreground">Reps</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </TabsContent>
 
           <TabsContent value="logs" className="space-y-2 mt-4">
@@ -120,7 +165,10 @@ export default function ClientDetailView() {
             {weeklyCheckins.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No check-ins yet</p> : (
               weeklyCheckins.map(ci => (
                 <div key={ci.id} className="p-4 rounded-2xl bg-card border border-border space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Week of {format(new Date(ci.week_start), 'MMM d, yyyy')}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-primary">{clientName}</p>
+                    <p className="text-xs text-muted-foreground">{format(new Date(ci.week_start), 'MMM d, yyyy')}</p>
+                  </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center"><p className="text-[10px] text-muted-foreground">Difficulty</p><p className="text-sm font-medium capitalize">{ci.training_difficulty}</p></div>
                     <div className="text-center"><p className="text-[10px] text-muted-foreground">Recovery</p><p className="text-sm font-medium capitalize">{ci.recovery_level}</p></div>
