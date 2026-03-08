@@ -80,11 +80,29 @@ export default function ProfileView() {
           if (data.full_name) setFullName(data.full_name);
         }
       });
-    supabase.from('user_preferences').select('accent_color').eq('user_id', user.id).maybeSingle()
-      .then(({ data }) => {
-        const color = data?.accent_color || '330 81% 60%';
+    supabase
+      .from('user_preferences')
+      .select('accent_color, accent_color_customized')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(async ({ data }) => {
+        const defaultPink = '330 81% 60%';
+        const isCustomized = data?.accent_color_customized ?? false;
+        const color = isCustomized ? (data?.accent_color || defaultPink) : defaultPink;
+
         setSelectedColor(color);
         applyAccentColor(color);
+
+        if (!isCustomized && data?.accent_color !== defaultPink) {
+          await supabase.from('user_preferences').upsert(
+            {
+              user_id: user.id,
+              accent_color: defaultPink,
+              accent_color_customized: false,
+            },
+            { onConflict: 'user_id' }
+          );
+        }
       });
   }, [user]);
 
