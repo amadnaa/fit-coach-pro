@@ -49,6 +49,23 @@ export default function ClientDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
   const [workoutCount, setWorkoutCount] = useState(0);
+  const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+  const [newWeight, setNewWeight] = useState('');
+  const [savingWeight, setSavingWeight] = useState(false);
+
+  const handleLogWeight = async () => {
+    if (!user || !newWeight) return;
+    const w = parseFloat(newWeight);
+    if (isNaN(w) || w <= 0) { toast.error('Enter a valid weight'); return; }
+    setSavingWeight(true);
+    const { error } = await supabase.from('bodyweight_logs').insert({ user_id: user.id, weight: w });
+    if (error) { toast.error('Failed to log weight'); setSavingWeight(false); return; }
+    setBodyweightData(prev => [...prev, { date: format(new Date(), 'MM/dd'), weight: w }]);
+    setNewWeight('');
+    setWeightDialogOpen(false);
+    setSavingWeight(false);
+    toast.success(`Logged ${w} kg`);
+  };
 
   useEffect(() => {
     if (!user) return;
