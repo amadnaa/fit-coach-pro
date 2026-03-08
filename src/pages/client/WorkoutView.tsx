@@ -148,10 +148,14 @@ export default function WorkoutView() {
 
     if (newSets[currentExercise].length >= exercise.targetSets) {
       if (currentExercise < exercises.length - 1) {
+        // Move to next exercise
         setCurrentExercise(currentExercise + 1);
         setCurrentSet(0);
         setWeight(exercises[currentExercise + 1].targetWeight);
         setReps(0);
+      } else {
+        // Last set of last exercise — auto-end workout
+        handleEndWorkout();
       }
     } else {
       setCurrentSet(currentSet + 1);
