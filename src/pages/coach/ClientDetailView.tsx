@@ -742,6 +742,40 @@ export default function ClientDetailView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Create Plan from Scratch Dialog */}
+      <Dialog open={showCreatePlanDialog} onOpenChange={setShowCreatePlanDialog}>
+        <DialogContent className="max-w-sm mx-auto">
+          <DialogHeader>
+            <DialogTitle>Create Workout Plan</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Plan Name *</label>
+              <Input value={newPlanName} onChange={e => setNewPlanName(e.target.value)} placeholder="e.g. Push / Pull / Legs" className="rounded-xl" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Split Type</label>
+              <Select value={newPlanSplit} onValueChange={setNewPlanSplit}>
+                <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="full_body">Full Body</SelectItem>
+                  <SelectItem value="upper_lower">Upper / Lower</SelectItem>
+                  <SelectItem value="push_pull_legs">Push / Pull / Legs</SelectItem>
+                  <SelectItem value="body_part_split">Body Part Split</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Frequency (days/week)</label>
+              <Input type="number" min={1} max={7} value={newPlanFrequency} onChange={e => setNewPlanFrequency(Number(e.target.value))} className="rounded-xl" />
+            </div>
+            <Button onClick={createPlanFromScratch} disabled={!newPlanName.trim()} className="w-full gradient-primary text-primary-foreground rounded-xl">
+              Create Plan
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </MobileLayout>
   );
 }
