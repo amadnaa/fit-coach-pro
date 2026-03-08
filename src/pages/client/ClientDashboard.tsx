@@ -250,9 +250,9 @@ export default function ClientDashboard() {
     <MobileLayout>
       <div className="px-5 pt-6 space-y-5 pb-4">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
-          <div>
-            <p className="text-base font-display font-bold">{format(today, 'EEEE')}</p>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl bg-card border border-border flex items-start justify-between">
+          <div className="pt-0.5">
+            <p className="text-base font-display font-bold leading-tight">{format(today, 'EEEE')}</p>
             <p className="text-xs text-muted-foreground">{format(today, 'MMMM d')}</p>
           </div>
           <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => navigate('/profile')}>
@@ -265,7 +265,7 @@ export default function ClientDashboard() {
             </div>
             <p className="text-xs font-semibold">{firstName}</p>
           </div>
-          <button onClick={() => navigate('/notifications')} className="relative w-11 h-11 rounded-full bg-card border border-border flex items-center justify-center hover:bg-secondary transition-colors">
+          <button onClick={() => navigate('/notifications')} className="relative w-11 h-11 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors">
             <Bell className="h-[18px] w-[18px] text-foreground" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
