@@ -36,6 +36,12 @@ interface RecentSession {
   workout_name?: string;
 }
 
+interface TodayWorkout {
+  workoutName: string;
+  exerciseCount: number;
+  workoutId: string | null;
+}
+
 export default function ClientDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
