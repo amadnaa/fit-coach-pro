@@ -66,6 +66,90 @@ export default function WorkoutView() {
   const [swapIndex, setSwapIndex] = useState<number | null>(null);
   const [alternatives, setAlternatives] = useState<AlternativeExercise[]>([]);
   const [loadingAlternatives, setLoadingAlternatives] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState(true);
+  const [workoutName, setWorkoutName] = useState('Push Day');
+  const [planInfo, setPlanInfo] = useState<{ cycle_week: number; name: string } | null>(null);
+  const [activeWorkouts, setActiveWorkouts] = useState<{ id: string; name: string; day_number: number }[]>([]);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
+
+  // Load exercises from active workout plan
+  useEffect(() => {
+    if (!user) return;
+    const loadPlan = async () => {
+      setLoadingPlan(true);
+      
+      // Get active plan
+      const { data: planData } = await supabase
+        .from('workout_plans')
+        .select('id, name, cycle_week')
+        .eq('client_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (!planData) {
+        setLoadingPlan(false);
+        return; // Will fall back to mock exercises
+      }
+
+      setPlanInfo({ cycle_week: planData.cycle_week, name: planData.name });
+
+      // Get workouts for this plan
+      const { data: workoutsData } = await supabase
+        .from('workouts')
+        .select('id, name, day_number')
+        .eq('plan_id', planData.id)
+        .order('day_number');
+
+      if (!workoutsData || workoutsData.length === 0) {
+        setLoadingPlan(false);
+        return;
+      }
+
+      setActiveWorkouts(workoutsData);
+      // Auto-select first workout
+      setSelectedWorkoutId(workoutsData[0].id);
+      setLoadingPlan(false);
+    };
+    loadPlan();
+  }, [user]);
+
+  // Load exercises when workout selection changes
+  useEffect(() => {
+    if (!selectedWorkoutId || !user) return;
+    const loadExercises = async () => {
+      const workout = activeWorkouts.find(w => w.id === selectedWorkoutId);
+      if (workout) setWorkoutName(workout.name);
+
+      const { data: exData } = await supabase
+        .from('workout_exercises')
+        .select('id, exercise_id, sets, rep_range_min, rep_range_max, target_weight, sort_order, exercises(name, muscle_group, video_url, description)')
+        .eq('workout_id', selectedWorkoutId)
+        .order('sort_order');
+
+      if (exData && exData.length > 0) {
+        const loaded: ExerciseState[] = exData.map(ex => ({
+          name: (ex.exercises as any)?.name || 'Unknown',
+          targetSets: ex.sets,
+          repMin: ex.rep_range_min,
+          repMax: ex.rep_range_max,
+          targetWeight: ex.target_weight || 0,
+          sets: [],
+          muscleGroup: ((ex.exercises as any)?.muscle_group || 'other').charAt(0).toUpperCase() + ((ex.exercises as any)?.muscle_group || 'other').slice(1),
+          workoutExerciseId: ex.id,
+          exerciseId: ex.exercise_id,
+          videoUrl: (ex.exercises as any)?.video_url,
+          description: (ex.exercises as any)?.description,
+        }));
+        setExercises(loaded);
+        setCompletedSets(loaded.map(() => []));
+        setWeight(loaded[0].targetWeight);
+        setCurrentExercise(0);
+        setCurrentSet(0);
+        setReps(0);
+      }
+    };
+    loadExercises();
+  }, [selectedWorkoutId, user]);
 
   // Timer
   useEffect(() => {
@@ -239,8 +323,30 @@ export default function WorkoutView() {
     return (
       <MobileLayout>
         <div className="px-5 pt-6 space-y-6">
-          <h1 className="text-2xl font-display font-bold">Push Day</h1>
-          <p className="text-muted-foreground text-sm">Week 2 · Cycle 1</p>
+          <h1 className="text-2xl font-display font-bold">{workoutName}</h1>
+          <p className="text-muted-foreground text-sm">
+            {planInfo ? `${planInfo.name} · Cycle ${planInfo.cycle_week}` : 'Week 2 · Cycle 1'}
+          </p>
+
+          {/* Workout Day Selector */}
+          {activeWorkouts.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {activeWorkouts.map(w => (
+                <button
+                  key={w.id}
+                  onClick={() => setSelectedWorkoutId(w.id)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border",
+                    selectedWorkoutId === w.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border text-muted-foreground hover:border-primary/30"
+                  )}
+                >
+                  Day {w.day_number}: {w.name}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="space-y-3">
             {exercises.map((ex, i) => (

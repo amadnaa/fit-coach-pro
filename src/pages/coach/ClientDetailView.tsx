@@ -67,8 +67,114 @@ export default function ClientDetailView() {
   const [editValues, setEditValues] = useState<{ sets: number; rep_range_min: number; rep_range_max: number; target_weight: number | null }>({ sets: 3, rep_range_min: 8, rep_range_max: 12, target_weight: null });
   const [loadingProgram, setLoadingProgram] = useState(false);
   const [availableExercises, setAvailableExercises] = useState<{ id: string; name: string; muscle_group: string }[]>([]);
-  const [addExerciseDialog, setAddExerciseDialog] = useState<string | null>(null); // workout_id
+  const [addExerciseDialog, setAddExerciseDialog] = useState<string | null>(null);
   const [selectedNewExercise, setSelectedNewExercise] = useState('');
+  const [generatingPlan, setGeneratingPlan] = useState(false);
+
+  const generatePlanFromOnboarding = async () => {
+    if (!clientId) return;
+    setGeneratingPlan(true);
+    try {
+      // Fetch client's onboarding data
+      const { data: onb } = await supabase
+        .from('client_onboarding')
+        .select('*')
+        .eq('user_id', clientId)
+        .maybeSingle();
+
+      if (!onb) {
+        toast.error('No onboarding data found for this client');
+        setGeneratingPlan(false);
+        return;
+      }
+
+      const freq = onb.training_frequency;
+      let split = onb.preferred_split;
+      if (split === 'auto') {
+        if (freq <= 3) split = 'full_body';
+        else if (freq === 4) split = 'upper_lower';
+        else split = 'push_pull_legs';
+      }
+
+      const isLimited = ['bodyweight', 'resistance_bands', 'dumbbells_only'].includes(onb.equipment_access);
+
+      const exercises: Record<string, { name: string; sets: number; rep_range_min: number; rep_range_max: number }[]> = {
+        chest: isLimited
+          ? [{ name: 'Push-Ups', sets: 3, rep_range_min: 10, rep_range_max: 15 }, { name: 'Incline Push-Ups', sets: 3, rep_range_min: 10, rep_range_max: 15 }]
+          : [{ name: 'Barbell Bench Press', sets: 4, rep_range_min: 6, rep_range_max: 10 }, { name: 'Incline Dumbbell Press', sets: 3, rep_range_min: 8, rep_range_max: 12 }, { name: 'Cable Flyes', sets: 3, rep_range_min: 12, rep_range_max: 15 }],
+        back: isLimited
+          ? [{ name: 'Inverted Rows', sets: 3, rep_range_min: 8, rep_range_max: 12 }, { name: 'Dumbbell Rows', sets: 3, rep_range_min: 10, rep_range_max: 12 }]
+          : [{ name: 'Barbell Rows', sets: 4, rep_range_min: 6, rep_range_max: 10 }, { name: 'Lat Pulldowns', sets: 3, rep_range_min: 8, rep_range_max: 12 }, { name: 'Seated Cable Rows', sets: 3, rep_range_min: 10, rep_range_max: 12 }],
+        shoulders: isLimited
+          ? [{ name: 'Pike Push-Ups', sets: 3, rep_range_min: 8, rep_range_max: 12 }, { name: 'Lateral Raises (DB)', sets: 3, rep_range_min: 12, rep_range_max: 15 }]
+          : [{ name: 'Overhead Press', sets: 4, rep_range_min: 6, rep_range_max: 10 }, { name: 'Lateral Raises', sets: 3, rep_range_min: 12, rep_range_max: 15 }, { name: 'Face Pulls', sets: 3, rep_range_min: 15, rep_range_max: 20 }],
+        legs: isLimited
+          ? [{ name: 'Squats (Bodyweight/DB)', sets: 4, rep_range_min: 10, rep_range_max: 15 }, { name: 'Lunges', sets: 3, rep_range_min: 10, rep_range_max: 12 }, { name: 'Glute Bridges', sets: 3, rep_range_min: 12, rep_range_max: 15 }]
+          : [{ name: 'Barbell Squats', sets: 4, rep_range_min: 6, rep_range_max: 10 }, { name: 'Romanian Deadlifts', sets: 3, rep_range_min: 8, rep_range_max: 12 }, { name: 'Leg Press', sets: 3, rep_range_min: 10, rep_range_max: 12 }, { name: 'Leg Curls', sets: 3, rep_range_min: 10, rep_range_max: 12 }],
+        arms: isLimited
+          ? [{ name: 'Diamond Push-Ups', sets: 3, rep_range_min: 10, rep_range_max: 15 }, { name: 'Dumbbell Curls', sets: 3, rep_range_min: 10, rep_range_max: 12 }]
+          : [{ name: 'Barbell Curls', sets: 3, rep_range_min: 8, rep_range_max: 12 }, { name: 'Tricep Pushdowns', sets: 3, rep_range_min: 10, rep_range_max: 12 }],
+        core: [{ name: 'Plank', sets: 3, rep_range_min: 30, rep_range_max: 60 }, { name: 'Hanging Leg Raises', sets: 3, rep_range_min: 10, rep_range_max: 15 }],
+      };
+
+      type Day = { name: string; exercises: typeof exercises.chest };
+      const days: Day[] = [];
+
+      if (split === 'full_body') {
+        for (let i = 0; i < Math.min(freq, 3); i++) {
+          days.push({ name: `Full Body ${String.fromCharCode(65 + i)}`, exercises: [exercises.legs[0], exercises.chest[0], exercises.back[0], exercises.shoulders[0], exercises.core[0]] });
+        }
+      } else if (split === 'upper_lower') {
+        for (let i = 0; i < Math.min(freq, 4); i++) {
+          if (i % 2 === 0) days.push({ name: 'Upper Body', exercises: [...exercises.chest, ...exercises.back.slice(0, 2), ...exercises.arms.slice(0, 1)] });
+          else days.push({ name: 'Lower Body', exercises: [...exercises.legs, ...exercises.core] });
+        }
+      } else if (split === 'push_pull_legs') {
+        days.push({ name: 'Push', exercises: [...exercises.chest, ...exercises.shoulders.slice(0, 2)] });
+        days.push({ name: 'Pull', exercises: [...exercises.back, ...exercises.arms.filter(e => e.name.includes('Curl'))] });
+        days.push({ name: 'Legs', exercises: [...exercises.legs, ...exercises.core] });
+        if (freq >= 5) { days.push({ name: 'Push B', exercises: [exercises.chest[0], exercises.shoulders[0]] }); days.push({ name: 'Pull B', exercises: [exercises.back[0], exercises.back[1] || exercises.back[0]] }); }
+        if (freq >= 6) days.push({ name: 'Legs B', exercises: [exercises.legs[0], exercises.legs[1], exercises.core[0]] });
+      } else {
+        days.push({ name: 'Chest & Triceps', exercises: [...exercises.chest] });
+        days.push({ name: 'Back & Biceps', exercises: [...exercises.back, ...exercises.arms.filter(e => e.name.includes('Curl'))] });
+        days.push({ name: 'Shoulders & Core', exercises: [...exercises.shoulders, ...exercises.core] });
+        days.push({ name: 'Legs', exercises: [...exercises.legs] });
+      }
+
+      const splitNames: Record<string, string> = { full_body: 'Full Body', upper_lower: 'Upper / Lower', push_pull_legs: 'Push / Pull / Legs', body_part_split: 'Body Part Split' };
+      const planName = `${splitNames[split] || 'Custom'} Plan`;
+
+      const daysPayload = days.slice(0, freq).map(d => ({
+        name: d.name,
+        exercises: d.exercises.map(e => ({ ...e, muscle_group: 'other' })),
+      }));
+
+      const { error } = await supabase.rpc('create_onboarding_workout_plan', {
+        _user_id: clientId,
+        _plan_name: planName,
+        _split_type: split,
+        _frequency: freq,
+        _days: daysPayload,
+      });
+
+      if (error) throw error;
+      toast.success('Workout plan generated!');
+      
+      // Refresh plans
+      const { data: newPlans } = await supabase.from('workout_plans').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
+      if (newPlans) {
+        setPlans(newPlans as WorkoutPlan[]);
+        const active = newPlans.find(p => p.is_active);
+        if (active) setSelectedPlanId(active.id);
+        else if (newPlans.length > 0) setSelectedPlanId(newPlans[0].id);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to generate plan');
+    } finally {
+      setGeneratingPlan(false);
+    }
+  };
 
   useEffect(() => {
     if (!clientId) return;
@@ -283,10 +389,18 @@ export default function ClientDetailView() {
           {/* PROGRAM TAB */}
           <TabsContent value="program" className="space-y-4 mt-4">
             {plans.length === 0 ? (
-              <div className="py-8 text-center space-y-2">
+              <div className="py-8 text-center space-y-3">
                 <Dumbbell className="h-10 w-10 text-muted-foreground mx-auto" />
                 <p className="text-sm text-muted-foreground">No workout plans yet</p>
-                <p className="text-xs text-muted-foreground">Create a plan for this client from the workout builder.</p>
+                <p className="text-xs text-muted-foreground">Generate a plan from the client's onboarding data, or create one manually.</p>
+                <Button
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={generatePlanFromOnboarding}
+                  disabled={generatingPlan}
+                >
+                  {generatingPlan ? 'Generating...' : 'Generate from Onboarding'}
+                </Button>
               </div>
             ) : (
               <>
