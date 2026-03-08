@@ -433,6 +433,7 @@ export type Database = {
       user_preferences: {
         Row: {
           accent_color: string | null
+          accent_color_customized: boolean
           created_at: string
           id: string
           updated_at: string
@@ -440,6 +441,7 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          accent_color_customized?: boolean
           created_at?: string
           id?: string
           updated_at?: string
@@ -447,6 +449,7 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          accent_color_customized?: boolean
           created_at?: string
           id?: string
           updated_at?: string
