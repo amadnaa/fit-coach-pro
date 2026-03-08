@@ -75,6 +75,7 @@ export default function ProgressView() {
     if (data) setWorkoutHistory(data);
   };
 
+  const fetchSessions = async () => {
     if (!user) return;
     const { data } = await supabase.from('scheduled_sessions')
       .select('*').eq('user_id', user.id).order('session_date', { ascending: true });
