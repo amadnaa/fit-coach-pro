@@ -17,7 +17,7 @@ export default function ClientDetailView() {
   const [clientName, setClientName] = useState('');
   const [bodyweightData, setBodyweightData] = useState<{ date: string; weight: number }[]>([]);
   const [stepsData, setStepsData] = useState<{ date: string; steps: number }[]>([]);
-  const [workoutLogs, setWorkoutLogs] = useState<any[]>([]);
+  
   const [weeklyCheckins, setWeeklyCheckins] = useState<any[]>([]);
   const [workoutSessions, setWorkoutSessions] = useState<any[]>([]);
   const [foodLogs, setFoodLogs] = useState<any[]>([]);
