@@ -392,15 +392,25 @@ export default function ClientDetailView() {
               <div className="py-8 text-center space-y-3">
                 <Dumbbell className="h-10 w-10 text-muted-foreground mx-auto" />
                 <p className="text-sm text-muted-foreground">No workout plans yet</p>
-                <p className="text-xs text-muted-foreground">Generate a plan from the client's onboarding data, or create one manually.</p>
-                <Button
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={generatePlanFromOnboarding}
-                  disabled={generatingPlan}
-                >
-                  {generatingPlan ? 'Generating...' : 'Generate from Onboarding'}
-                </Button>
+                <p className="text-xs text-muted-foreground">Generate a plan from onboarding data, or create one from scratch.</p>
+                <div className="flex flex-col gap-2 items-center">
+                  <Button
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={generatePlanFromOnboarding}
+                    disabled={generatingPlan}
+                  >
+                    {generatingPlan ? 'Generating...' : 'Generate from Onboarding'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={() => setShowCreatePlanDialog(true)}
+                  >
+                    Create from Scratch
+                  </Button>
+                </div>
               </div>
             ) : (
               <>
