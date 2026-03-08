@@ -119,6 +119,7 @@ export default function ProfileView() {
     await supabase.from('user_preferences').upsert({
       user_id: user.id,
       accent_color: selectedColor,
+      accent_color_customized: true,
     }, { onConflict: 'user_id' });
     toast.success('Theme updated!');
   };
