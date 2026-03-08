@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { LogOut, Moon, Sun, User, Shield, Bell, Palette, Camera, Lock, Check } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
@@ -69,7 +69,7 @@ export default function ProfileView() {
   const [passwords, setPasswords] = useState({ current: '', new1: '', new2: '' });
   const [changingPassword, setChangingPassword] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const colorInputRef = useRef<HTMLInputElement>(null);
+  
 
   useEffect(() => {
     if (!user) return;
@@ -89,10 +89,6 @@ export default function ProfileView() {
       });
   }, [user]);
 
-  const hexValue = useCallback(() => {
-    const parts = selectedColor.split(' ').map(s => parseFloat(s));
-    return hslToHex(parts[0], parts[1], parts[2]);
-  }, [selectedColor]);
 
   const handleColorInput = async (hex: string) => {
     const [h, s, l] = hexToHsl(hex);
@@ -197,31 +193,7 @@ export default function ProfileView() {
             <Palette className="h-4 w-4 text-primary" />
             <p className="text-sm font-semibold">Accent Color</p>
           </div>
-          <div className="flex items-center gap-4">
-            <div
-              className="relative w-14 h-14 rounded-2xl border-2 border-border cursor-pointer overflow-hidden shrink-0"
-              onClick={() => colorInputRef.current?.click()}
-              style={{ backgroundColor: `hsl(${selectedColor})` }}
-            >
-              <input
-                ref={colorInputRef}
-                type="color"
-                value={hexValue()}
-                onChange={e => handleColorInput(e.target.value)}
-                onBlur={saveColor}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-              />
-            </div>
-            <div className="flex-1 space-y-1">
-              <p className="text-xs text-muted-foreground">Tap the swatch to pick any color</p>
-              <div className="flex items-center gap-2">
-                <div className="h-2 flex-1 rounded-full bg-primary/30" />
-                <div className="h-2 w-8 rounded-full bg-primary" />
-              </div>
-            </div>
-          </div>
-          {/* Quick presets */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-3 flex-wrap justify-center">
             {[
               { hex: '#22c55e', label: 'Green' },
               { hex: '#3b82f6', label: 'Blue' },
@@ -229,16 +201,21 @@ export default function ProfileView() {
               { hex: '#f97316', label: 'Orange' },
               { hex: '#ec4899', label: 'Pink' },
               { hex: '#14b8a6', label: 'Teal' },
+              { hex: '#ef4444', label: 'Red' },
+              { hex: '#eab308', label: 'Yellow' },
             ].map(p => {
               const [h, s, l] = hexToHsl(p.hex);
-              const hsl = `${h} ${s}% ${l}%`;
               return (
                 <button key={p.hex} onClick={() => { handleColorInput(p.hex); setTimeout(saveColor, 50); }}
-                  className={cn("h-8 w-8 rounded-full border-2 transition-all",
-                    Math.abs(parseFloat(selectedColor) - h) < 5 ? "border-foreground scale-110" : "border-transparent")}
-                  style={{ backgroundColor: p.hex }}
-                  title={p.label}
-                />
+                  className={cn("flex flex-col items-center gap-1 transition-all",
+                    Math.abs(parseFloat(selectedColor) - h) < 5 ? "scale-110" : "")}
+                >
+                  <div className={cn("h-10 w-10 rounded-full border-2 transition-all",
+                    Math.abs(parseFloat(selectedColor) - h) < 5 ? "border-foreground ring-2 ring-foreground/20" : "border-transparent")}
+                    style={{ backgroundColor: p.hex }}
+                  />
+                  <span className="text-[10px] text-muted-foreground">{p.label}</span>
+                </button>
               );
             })}
           </div>
