@@ -250,19 +250,27 @@ export default function ClientDashboard() {
     <MobileLayout>
       <div className="px-5 pt-6 space-y-5 pb-4">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold">{format(today, 'EEEE')}</p>
-            <p className="text-xs text-muted-foreground">{format(today, 'MMMM d')}</p>
-          </div>
-          <div className="flex flex-col items-center gap-1">
-            <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
-              {firstName[0]}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
+          <div className="relative" onClick={() => navigate('/profile')}>
+            <div className="w-12 h-12 rounded-full overflow-hidden gradient-primary flex items-center justify-center text-primary-foreground font-bold text-base ring-2 ring-primary/20 ring-offset-2 ring-offset-background cursor-pointer">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                firstName[0]
+              )}
             </div>
-            <p className="text-sm font-semibold">{firstName}</p>
           </div>
-          <button onClick={() => navigate('/notifications')} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-            <Bell className="h-5 w-5 text-muted-foreground" />
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-display font-bold truncate">Hey, {firstName} 👋</p>
+            <p className="text-xs text-muted-foreground">{format(today, 'EEEE, MMMM d')}</p>
+          </div>
+          <button onClick={() => navigate('/notifications')} className="relative w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center hover:bg-secondary transition-colors">
+            <Bell className="h-4.5 w-4.5 text-foreground" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </button>
         </motion.div>
 
