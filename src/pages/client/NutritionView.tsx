@@ -111,9 +111,9 @@ export default function NutritionView() {
 
   const targets = { calories: 2200, protein: 160, carbs: 250, fat: 70 };
 
-  const filteredRecipes = activeFilter === 'All'
-    ? recipes
-    : recipes.filter(r => r.diet_type?.some(d => d.toLowerCase() === activeFilter.toLowerCase()));
+  const filteredRecipes = recipes
+    .filter(r => activeFilter === 'All' || r.diet_type?.some(d => d.toLowerCase() === activeFilter.toLowerCase()))
+    .filter(r => !recipeSearch || r.title.toLowerCase().includes(recipeSearch.toLowerCase()));
 
   const filters = ['All', ...Array.from(new Set(recipes.flatMap(r => r.diet_type || [])))];
 
