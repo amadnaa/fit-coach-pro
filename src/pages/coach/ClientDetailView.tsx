@@ -200,7 +200,7 @@ export default function ClientDetailView() {
     supabase.from('feature_flags').select('*').eq('user_id', clientId).maybeSingle()
       .then(({ data }) => {
         if (data) {
-          setFlags({ food_tracking_enabled: data.food_tracking_enabled ?? false, step_tracking_enabled: data.step_tracking_enabled ?? true, cardio_tracking_enabled: data.cardio_tracking_enabled ?? false });
+          setFlags({ food_tracking_enabled: data.food_tracking_enabled ?? false, sleep_tracking_enabled: data.sleep_tracking_enabled ?? true, cardio_tracking_enabled: data.cardio_tracking_enabled ?? false });
           setFlagsId(data.id);
         }
       });

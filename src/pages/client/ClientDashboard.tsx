@@ -345,24 +345,24 @@ export default function ClientDashboard() {
             )}
           </div>
 
-          {/* Steps - only show if enabled */}
-          {flags.step_tracking_enabled && (
-          <div className="p-3 rounded-2xl bg-card border border-border space-y-2">
+          {/* Sleep - only show if enabled */}
+          {flags.sleep_tracking_enabled && (
+          <div className="p-3 rounded-2xl bg-card border border-border space-y-2 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setSleepDialogOpen(true)}>
             <div className="flex items-center gap-1">
-              <Footprints className="h-3 w-3 text-primary" />
-              <p className="text-[11px] font-medium">Steps</p>
+              <Moon className="h-3 w-3 text-primary" />
+              <p className="text-[11px] font-medium">Sleep</p>
             </div>
-            {stepsData.length > 1 ? (
+            {sleepData.length > 1 ? (
               <ResponsiveContainer width="100%" height={80}>
-                <LineChart data={stepsData}>
+                <LineChart data={sleepData}>
                   <XAxis dataKey="date" hide />
-                  <YAxis hide domain={['dataMin - 500', 'dataMax + 500']} />
-                  <Line type="monotone" dataKey="steps" stroke="hsl(var(--info))" strokeWidth={2} dot={false} />
+                  <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
+                  <Line type="monotone" dataKey="hours" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-20 flex items-center justify-center">
-                <p className="text-[10px] text-muted-foreground">No data yet</p>
+                <p className="text-[10px] text-muted-foreground">Tap to log sleep</p>
               </div>
             )}
           </div>

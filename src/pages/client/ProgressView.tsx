@@ -314,38 +314,38 @@ export default function ProgressView() {
           )}
         </motion.div>
 
-        {/* Steps Chart - only show if enabled */}
-        {flags.step_tracking_enabled && (
+        {/* Sleep Chart - only show if enabled */}
+        {flags.sleep_tracking_enabled && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
           className="p-4 rounded-2xl bg-card border border-border space-y-3">
           <div className="flex items-center gap-2">
-            <Footprints className="h-4 w-4 text-info" />
-            <h3 className="font-semibold text-sm">Steps</h3>
-            {stepsData.length > 0 && (
+            <Moon className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-sm">Sleep</h3>
+            {sleepData.length > 0 && (
               <span className="ml-auto text-xs text-muted-foreground">
-                Avg {Math.round(stepsData.reduce((s, d) => s + d.value, 0) / stepsData.length).toLocaleString()}
+                Avg {(sleepData.reduce((s, d) => s + d.value, 0) / sleepData.length).toFixed(1)}h
               </span>
             )}
           </div>
-          {stepsData.length > 0 ? (
+          {sleepData.length > 0 ? (
             <div className="h-36">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stepsData}>
+                <AreaChart data={sleepData}>
                   <defs>
-                    <linearGradient id="stepsGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--info))" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(var(--info))" stopOpacity={0} />
+                    <linearGradient id="sleepGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis hide />
-                  <Area type="monotone" dataKey="value" stroke="hsl(var(--info))" strokeWidth={2} fill="url(#stepsGradient)" />
+                  <YAxis hide domain={[0, 12]} />
+                  <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#sleepGradient)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           ) : (
             <div className="h-36 flex items-center justify-center">
-              <p className="text-xs text-muted-foreground">No step data yet</p>
+              <p className="text-xs text-muted-foreground">No sleep data yet. Log your sleep from the dashboard.</p>
             </div>
           )}
         </motion.div>
