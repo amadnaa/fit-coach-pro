@@ -55,7 +55,7 @@ export default function ClientDetailView() {
   const [weeklyCheckins, setWeeklyCheckins] = useState<any[]>([]);
   const [workoutSessions, setWorkoutSessions] = useState<any[]>([]);
   const [foodLogs, setFoodLogs] = useState<any[]>([]);
-  const [flags, setFlags] = useState({ food_tracking_enabled: false, step_tracking_enabled: true, cardio_tracking_enabled: false });
+  const [flags, setFlags] = useState({ food_tracking_enabled: false, sleep_tracking_enabled: true, cardio_tracking_enabled: false });
   const [flagsId, setFlagsId] = useState<string | null>(null);
 
   // Program tab state
