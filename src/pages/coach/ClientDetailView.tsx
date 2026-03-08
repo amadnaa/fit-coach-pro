@@ -196,22 +196,6 @@ export default function ClientDetailView() {
             )}
           </TabsContent>
 
-          <TabsContent value="logs" className="space-y-2 mt-4">
-            {workoutLogs.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No workout logs yet</p> : (
-              workoutLogs.map(log => (
-                <div key={log.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Dumbbell className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{log.weight}kg × {log.reps} reps (Set {log.set_number})</p>
-                    <p className="text-[10px] text-muted-foreground">{format(new Date(log.completed_at), 'MMM d, HH:mm')}</p>
-                  </div>
-                  {log.arrow_direction && <span className="text-xs">{log.arrow_direction === 'up' ? '↑' : log.arrow_direction === 'down' ? '↓' : '→'}</span>}
-                </div>
-              ))
-            )}
-          </TabsContent>
 
           <TabsContent value="checkins" className="space-y-3 mt-4">
             {weeklyCheckins.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No check-ins yet</p> : (
