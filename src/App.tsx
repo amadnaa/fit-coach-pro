@@ -55,21 +55,21 @@ function AppRoutes() {
 
   return (
     <Routes>
-      {/* Client Routes */}
-      <Route path="/dashboard" element={<ClientDashboard />} />
-      <Route path="/workout" element={<WorkoutView />} />
-      <Route path="/progress" element={<ProgressView />} />
-      <Route path="/nutrition" element={<NutritionView />} />
+      {/* Client Routes - redirect coaches to /coach */}
+      <Route path="/dashboard" element={role === 'coach' ? <Navigate to="/coach" replace /> : <ClientDashboard />} />
+      <Route path="/workout" element={role === 'coach' ? <Navigate to="/coach" replace /> : <WorkoutView />} />
+      <Route path="/progress" element={role === 'coach' ? <Navigate to="/coach" replace /> : <ProgressView />} />
+      <Route path="/nutrition" element={role === 'coach' ? <Navigate to="/coach" replace /> : <NutritionView />} />
       <Route path="/onboarding" element={<OnboardingView />} />
       <Route path="/profile" element={<ProfileView />} />
       <Route path="/notifications" element={<NotificationCentre />} />
       <Route path="/privacy" element={<PrivacySecurity />} />
 
-      {/* Coach Routes */}
-      <Route path="/coach" element={<CoachDashboard />} />
-      <Route path="/coach/client/:clientId" element={<ClientDetailView />} />
-      <Route path="/coach/exercises" element={<ExerciseLibrary />} />
-      <Route path="/coach/recipes" element={<RecipeManager />} />
+      {/* Coach Routes - redirect clients to /dashboard */}
+      <Route path="/coach" element={role === 'coach' ? <CoachDashboard /> : <Navigate to="/dashboard" replace />} />
+      <Route path="/coach/client/:clientId" element={role === 'coach' ? <ClientDetailView /> : <Navigate to="/dashboard" replace />} />
+      <Route path="/coach/exercises" element={role === 'coach' ? <ExerciseLibrary /> : <Navigate to="/dashboard" replace />} />
+      <Route path="/coach/recipes" element={role === 'coach' ? <RecipeManager /> : <Navigate to="/dashboard" replace />} />
 
       {/* Default redirect based on role */}
       <Route path="/" element={<Navigate to={role === 'coach' ? '/coach' : '/dashboard'} replace />} />
