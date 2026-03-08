@@ -149,6 +149,56 @@ export default function ClientDetailView() {
             )}
           </TabsContent>
 
+          <TabsContent value="nutrition" className="space-y-3 mt-4">
+            {foodLogs.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No nutrition logs yet</p>
+            ) : (
+              <>
+                {/* Daily summary for most recent day */}
+                {(() => {
+                  const today = foodLogs.length > 0 ? format(new Date(foodLogs[0].logged_at), 'yyyy-MM-dd') : '';
+                  const todayLogs = foodLogs.filter(l => format(new Date(l.logged_at), 'yyyy-MM-dd') === today);
+                  const totals = todayLogs.reduce((acc, l) => ({
+                    calories: acc.calories + (l.calories || 0),
+                    protein: acc.protein + (l.protein || 0),
+                    carbs: acc.carbs + (l.carbs || 0),
+                    fat: acc.fat + (l.fat || 0),
+                  }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+                  return (
+                    <div className="p-4 rounded-2xl bg-card border border-border space-y-2">
+                      <div className="flex items-center gap-2">
+                        <UtensilsCrossed className="h-4 w-4 text-primary" />
+                        <p className="text-sm font-medium">Daily Summary – {format(new Date(today), 'MMM d')}</p>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        <div className="text-center"><p className="text-lg font-bold">{totals.calories}</p><p className="text-[9px] text-muted-foreground">kcal</p></div>
+                        <div className="text-center"><p className="text-lg font-bold text-blue-500">{totals.protein}g</p><p className="text-[9px] text-muted-foreground">Protein</p></div>
+                        <div className="text-center"><p className="text-lg font-bold text-amber-500">{totals.carbs}g</p><p className="text-[9px] text-muted-foreground">Carbs</p></div>
+                        <div className="text-center"><p className="text-lg font-bold text-rose-500">{totals.fat}g</p><p className="text-[9px] text-muted-foreground">Fat</p></div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {foodLogs.map(log => (
+                  <div key={log.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <UtensilsCrossed className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{log.food_name}</p>
+                      <p className="text-[10px] text-muted-foreground">{format(new Date(log.logged_at), 'MMM d, HH:mm')}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-medium">{log.calories} kcal</p>
+                      <p className="text-[9px] text-muted-foreground">P{log.protein} C{log.carbs} F{log.fat}</p>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </TabsContent>
+
           <TabsContent value="logs" className="space-y-2 mt-4">
             {workoutLogs.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No workout logs yet</p> : (
               workoutLogs.map(log => (
