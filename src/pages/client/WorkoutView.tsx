@@ -39,23 +39,16 @@ interface ExerciseState {
   description?: string;
 }
 
-const mockExercises: ExerciseState[] = [
-  { name: 'Barbell Bench Press', targetSets: 3, repMin: 8, repMax: 12, targetWeight: 70, sets: [], muscleGroup: 'Chest' },
-  { name: 'Overhead Press', targetSets: 3, repMin: 8, repMax: 12, targetWeight: 40, sets: [], muscleGroup: 'Shoulders' },
-  { name: 'Tricep Pushdown', targetSets: 3, repMin: 10, repMax: 15, targetWeight: 25, sets: [], muscleGroup: 'Triceps' },
-  { name: 'Incline Dumbbell Fly', targetSets: 3, repMin: 10, repMax: 15, targetWeight: 14, sets: [], muscleGroup: 'Chest' },
-];
-
 export default function WorkoutView() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [currentExercise, setCurrentExercise] = useState(0);
-  const [exercises, setExercises] = useState<ExerciseState[]>(mockExercises);
+  const [exercises, setExercises] = useState<ExerciseState[]>([]);
   const [currentSet, setCurrentSet] = useState(0);
   const [reps, setReps] = useState(0);
-  const [weight, setWeight] = useState(mockExercises[0].targetWeight);
-  const [completedSets, setCompletedSets] = useState<SetLog[][]>(mockExercises.map(() => []));
+  const [weight, setWeight] = useState(0);
+  const [completedSets, setCompletedSets] = useState<SetLog[][]>([]);
   const [workoutStarted, setWorkoutStarted] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [startTime, setStartTime] = useState<Date | null>(null);
