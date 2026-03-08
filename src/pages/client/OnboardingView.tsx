@@ -234,11 +234,18 @@ export default function OnboardingView() {
 
   const plan = showPlan ? generateWorkoutPlan(data as OnboardingData) : null;
 
+  const parseReps = (reps: string): { min: number; max: number } => {
+    const match = reps.match(/(\d+)\s*[-–]\s*(\d+)/);
+    if (match) return { min: parseInt(match[1]), max: parseInt(match[2]) };
+    const single = parseInt(reps);
+    if (!isNaN(single)) return { min: single, max: single };
+    return { min: 8, max: 12 };
+  };
+
   const handleConfirm = async () => {
     if (!user) return;
     setSaving(true);
     try {
-      // Determine training_focus from fitness_goal  
       const focusMap: Record<string, string> = {
         lose_fat: 'full_body',
         build_muscle: 'full_body',
@@ -249,6 +256,7 @@ export default function OnboardingView() {
 
       const finalSplit = plan?.split || 'full_body';
 
+      // Save onboarding data
       const { error } = await supabase.from('client_onboarding').upsert({
         user_id: user.id,
         training_focus: focusMap[data.fitness_goal || 'general_fitness'] || 'full_body',
@@ -264,6 +272,37 @@ export default function OnboardingView() {
       }, { onConflict: 'user_id' });
 
       if (error) throw error;
+
+      // Save workout plan to database
+      if (plan) {
+        const daysPayload = plan.days.map(day => ({
+          name: day.name,
+          exercises: day.exercises.map(ex => {
+            const { min, max } = parseReps(ex.reps);
+            return {
+              name: ex.name,
+              sets: ex.sets,
+              rep_range_min: min,
+              rep_range_max: max,
+              muscle_group: 'other',
+            };
+          }),
+        }));
+
+        const { error: planError } = await supabase.rpc('create_onboarding_workout_plan', {
+          _user_id: user.id,
+          _plan_name: `${plan.splitName} Plan`,
+          _split_type: finalSplit,
+          _frequency: (data.training_frequency as number) || 3,
+          _days: daysPayload,
+        });
+
+        if (planError) {
+          console.error('Failed to save workout plan:', planError);
+          toast.error('Programme saved but workout plan creation failed. Your trainer can set it up manually.');
+        }
+      }
+
       setOnboardingCompleted(true);
       toast.success('Programme generated! Your trainer may customise it further.');
       navigate('/dashboard');
