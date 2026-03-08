@@ -23,7 +23,7 @@ export function BottomNav() {
   const clientTabs = [
     { icon: Home, label: 'Home', path: '/dashboard' },
     { icon: Dumbbell, label: 'Workout', path: '/workout' },
-    { icon: Bell, label: 'Alerts', path: '/notifications', showBadge: true },
+    { icon: BarChart3, label: 'Progress', path: '/progress' },
     { icon: UtensilsCrossed, label: 'Nutrition', path: '/nutrition' },
     { icon: User, label: 'Profile', path: '/profile' },
   ];
