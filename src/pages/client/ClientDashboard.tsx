@@ -14,19 +14,6 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Moon, Clock, Scale, Weight } from 'lucide-react';
-import { MobileLayout } from '@/components/layout/MobileLayout';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { format, formatDistanceToNow } from 'date-fns';
-import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { cn } from '@/lib/utils';
-import { useNavigate } from 'react-router-dom';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
-import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 const warmupCategories = ['Legs', 'Full Body', 'Running', 'Arms / Hands', 'Mobility', 'Stretching'];
 
