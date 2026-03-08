@@ -47,8 +47,11 @@ export default function ClientDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { flags } = useFeatureFlags();
+  const { unreadCount } = useNotifications();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'Athlete';
   const today = new Date();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
 
   const [warmupVideos, setWarmupVideos] = useState<WarmupVideo[]>([]);
   const [bodyweightData, setBodyweightData] = useState<{ date: string; weight: number }[]>([]);
