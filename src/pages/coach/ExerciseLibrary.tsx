@@ -261,16 +261,16 @@ export default function ExerciseLibrary() {
               )}
 
               <div className="grid grid-cols-3 gap-3">
-                <div className="text-center p-2 rounded-xl bg-secondary">
-                  <p className="text-lg font-bold">{selectedExercise.rep_range_min}-{selectedExercise.rep_range_max}</p>
+                <div className="text-center p-2 rounded-xl bg-secondary overflow-hidden">
+                  <p className="text-base font-bold">{selectedExercise.rep_range_min}-{selectedExercise.rep_range_max}</p>
                   <p className="text-[10px] text-muted-foreground">Rep Range</p>
                 </div>
-                <div className="text-center p-2 rounded-xl bg-secondary">
-                  <p className="text-lg font-bold capitalize">{selectedExercise.difficulty_level}</p>
+                <div className="text-center p-2 rounded-xl bg-secondary overflow-hidden">
+                  <p className="text-xs font-bold capitalize leading-5 truncate">{selectedExercise.difficulty_level}</p>
                   <p className="text-[10px] text-muted-foreground">Difficulty</p>
                 </div>
-                <div className="text-center p-2 rounded-xl bg-secondary">
-                  <p className="text-lg font-bold capitalize">{selectedExercise.movement_type}</p>
+                <div className="text-center p-2 rounded-xl bg-secondary overflow-hidden">
+                  <p className="text-xs font-bold capitalize leading-5 truncate">{selectedExercise.movement_type}</p>
                   <p className="text-[10px] text-muted-foreground">Type</p>
                 </div>
               </div>
