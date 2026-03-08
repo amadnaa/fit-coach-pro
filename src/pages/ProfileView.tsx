@@ -82,10 +82,9 @@ export default function ProfileView() {
       });
     supabase.from('user_preferences').select('accent_color').eq('user_id', user.id).maybeSingle()
       .then(({ data }) => {
-        if (data?.accent_color) {
-          setSelectedColor(data.accent_color);
-          applyAccentColor(data.accent_color);
-        }
+        const color = data?.accent_color || '330 81% 60%';
+        setSelectedColor(color);
+        applyAccentColor(color);
       });
   }, [user]);
 
