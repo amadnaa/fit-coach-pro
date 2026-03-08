@@ -136,6 +136,61 @@ export default function ClientDashboard() {
       .eq('user_id', user.id).eq('week_start', weekStart)
       .maybeSingle()
       .then(({ data }) => { if (data) setCheckInSubmitted(true); });
+
+    // Fetch today's workout from scheduled sessions or active plan
+    const fetchTodayWorkout = async () => {
+      setLoadingTodayWorkout(true);
+      const todayStr = format(today, 'yyyy-MM-dd');
+
+      // 1. Check scheduled session for today with a linked workout
+      const { data: scheduled } = await supabase
+        .from('scheduled_sessions')
+        .select('title, workout_id')
+        .eq('user_id', user.id)
+        .eq('session_date', todayStr)
+        .not('workout_id', 'is', null)
+        .limit(1)
+        .maybeSingle();
+
+      if (scheduled && scheduled.workout_id) {
+        // Get exercise count for this workout
+        const { count } = await supabase
+          .from('workout_exercises')
+          .select('id', { count: 'exact', head: true })
+          .eq('workout_id', scheduled.workout_id);
+        setTodayWorkout({ workoutName: scheduled.title, exerciseCount: count || 0, workoutId: scheduled.workout_id });
+        setLoadingTodayWorkout(false);
+        return;
+      }
+
+      // 2. Fall back to first workout from active plan
+      const { data: plan } = await supabase
+        .from('workout_plans')
+        .select('id')
+        .eq('client_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (plan) {
+        const { data: firstWorkout } = await supabase
+          .from('workouts')
+          .select('id, name')
+          .eq('plan_id', plan.id)
+          .order('day_number')
+          .limit(1)
+          .maybeSingle();
+
+        if (firstWorkout) {
+          const { count } = await supabase
+            .from('workout_exercises')
+            .select('id', { count: 'exact', head: true })
+            .eq('workout_id', firstWorkout.id);
+          setTodayWorkout({ workoutName: firstWorkout.name, exerciseCount: count || 0, workoutId: firstWorkout.id });
+        }
+      }
+      setLoadingTodayWorkout(false);
+    };
+    fetchTodayWorkout();
   }, [user]);
 
   const getWeekStart = (date: Date) => {
