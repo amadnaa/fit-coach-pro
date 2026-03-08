@@ -36,8 +36,6 @@ export default function ClientDetailView() {
     supabase.from('step_logs').select('steps, logged_at').eq('user_id', clientId).order('logged_at', { ascending: true }).limit(30)
       .then(({ data }) => { if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), steps: d.steps }))); });
 
-    supabase.from('workout_logs').select('id, reps, weight, set_number, completed_at, arrow_direction, workout_exercise_id').eq('user_id', clientId).order('completed_at', { ascending: false }).limit(50)
-      .then(({ data }) => { if (data) setWorkoutLogs(data); });
 
     supabase.from('weekly_check_ins').select('*').eq('user_id', clientId).order('week_start', { ascending: false }).limit(10)
       .then(({ data }) => { if (data) setWeeklyCheckins(data); });
