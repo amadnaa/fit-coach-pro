@@ -4,13 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export interface FeatureFlags {
   food_tracking_enabled: boolean;
-  step_tracking_enabled: boolean;
+  sleep_tracking_enabled: boolean;
   cardio_tracking_enabled: boolean;
 }
 
 const defaultFlags: FeatureFlags = {
   food_tracking_enabled: false,
-  step_tracking_enabled: true,
+  sleep_tracking_enabled: true,
   cardio_tracking_enabled: false,
 };
 
@@ -25,14 +25,14 @@ export function useFeatureFlags() {
     const fetchFlags = async () => {
       const { data } = await supabase
         .from('feature_flags')
-        .select('food_tracking_enabled, step_tracking_enabled, cardio_tracking_enabled')
+        .select('food_tracking_enabled, sleep_tracking_enabled, cardio_tracking_enabled')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (data) {
         setFlags({
           food_tracking_enabled: data.food_tracking_enabled ?? false,
-          step_tracking_enabled: data.step_tracking_enabled ?? true,
+          sleep_tracking_enabled: data.sleep_tracking_enabled ?? true,
           cardio_tracking_enabled: data.cardio_tracking_enabled ?? false,
         });
       }
@@ -57,7 +57,7 @@ export function useFeatureFlags() {
           if (newData) {
             setFlags({
               food_tracking_enabled: newData.food_tracking_enabled ?? false,
-              step_tracking_enabled: newData.step_tracking_enabled ?? true,
+              sleep_tracking_enabled: newData.sleep_tracking_enabled ?? true,
               cardio_tracking_enabled: newData.cardio_tracking_enabled ?? false,
             });
           }

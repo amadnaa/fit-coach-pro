@@ -64,6 +64,9 @@ export default function ClientDashboard() {
   const [selectedVideo, setSelectedVideo] = useState<WarmupVideo | null>(null);
   const [todayWorkout, setTodayWorkout] = useState<TodayWorkout | null>(null);
   const [loadingTodayWorkout, setLoadingTodayWorkout] = useState(true);
+  const [sleepDialogOpen, setSleepDialogOpen] = useState(false);
+  const [newSleepHours, setNewSleepHours] = useState('');
+  const [savingSleep, setSavingSleep] = useState(false);
 
   const handleLogWeight = async () => {
     if (!user || !newWeight) return;
