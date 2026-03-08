@@ -243,7 +243,7 @@ export default function NutritionView() {
           <h1 className="text-2xl font-display font-bold">Nutrition</h1>
         </motion.div>
 
-        {/* Tab Toggle - only show tracker tab if food tracking is enabled */}
+        {/* Tab Toggle - only show if food tracking is enabled */}
         {flags.food_tracking_enabled && (
         <div className="flex gap-1 p-1 rounded-xl bg-secondary">
           {(['recipes', 'tracker'] as const).map(t => (
@@ -259,7 +259,7 @@ export default function NutritionView() {
         </div>
         )}
 
-        {tab === 'tracker' && (
+        {tab === 'tracker' && flags.food_tracking_enabled && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
             {/* Daily Macros */}
             <div className="grid grid-cols-4 gap-2">
