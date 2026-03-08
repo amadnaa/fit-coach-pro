@@ -16,6 +16,7 @@ import ProfileView from "./pages/ProfileView";
 import ExerciseLibrary from "./pages/coach/ExerciseLibrary";
 import RecipeManager from "./pages/coach/RecipeManager";
 import NotificationCentre from "./pages/NotificationCentre";
+import PrivacySecurity from "./pages/PrivacySecurity";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
