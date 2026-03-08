@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useAccentColor } from "@/hooks/useAccentColor";
+import { SplashScreen } from "./components/SplashScreen";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -24,26 +26,29 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
-import { SplashScreen } from "./components/SplashScreen";
 
 const queryClient = new QueryClient();
 
 function AppRoutes() {
   const { user, role, loading, onboardingCompleted } = useAuth();
   useAccentColor(user?.id);
+  const [showSplash, setShowSplash] = useState(true);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 1800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash || loading) {
+    return <SplashScreen show={true} />;
   }
 
   if (!user) {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
@@ -63,7 +68,7 @@ function AppRoutes() {
 
   return (
     <Routes>
-      {/* Client Routes - redirect coaches to /coach */}
+      {/* Client Routes */}
       <Route path="/dashboard" element={role === 'coach' ? <Navigate to="/coach" replace /> : <ClientDashboard />} />
       <Route path="/workout" element={role === 'coach' ? <Navigate to="/coach" replace /> : <WorkoutView />} />
       <Route path="/progress" element={role === 'coach' ? <Navigate to="/coach" replace /> : <ProgressView />} />
@@ -75,14 +80,15 @@ function AppRoutes() {
       <Route path="/privacy" element={<PrivacySecurity />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Coach Routes - redirect clients to /dashboard */}
+      {/* Coach Routes */}
       <Route path="/coach" element={role === 'coach' ? <CoachDashboard /> : <Navigate to="/dashboard" replace />} />
       <Route path="/coach/client/:clientId" element={role === 'coach' ? <ClientDetailView /> : <Navigate to="/dashboard" replace />} />
       <Route path="/coach/exercises" element={role === 'coach' ? <ExerciseLibrary /> : <Navigate to="/dashboard" replace />} />
       <Route path="/coach/recipes" element={role === 'coach' ? <RecipeManager /> : <Navigate to="/dashboard" replace />} />
 
-      {/* Default redirect based on role */}
+      {/* Default redirect */}
       <Route path="/" element={<Navigate to={role === 'coach' ? '/coach' : '/dashboard'} replace />} />
       <Route path="/login" element={<Navigate to="/" replace />} />
       <Route path="*" element={<NotFound />} />
