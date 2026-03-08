@@ -203,19 +203,9 @@ export default function ClientDashboard() {
           {warmupVideos.length > 0 ? (
             <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-5 px-5">
               {warmupVideos.map((video) => (
-                <div key={video.id} className="flex-shrink-0 w-40">
+                <div key={video.id} className="flex-shrink-0 w-40 cursor-pointer" onClick={() => setSelectedVideo(video)}>
                   <div className="w-40 h-24 rounded-xl bg-secondary flex items-center justify-center relative overflow-hidden">
-                    {video.video_url ? (
-                      video.video_url.includes('youtube') || video.video_url.includes('youtu.be') ? (
-                        <div className="w-full h-full bg-secondary flex items-center justify-center cursor-pointer" onClick={() => window.open(video.video_url!, '_blank')}>
-                          <Play className="h-8 w-8 text-primary" />
-                        </div>
-                      ) : (
-                        <video src={video.video_url} className="w-full h-full object-cover rounded-xl" muted />
-                      )
-                    ) : (
-                      <Play className="h-8 w-8 text-muted-foreground" />
-                    )}
+                    <Play className="h-8 w-8 text-primary z-10" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl" />
                     <div className="absolute bottom-2 left-2 right-2">
                       <p className="text-[10px] text-white font-medium truncate">{video.name}</p>
