@@ -356,18 +356,26 @@ export default function ProgressView() {
             <Dumbbell className="h-4 w-4 text-primary" />
             <h3 className="font-semibold text-sm">Workout History</h3>
           </div>
-          {['Push Day', 'Pull Day', 'Leg Day', 'Push Day', 'Pull Day'].map((name, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Dumbbell className="h-4 w-4 text-primary" />
+          {workoutHistory.length > 0 ? workoutHistory.map((session) => {
+            const duration = session.duration_seconds ? `${Math.floor(session.duration_seconds / 60)} min` : '';
+            const timeAgo = formatDistanceToNow(new Date(session.ended_at || session.started_at), { addSuffix: true });
+            return (
+              <div key={session.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Dumbbell className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">
+                    {session.exercises_completed}/{session.total_exercises} exercises · {duration}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{timeAgo}</p>
+                </div>
+                <span className="text-xs text-primary">✓</span>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{name}</p>
-                <p className="text-xs text-muted-foreground">{i + 1} day{i > 0 ? 's' : ''} ago</p>
-              </div>
-              <span className="text-xs text-primary">✓</span>
-            </div>
-          ))}
+            );
+          }) : (
+            <p className="text-xs text-muted-foreground">No completed workouts yet</p>
+          )}
         </motion.div>
       </div>
     </MobileLayout>
