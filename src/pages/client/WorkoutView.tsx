@@ -430,10 +430,13 @@ export default function WorkoutView() {
               </motion.div>
             ))}
           </div>
+          )}
 
+          {exercises.length > 0 && (
           <Button onClick={handleStartWorkout} className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base">
             <Play className="h-5 w-5 mr-2" /> Start Workout
           </Button>
+          )}
         </div>
 
         {/* Swap Alternatives Dialog */}
