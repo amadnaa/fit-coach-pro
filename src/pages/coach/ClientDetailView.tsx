@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Dumbbell, TrendingUp, Footprints, ClipboardList, Settings2, Clock, Trophy, UtensilsCrossed } from 'lucide-react';
+import { ChevronLeft, TrendingUp, Footprints, ClipboardList, Settings2, Clock, UtensilsCrossed } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +17,7 @@ export default function ClientDetailView() {
   const [clientName, setClientName] = useState('');
   const [bodyweightData, setBodyweightData] = useState<{ date: string; weight: number }[]>([]);
   const [stepsData, setStepsData] = useState<{ date: string; steps: number }[]>([]);
-  const [workoutLogs, setWorkoutLogs] = useState<any[]>([]);
+  
   const [weeklyCheckins, setWeeklyCheckins] = useState<any[]>([]);
   const [workoutSessions, setWorkoutSessions] = useState<any[]>([]);
   const [foodLogs, setFoodLogs] = useState<any[]>([]);
@@ -36,8 +36,6 @@ export default function ClientDetailView() {
     supabase.from('step_logs').select('steps, logged_at').eq('user_id', clientId).order('logged_at', { ascending: true }).limit(30)
       .then(({ data }) => { if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), steps: d.steps }))); });
 
-    supabase.from('workout_logs').select('id, reps, weight, set_number, completed_at, arrow_direction, workout_exercise_id').eq('user_id', clientId).order('completed_at', { ascending: false }).limit(50)
-      .then(({ data }) => { if (data) setWorkoutLogs(data); });
 
     supabase.from('weekly_check_ins').select('*').eq('user_id', clientId).order('week_start', { ascending: false }).limit(10)
       .then(({ data }) => { if (data) setWeeklyCheckins(data); });
@@ -85,11 +83,10 @@ export default function ClientDetailView() {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full grid grid-cols-6 rounded-xl bg-secondary h-9">
+          <TabsList className="w-full grid grid-cols-5 rounded-xl bg-secondary h-9">
             <TabsTrigger value="overview" className="text-[10px] rounded-lg">Overview</TabsTrigger>
             <TabsTrigger value="sessions" className="text-[10px] rounded-lg">Sessions</TabsTrigger>
             <TabsTrigger value="nutrition" className="text-[10px] rounded-lg">Nutrition</TabsTrigger>
-            <TabsTrigger value="logs" className="text-[10px] rounded-lg">Logs</TabsTrigger>
             <TabsTrigger value="checkins" className="text-[10px] rounded-lg">Check-ins</TabsTrigger>
             <TabsTrigger value="settings" className="text-[10px] rounded-lg">Settings</TabsTrigger>
           </TabsList>
@@ -199,22 +196,6 @@ export default function ClientDetailView() {
             )}
           </TabsContent>
 
-          <TabsContent value="logs" className="space-y-2 mt-4">
-            {workoutLogs.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No workout logs yet</p> : (
-              workoutLogs.map(log => (
-                <div key={log.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Dumbbell className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{log.weight}kg × {log.reps} reps (Set {log.set_number})</p>
-                    <p className="text-[10px] text-muted-foreground">{format(new Date(log.completed_at), 'MMM d, HH:mm')}</p>
-                  </div>
-                  {log.arrow_direction && <span className="text-xs">{log.arrow_direction === 'up' ? '↑' : log.arrow_direction === 'down' ? '↓' : '→'}</span>}
-                </div>
-              ))
-            )}
-          </TabsContent>
 
           <TabsContent value="checkins" className="space-y-3 mt-4">
             {weeklyCheckins.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No check-ins yet</p> : (
