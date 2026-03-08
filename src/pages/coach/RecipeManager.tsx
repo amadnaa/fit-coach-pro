@@ -27,6 +27,7 @@ interface Recipe {
 export default function RecipeManager() {
   const { user } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [saving, setSaving] = useState(false);
