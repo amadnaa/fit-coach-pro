@@ -321,7 +321,7 @@ export default function WorkoutView() {
         <div className="px-5 pt-6 space-y-6">
           <h1 className="text-2xl font-display font-bold">{workoutName}</h1>
           <p className="text-muted-foreground text-sm">
-            {planInfo ? `${planInfo.name} · Cycle ${planInfo.cycle_week}` : 'Week 2 · Cycle 1'}
+            {planInfo ? `${planInfo.name} · Cycle ${planInfo.cycle_week}` : ''}
           </p>
 
           {/* Workout Day Selector */}
