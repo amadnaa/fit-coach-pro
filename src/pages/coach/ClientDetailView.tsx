@@ -377,10 +377,10 @@ export default function ClientDetailView() {
               ) : <p className="text-xs text-muted-foreground text-center py-4">No data</p>}
             </div>
             <div className="p-4 rounded-2xl bg-card border border-border space-y-2">
-              <div className="flex items-center gap-2"><Footprints className="h-4 w-4 text-primary" /><p className="text-sm font-medium">Steps</p></div>
-              {stepsData.length > 1 ? (
+              <div className="flex items-center gap-2"><Moon className="h-4 w-4 text-primary" /><p className="text-sm font-medium">Sleep</p></div>
+              {sleepData.length > 1 ? (
                 <ResponsiveContainer width="100%" height={120}>
-                  <LineChart data={stepsData}><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis hide domain={['dataMin - 500', 'dataMax + 500']} /><Line type="monotone" dataKey="steps" stroke="hsl(var(--info))" strokeWidth={2} dot={false} /></LineChart>
+                  <LineChart data={sleepData}><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis hide domain={[0, 12]} /><Line type="monotone" dataKey="hours" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} /></LineChart>
                 </ResponsiveContainer>
               ) : <p className="text-xs text-muted-foreground text-center py-4">No data</p>}
             </div>
