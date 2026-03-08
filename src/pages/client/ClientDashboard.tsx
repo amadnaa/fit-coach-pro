@@ -108,6 +108,17 @@ export default function ClientDashboard() {
       .gte('started_at', monthStart)
       .then(({ count }) => { if (count !== null) setWorkoutCount(count); });
 
+    // Total volume this month
+    supabase.from('workout_logs').select('weight, reps')
+      .eq('user_id', user.id)
+      .gte('completed_at', monthStart)
+      .then(({ data }) => {
+        if (data) {
+          const vol = data.reduce((sum, log) => sum + (log.weight * log.reps), 0);
+          setTotalVolume(vol);
+        }
+      });
+
     // Check if weekly check-in already submitted this week
     const weekStart = getWeekStart(today);
     supabase.from('weekly_check_ins').select('id')
