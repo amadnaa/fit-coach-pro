@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 const weightData = [
   { week: 'W1', value: 82 }, { week: 'W2', value: 81.5 }, { week: 'W3', value: 81.2 },
