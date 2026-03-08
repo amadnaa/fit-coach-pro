@@ -231,10 +231,11 @@ export default function ClientDashboard() {
 
         {/* Progress Graphs */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-2xl bg-card border border-border space-y-2">
+          <div className="p-3 rounded-2xl bg-card border border-border space-y-2 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setWeightDialogOpen(true)}>
             <div className="flex items-center gap-1.5">
               <TrendingUp className="h-3.5 w-3.5 text-primary" />
               <p className="text-xs font-medium">Bodyweight</p>
+              <Scale className="h-3 w-3 text-muted-foreground ml-auto" />
             </div>
             {bodyweightData.length > 1 ? (
               <ResponsiveContainer width="100%" height={80}>
@@ -246,7 +247,7 @@ export default function ClientDashboard() {
               </ResponsiveContainer>
             ) : (
               <div className="h-20 flex items-center justify-center">
-                <p className="text-[10px] text-muted-foreground">No data yet</p>
+                <p className="text-[10px] text-muted-foreground">Tap to log weight</p>
               </div>
             )}
           </div>
