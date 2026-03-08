@@ -264,6 +264,7 @@ export default function OnboardingView() {
       });
 
       if (error) throw error;
+      setOnboardingCompleted(true);
       toast.success('Programme generated! Your trainer may customise it further.');
       navigate('/dashboard');
     } catch (err: any) {
