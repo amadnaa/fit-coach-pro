@@ -87,10 +87,17 @@ export default function PrivacySecurity() {
     setDeleting(true);
     try {
       // Delete user data from all tables
-      const tableNames = ['bodyweight_logs', 'workout_logs', 'food_logs', 'step_logs', 'cardio_logs', 'weekly_check_ins', 'check_ins', 'workout_sessions', 'scheduled_sessions', 'user_preferences', 'feature_flags', 'client_onboarding', 'notifications'];
-      for (const table of tableNames) {
-        await supabase.from(table as 'profiles').delete().eq('user_id' as any, user.id);
-      }
+      await supabase.from('bodyweight_logs').delete().eq('user_id', user.id);
+      await supabase.from('workout_logs').delete().eq('user_id', user.id);
+      await supabase.from('food_logs').delete().eq('user_id', user.id);
+      await supabase.from('step_logs').delete().eq('user_id', user.id);
+      await supabase.from('cardio_logs').delete().eq('user_id', user.id);
+      await supabase.from('weekly_check_ins').delete().eq('user_id', user.id);
+      await supabase.from('check_ins').delete().eq('user_id', user.id);
+      await supabase.from('workout_sessions').delete().eq('user_id', user.id);
+      await supabase.from('scheduled_sessions').delete().eq('user_id', user.id);
+      await supabase.from('user_preferences').delete().eq('user_id', user.id);
+      await supabase.from('notifications').delete().eq('recipient_id', user.id);
       await supabase.from('profiles').delete().eq('user_id', user.id);
       await signOut();
       toast.success('Account data deleted. Contact support to complete account removal.');
