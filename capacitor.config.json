@@ -1,0 +1,9 @@
+{
+  "appId": "app.lovable.fef919ecf8274c0aa634252bb24e84ae",
+  "appName": "FitCoach",
+  "webDir": "dist",
+  "server": {
+    "url": "https://fef919ec-f827-4c0a-a634-252bb24e84ae.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  }
+}
