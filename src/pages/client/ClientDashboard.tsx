@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Footprints, Clock } from 'lucide-react';
+import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Footprints, Clock, Scale } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +8,10 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 const warmupCategories = ['Legs', 'Full Body', 'Running', 'Arms / Hands', 'Mobility', 'Stretching'];
 
@@ -45,6 +49,23 @@ export default function ClientDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
   const [workoutCount, setWorkoutCount] = useState(0);
+  const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+  const [newWeight, setNewWeight] = useState('');
+  const [savingWeight, setSavingWeight] = useState(false);
+
+  const handleLogWeight = async () => {
+    if (!user || !newWeight) return;
+    const w = parseFloat(newWeight);
+    if (isNaN(w) || w <= 0) { toast.error('Enter a valid weight'); return; }
+    setSavingWeight(true);
+    const { error } = await supabase.from('bodyweight_logs').insert({ user_id: user.id, weight: w });
+    if (error) { toast.error('Failed to log weight'); setSavingWeight(false); return; }
+    setBodyweightData(prev => [...prev, { date: format(new Date(), 'MM/dd'), weight: w }]);
+    setNewWeight('');
+    setWeightDialogOpen(false);
+    setSavingWeight(false);
+    toast.success(`Logged ${w} kg`);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -210,10 +231,11 @@ export default function ClientDashboard() {
 
         {/* Progress Graphs */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-2xl bg-card border border-border space-y-2">
+          <div className="p-3 rounded-2xl bg-card border border-border space-y-2 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setWeightDialogOpen(true)}>
             <div className="flex items-center gap-1.5">
               <TrendingUp className="h-3.5 w-3.5 text-primary" />
               <p className="text-xs font-medium">Bodyweight</p>
+              <Scale className="h-3 w-3 text-muted-foreground ml-auto" />
             </div>
             {bodyweightData.length > 1 ? (
               <ResponsiveContainer width="100%" height={80}>
@@ -225,7 +247,7 @@ export default function ClientDashboard() {
               </ResponsiveContainer>
             ) : (
               <div className="h-20 flex items-center justify-center">
-                <p className="text-[10px] text-muted-foreground">No data yet</p>
+                <p className="text-[10px] text-muted-foreground">Tap to log weight</p>
               </div>
             )}
           </div>
@@ -361,6 +383,37 @@ export default function ClientDashboard() {
           )}
         </motion.div>
       </div>
+
+      {/* Log Weight Dialog */}
+      <Dialog open={weightDialogOpen} onOpenChange={setWeightDialogOpen}>
+        <DialogContent className="max-w-xs mx-auto">
+          <DialogHeader>
+            <DialogTitle>Log Bodyweight</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {bodyweightData.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Last: <span className="font-medium text-foreground">{bodyweightData[bodyweightData.length - 1].weight} kg</span>
+              </p>
+            )}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Weight (kg)</label>
+              <Input
+                type="number"
+                step="0.1"
+                placeholder="e.g. 75.5"
+                value={newWeight}
+                onChange={(e) => setNewWeight(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogWeight()}
+                autoFocus
+              />
+            </div>
+            <Button onClick={handleLogWeight} disabled={savingWeight || !newWeight} className="w-full gradient-primary text-primary-foreground">
+              {savingWeight ? 'Saving...' : 'Log Weight'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </MobileLayout>
   );
 }
