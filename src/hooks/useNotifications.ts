@@ -1,0 +1,62 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+
+export function useNotifications() {
+  const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnreadCount = useCallback(async () => {
+    if (!user) { setUnreadCount(0); return; }
+    
+    // Count unread notifications for this user (direct + broadcast)
+    const { count: directCount } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', user.id)
+      .eq('read', false);
+
+    const { count: broadcastCount } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_broadcast', true)
+      .eq('read', false);
+
+    setUnreadCount((directCount || 0) + (broadcastCount || 0));
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchUnreadCount();
+
+    // Subscribe to realtime notifications
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+        },
+        (payload) => {
+          const newNotif = payload.new as any;
+          // Check if this notification is for the current user
+          if (newNotif.recipient_id === user.id || newNotif.is_broadcast) {
+            setUnreadCount(prev => prev + 1);
+            toast(newNotif.title || 'New notification', {
+              description: newNotif.body,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchUnreadCount]);
+
+  return { unreadCount, refetchUnread: fetchUnreadCount };
+}

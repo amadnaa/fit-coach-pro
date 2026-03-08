@@ -37,6 +37,23 @@ export default function NotificationCentre() {
     if (!user) return;
     fetchNotifications();
     if (role === 'coach') fetchClients();
+
+    // Realtime subscription for new notifications
+    const channel = supabase
+      .channel('notif-centre-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        (payload) => {
+          const n = payload.new as any;
+          if (n.recipient_id === user.id || n.is_broadcast) {
+            fetchNotifications();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user, role]);
 
   const fetchNotifications = async () => {
