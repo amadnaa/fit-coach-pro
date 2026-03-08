@@ -21,6 +21,7 @@ import PrivacySecurity from "./pages/PrivacySecurity";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
+import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -69,6 +71,7 @@ function AppRoutes() {
       <Route path="/notification-settings" element={<NotificationSettings />} />
       <Route path="/privacy" element={<PrivacySecurity />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
 
       {/* Coach Routes - redirect clients to /dashboard */}
       <Route path="/coach" element={role === 'coach' ? <CoachDashboard /> : <Navigate to="/dashboard" replace />} />
