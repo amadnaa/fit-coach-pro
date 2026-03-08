@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { LogOut, Moon, Sun, User, Shield, Bell, Palette, Camera, Lock, Check } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
