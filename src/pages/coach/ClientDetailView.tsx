@@ -351,7 +351,31 @@ export default function ClientDetailView() {
     fetchPlanWorkouts();
   };
 
-  return (
+  const createPlanFromScratch = async () => {
+    if (!clientId || !newPlanName.trim()) { toast.error('Plan name is required'); return; }
+    try {
+      const { error } = await supabase.from('workout_plans').insert({
+        client_id: clientId,
+        name: newPlanName.trim(),
+        split_type: newPlanSplit,
+        frequency: newPlanFrequency,
+        cycle_week: 1,
+        is_active: true,
+      });
+      if (error) throw error;
+      toast.success('Plan created! Add workouts and exercises.');
+      setShowCreatePlanDialog(false);
+      setNewPlanName('');
+      const { data: newPlans } = await supabase.from('workout_plans').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
+      if (newPlans) {
+        setPlans(newPlans as WorkoutPlan[]);
+        setSelectedPlanId(newPlans[0]?.id || null);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create plan');
+    }
+  };
+
     <MobileLayout>
       <div className="px-5 pt-6 space-y-4 pb-24">
         <div className="flex items-center gap-3">
