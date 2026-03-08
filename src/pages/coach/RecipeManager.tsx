@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, UtensilsCrossed, Trash2, ChevronLeft } from 'lucide-react';
+import { Plus, UtensilsCrossed, Trash2, ChevronLeft, Search } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
