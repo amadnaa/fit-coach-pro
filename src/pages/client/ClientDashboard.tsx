@@ -97,11 +97,11 @@ export default function ClientDashboard() {
         if (data) setBodyweightData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), weight: d.weight })));
       });
 
-    // Fetch step logs
-    supabase.from('step_logs').select('steps, logged_at')
+    // Fetch sleep logs
+    supabase.from('sleep_logs').select('hours, logged_at')
       .eq('user_id', user.id).order('logged_at', { ascending: true }).limit(14)
       .then(({ data }) => {
-        if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), steps: d.steps })));
+        if (data) setSleepData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), hours: Number(d.hours) })));
       });
 
     // Fetch recent completed workout sessions
