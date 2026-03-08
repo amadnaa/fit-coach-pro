@@ -172,14 +172,14 @@ export default function RecipeManager() {
           const filtered = recipes.filter(r => r.title.toLowerCase().includes(search.toLowerCase()));
           return loading ? (
           <div className="py-12 text-center text-sm text-muted-foreground">Loading...</div>
-        ) : recipes.length === 0 ? (
+          ) : filtered.length === 0 ? (
           <div className="py-12 text-center space-y-2">
             <UtensilsCrossed className="h-10 w-10 text-muted-foreground mx-auto" />
-            <p className="text-sm text-muted-foreground">No recipes yet. Tap + to add one.</p>
+            <p className="text-sm text-muted-foreground">{recipes.length === 0 ? 'No recipes yet. Tap + to add one.' : 'No recipes match your search.'}</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {recipes.map((recipe, i) => (
+            {filtered.map((recipe, i) => (
               <motion.div
                 key={recipe.id}
                 initial={{ opacity: 0, y: 10 }}
@@ -210,7 +210,8 @@ export default function RecipeManager() {
               </motion.div>
             ))}
           </div>
-        )}
+        );
+        })()}
       </div>
 
       {/* Add Recipe Dialog */}
