@@ -41,6 +41,8 @@ export default function ProgressView() {
   const [workoutDays, setWorkoutDays] = useState<WorkoutDay[]>([]);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [eventType, setEventType] = useState<'workout' | 'other' | null>(null);
+  const [bodyweightData, setBodyweightData] = useState<{ date: string; value: number }[]>([]);
+  const [stepsData, setStepsData] = useState<{ date: string; value: number }[]>([]);
 
   useEffect(() => {
     if (!user) return;
