@@ -9,17 +9,7 @@ import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-function hslToHex(h: number, s: number, l: number): string {
-  s /= 100; l /= 100;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n: number) => {
-    const k = (n + h / 30) % 12;
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color).toString(16).padStart(2, '0');
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
-}
+import { useAccentColor, applyAccentColor } from '@/hooks/useAccentColor';
 
 function hexToHsl(hex: string): [number, number, number] {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -40,36 +30,19 @@ function hexToHsl(hex: string): [number, number, number] {
   return [Math.round(h), Math.round(s * 100), Math.round(l * 100)];
 }
 
-function applyAccentColor(color: string) {
-  const parts = color.split(' ').map(s => parseFloat(s));
-  const h = parts[0], s = parts[1], l = parts[2];
-  const darkL = Math.max(l - 10, 15);
-  const lightL = Math.min(l + 10, 85);
-  const lightH = (h + 18) % 360;
-
-  document.documentElement.style.setProperty('--primary', color);
-  document.documentElement.style.setProperty('--accent', color);
-  document.documentElement.style.setProperty('--ring', color);
-  document.documentElement.style.setProperty('--sidebar-primary', color);
-  document.documentElement.style.setProperty('--sidebar-ring', color);
-  document.documentElement.style.setProperty('--primary-dark', `${h} ${s}% ${darkL}%`);
-  document.documentElement.style.setProperty('--primary-light', `${lightH} ${Math.min(s + 8, 100)}% ${lightL}%`);
-}
-
 export default function ProfileView() {
   const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
+  const { selectedColor, updateColor } = useAccentColor(user?.id);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains('dark'));
   const [editMode, setEditMode] = useState(false);
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || '');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [selectedColor, setSelectedColor] = useState('330 81% 60%');
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwords, setPasswords] = useState({ current: '', new1: '', new2: '' });
   const [changingPassword, setChangingPassword] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  
 
   useEffect(() => {
     if (!user) return;
@@ -80,48 +53,12 @@ export default function ProfileView() {
           if (data.full_name) setFullName(data.full_name);
         }
       });
-    supabase
-      .from('user_preferences')
-      .select('accent_color, accent_color_customized')
-      .eq('user_id', user.id)
-      .maybeSingle()
-      .then(async ({ data }) => {
-        const defaultPink = '330 81% 60%';
-        const pref = data as { accent_color?: string | null; accent_color_customized?: boolean } | null;
-        const isCustomized = pref?.accent_color_customized ?? false;
-        const color = isCustomized ? (pref?.accent_color || defaultPink) : defaultPink;
-
-        setSelectedColor(color);
-        applyAccentColor(color);
-
-        if (!isCustomized && pref?.accent_color !== defaultPink) {
-          await supabase.from('user_preferences').upsert(
-            {
-              user_id: user.id,
-              accent_color: defaultPink,
-              accent_color_customized: false,
-            } as any,
-            { onConflict: 'user_id' }
-          );
-        }
-      });
   }, [user]);
 
-
-  const handleColorInput = async (hex: string) => {
+  const handleColorPick = async (hex: string) => {
     const [h, s, l] = hexToHsl(hex);
     const hslStr = `${h} ${s}% ${l}%`;
-    setSelectedColor(hslStr);
-    applyAccentColor(hslStr);
-  };
-
-  const saveColor = async () => {
-    if (!user) return;
-    await supabase.from('user_preferences').upsert({
-      user_id: user.id,
-      accent_color: selectedColor,
-      accent_color_customized: true,
-    } as any, { onConflict: 'user_id' });
+    await updateColor(hslStr);
     toast.success('Theme updated!');
   };
 
@@ -223,9 +160,9 @@ export default function ProfileView() {
               { hex: '#ef4444', label: 'Red' },
               { hex: '#eab308', label: 'Yellow' },
             ].map(p => {
-              const [h, s, l] = hexToHsl(p.hex);
+              const [h] = hexToHsl(p.hex);
               return (
-                <button key={p.hex} onClick={() => { handleColorInput(p.hex); setTimeout(saveColor, 50); }}
+                <button key={p.hex} onClick={() => handleColorPick(p.hex)}
                   className={cn("flex flex-col items-center gap-1 transition-all",
                     Math.abs(parseFloat(selectedColor) - h) < 5 ? "scale-110" : "")}
                 >

@@ -24,6 +24,7 @@ const queryClient = new QueryClient();
 
 function AppRoutes() {
   const { user, role, loading, onboardingCompleted } = useAuth();
+  useAccentColor(user?.id);
 
   if (loading) {
     return (
