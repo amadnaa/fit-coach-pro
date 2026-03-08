@@ -376,7 +376,7 @@ export default function ClientDetailView() {
     }
   };
 
-    <MobileLayout>
+    return (
       <div className="px-5 pt-6 space-y-4 pb-24">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/coach')} className="text-muted-foreground"><ChevronLeft className="h-6 w-6" /></button>
