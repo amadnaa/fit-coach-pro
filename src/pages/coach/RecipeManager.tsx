@@ -163,7 +163,14 @@ export default function RecipeManager() {
           </button>
         </div>
 
-        {loading ? (
+        <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search recipes..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
+        </div>
+
+        {(() => {
+          const filtered = recipes.filter(r => r.title.toLowerCase().includes(search.toLowerCase()));
+          return loading ? (
           <div className="py-12 text-center text-sm text-muted-foreground">Loading...</div>
         ) : recipes.length === 0 ? (
           <div className="py-12 text-center space-y-2">
