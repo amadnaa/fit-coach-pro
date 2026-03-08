@@ -49,6 +49,7 @@ function AppRoutes() {
       <Route path="/nutrition" element={<NutritionView />} />
       <Route path="/onboarding" element={<OnboardingView />} />
       <Route path="/profile" element={<ProfileView />} />
+      <Route path="/notifications" element={<NotificationCentre />} />
 
       {/* Coach Routes */}
       <Route path="/coach" element={<CoachDashboard />} />
