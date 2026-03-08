@@ -66,7 +66,9 @@ function AppRoutes() {
       <Route path="/onboarding" element={<OnboardingView />} />
       <Route path="/profile" element={<ProfileView />} />
       <Route path="/notifications" element={<NotificationCentre />} />
+      <Route path="/notification-settings" element={<NotificationSettings />} />
       <Route path="/privacy" element={<PrivacySecurity />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
       {/* Coach Routes - redirect clients to /dashboard */}
       <Route path="/coach" element={role === 'coach' ? <CoachDashboard /> : <Navigate to="/dashboard" replace />} />

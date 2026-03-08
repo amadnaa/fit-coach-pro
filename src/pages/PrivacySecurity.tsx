@@ -86,21 +86,19 @@ export default function PrivacySecurity() {
     if (!user) return;
     setDeleting(true);
     try {
-      // Delete user data from all tables
-      await supabase.from('bodyweight_logs').delete().eq('user_id', user.id);
-      await supabase.from('workout_logs').delete().eq('user_id', user.id);
-      await supabase.from('food_logs').delete().eq('user_id', user.id);
-      await supabase.from('step_logs').delete().eq('user_id', user.id);
-      await supabase.from('cardio_logs').delete().eq('user_id', user.id);
-      await supabase.from('weekly_check_ins').delete().eq('user_id', user.id);
-      await supabase.from('check_ins').delete().eq('user_id', user.id);
-      await supabase.from('workout_sessions').delete().eq('user_id', user.id);
-      await supabase.from('scheduled_sessions').delete().eq('user_id', user.id);
-      await supabase.from('user_preferences').delete().eq('user_id', user.id);
-      await supabase.from('notifications').delete().eq('recipient_id', user.id);
-      await supabase.from('profiles').delete().eq('user_id', user.id);
-      await signOut();
-      toast.success('Account data deleted. Contact support to complete account removal.');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please sign in again before deleting your account.');
+        return;
+      }
+
+      const { error } = await supabase.functions.invoke('delete-account', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (error) throw error;
+
+      toast.success('Your account has been permanently deleted.');
       navigate('/login');
     } catch {
       toast.error('Deletion failed. Please contact support.');
