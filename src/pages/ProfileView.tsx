@@ -69,7 +69,7 @@ export default function ProfileView() {
   const [passwords, setPasswords] = useState({ current: '', new1: '', new2: '' });
   const [changingPassword, setChangingPassword] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const colorInputRef = useRef<HTMLInputElement>(null);
+  
 
   useEffect(() => {
     if (!user) return;
