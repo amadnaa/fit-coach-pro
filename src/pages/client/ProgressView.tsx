@@ -68,7 +68,13 @@ export default function ProgressView() {
     if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), value: d.steps })));
   };
 
-  const fetchSessions = async () => {
+  const fetchWorkoutHistory = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('workout_sessions').select('id, started_at, ended_at, duration_seconds, exercises_completed, total_exercises, completed')
+      .eq('user_id', user.id).eq('completed', true).order('ended_at', { ascending: false }).limit(10);
+    if (data) setWorkoutHistory(data);
+  };
+
     if (!user) return;
     const { data } = await supabase.from('scheduled_sessions')
       .select('*').eq('user_id', user.id).order('session_date', { ascending: true });
