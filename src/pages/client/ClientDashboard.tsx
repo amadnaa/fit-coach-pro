@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Footprints, Clock, Scale } from 'lucide-react';
+import { Dumbbell, Bell, Play, ChevronRight, TrendingUp, Footprints, Clock, Scale, Weight } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,6 +52,7 @@ export default function ClientDashboard() {
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [savingWeight, setSavingWeight] = useState(false);
+  const [totalVolume, setTotalVolume] = useState(0);
 
   const handleLogWeight = async () => {
     if (!user || !newWeight) return;
@@ -106,6 +107,17 @@ export default function ClientDashboard() {
       .eq('completed', true)
       .gte('started_at', monthStart)
       .then(({ count }) => { if (count !== null) setWorkoutCount(count); });
+
+    // Total volume this month
+    supabase.from('workout_logs').select('weight, reps')
+      .eq('user_id', user.id)
+      .gte('completed_at', monthStart)
+      .then(({ data }) => {
+        if (data) {
+          const vol = data.reduce((sum, log) => sum + (log.weight * log.reps), 0);
+          setTotalVolume(vol);
+        }
+      });
 
     // Check if weekly check-in already submitted this week
     const weekStart = getWeekStart(today);
@@ -359,7 +371,7 @@ export default function ClientDashboard() {
           <div className="grid grid-cols-2 gap-3">
             {[
               { icon: Dumbbell, label: 'Workouts', value: String(workoutCount), sublabel: 'this month' },
-              { icon: TrendingUp, label: 'Streak', value: '5', sublabel: 'days' },
+              { icon: Weight, label: 'Volume', value: totalVolume >= 1000 ? `${(totalVolume / 1000).toFixed(1)}t` : `${totalVolume}kg`, sublabel: 'lifted this month' },
             ].map((stat) => (
               <div key={stat.label} className="p-4 rounded-2xl bg-card border border-border">
                 <stat.icon className="h-5 w-5 text-primary mb-2" />
