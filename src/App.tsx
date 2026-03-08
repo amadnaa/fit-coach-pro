@@ -24,6 +24,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
+import { SplashScreen } from "./components/SplashScreen";
 
 const queryClient = new QueryClient();
 
