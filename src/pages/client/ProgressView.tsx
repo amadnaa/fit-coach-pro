@@ -14,15 +14,6 @@ import { cn } from '@/lib/utils';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useNavigate } from 'react-router-dom';
 
-const weightData = [
-  { week: 'W1', value: 82 }, { week: 'W2', value: 81.5 }, { week: 'W3', value: 81.2 },
-  { week: 'W4', value: 80.8 }, { week: 'W5', value: 80.3 }, { week: 'W6', value: 80.1 }, { week: 'W7', value: 79.6 },
-];
-
-const stepsData = [
-  { day: 'Mon', value: 8200 }, { day: 'Tue', value: 10500 }, { day: 'Wed', value: 7800 },
-  { day: 'Thu', value: 12000 }, { day: 'Fri', value: 9300 }, { day: 'Sat', value: 6500 }, { day: 'Sun', value: 4200 },
-];
 
 interface ScheduledSession {
   id: string;
@@ -50,12 +41,30 @@ export default function ProgressView() {
   const [workoutDays, setWorkoutDays] = useState<WorkoutDay[]>([]);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [eventType, setEventType] = useState<'workout' | 'other' | null>(null);
+  const [bodyweightData, setBodyweightData] = useState<{ date: string; value: number }[]>([]);
+  const [stepsData, setStepsData] = useState<{ date: string; value: number }[]>([]);
 
   useEffect(() => {
     if (!user) return;
     fetchSessions();
     fetchWorkoutDays();
+    fetchBodyweight();
+    fetchSteps();
   }, [user]);
+
+  const fetchBodyweight = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('bodyweight_logs').select('weight, logged_at')
+      .eq('user_id', user.id).order('logged_at', { ascending: true }).limit(30);
+    if (data) setBodyweightData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), value: d.weight })));
+  };
+
+  const fetchSteps = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('step_logs').select('steps, logged_at')
+      .eq('user_id', user.id).order('logged_at', { ascending: true }).limit(14);
+    if (data) setStepsData(data.map(d => ({ date: format(new Date(d.logged_at), 'MM/dd'), value: d.steps })));
+  };
 
   const fetchSessions = async () => {
     if (!user) return;
@@ -267,23 +276,33 @@ export default function ProgressView() {
           <div className="flex items-center gap-2">
             <Scale className="h-4 w-4 text-primary" />
             <h3 className="font-semibold text-sm">Body Weight</h3>
-            <span className="ml-auto text-xs text-primary font-medium">-2.4 kg</span>
+            {bodyweightData.length >= 2 && (() => {
+              const delta = bodyweightData[bodyweightData.length - 1].value - bodyweightData[0].value;
+              const sign = delta > 0 ? '+' : '';
+              return <span className={cn("ml-auto text-xs font-medium", delta > 0 ? 'text-destructive' : delta < 0 ? 'text-green-500' : 'text-muted-foreground')}>{sign}{delta.toFixed(1)} kg</span>;
+            })()}
           </div>
-          <div className="h-36">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weightData}>
-                <defs>
-                  <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
-                <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#weightGradient)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          {bodyweightData.length > 0 ? (
+            <div className="h-36">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={bodyweightData}>
+                  <defs>
+                    <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
+                  <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#weightGradient)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-36 flex items-center justify-center">
+              <p className="text-xs text-muted-foreground">No weight data yet. Log your bodyweight from the dashboard.</p>
+            </div>
+          )}
         </motion.div>
 
         {/* Steps Chart - only show if enabled */}
@@ -292,24 +311,34 @@ export default function ProgressView() {
           className="p-4 rounded-2xl bg-card border border-border space-y-3">
           <div className="flex items-center gap-2">
             <Footprints className="h-4 w-4 text-info" />
-            <h3 className="font-semibold text-sm">Steps This Week</h3>
-            <span className="ml-auto text-xs text-muted-foreground">Avg 8,357</span>
+            <h3 className="font-semibold text-sm">Steps</h3>
+            {stepsData.length > 0 && (
+              <span className="ml-auto text-xs text-muted-foreground">
+                Avg {Math.round(stepsData.reduce((s, d) => s + d.value, 0) / stepsData.length).toLocaleString()}
+              </span>
+            )}
           </div>
-          <div className="h-36">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stepsData}>
-                <defs>
-                  <linearGradient id="stepsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--info))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--info))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis hide />
-                <Area type="monotone" dataKey="value" stroke="hsl(var(--info))" strokeWidth={2} fill="url(#stepsGradient)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          {stepsData.length > 0 ? (
+            <div className="h-36">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stepsData}>
+                  <defs>
+                    <linearGradient id="stepsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--info))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--info))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis hide />
+                  <Area type="monotone" dataKey="value" stroke="hsl(var(--info))" strokeWidth={2} fill="url(#stepsGradient)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-36 flex items-center justify-center">
+              <p className="text-xs text-muted-foreground">No step data yet</p>
+            </div>
+          )}
         </motion.div>
         )}
 
