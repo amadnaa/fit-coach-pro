@@ -121,7 +121,7 @@ export default function ProfileView() {
       user_id: user.id,
       accent_color: selectedColor,
       accent_color_customized: true,
-    }, { onConflict: 'user_id' });
+    } as any, { onConflict: 'user_id' });
     toast.success('Theme updated!');
   };
 
