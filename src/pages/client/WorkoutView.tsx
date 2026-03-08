@@ -344,6 +344,15 @@ export default function WorkoutView() {
             </div>
           )}
 
+          {loadingPlan ? (
+            <div className="p-8 text-center text-muted-foreground text-sm">Loading workout plan...</div>
+          ) : exercises.length === 0 ? (
+            <div className="p-8 text-center space-y-2">
+              <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto" />
+              <p className="text-sm text-muted-foreground">No workout plan assigned yet</p>
+              <p className="text-xs text-muted-foreground">Your coach will set up your program</p>
+            </div>
+          ) : (
           <div className="space-y-3">
             {exercises.map((ex, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
