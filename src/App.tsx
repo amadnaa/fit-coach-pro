@@ -71,6 +71,7 @@ function AppRoutes() {
       <Route path="/notification-settings" element={<NotificationSettings />} />
       <Route path="/privacy" element={<PrivacySecurity />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
 
       {/* Coach Routes - redirect clients to /dashboard */}
       <Route path="/coach" element={role === 'coach' ? <CoachDashboard /> : <Navigate to="/dashboard" replace />} />
