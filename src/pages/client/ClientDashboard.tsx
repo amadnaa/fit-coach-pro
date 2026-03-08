@@ -91,7 +91,8 @@ export default function ClientDashboard() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted-foreground">{format(today, 'EEEE, MMMM d')}</p>
+            <p className="text-sm font-semibold">{format(today, 'EEEE')}</p>
+            <p className="text-xs text-muted-foreground">{format(today, 'MMMM d')}</p>
           </div>
           <div className="flex flex-col items-center gap-1">
             <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
@@ -99,7 +100,7 @@ export default function ClientDashboard() {
             </div>
             <p className="text-sm font-semibold">{firstName}</p>
           </div>
-          <button className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+          <button onClick={() => navigate('/notifications')} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
             <Bell className="h-5 w-5 text-muted-foreground" />
           </button>
         </motion.div>
