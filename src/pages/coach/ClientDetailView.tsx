@@ -45,6 +45,9 @@ export default function ClientDetailView() {
     supabase.from('workout_sessions').select('*').eq('user_id', clientId).order('started_at', { ascending: false }).limit(20)
       .then(({ data }) => { if (data) setWorkoutSessions(data); });
 
+    supabase.from('food_logs').select('*').eq('user_id', clientId).order('logged_at', { ascending: false }).limit(50)
+      .then(({ data }) => { if (data) setFoodLogs(data); });
+
     supabase.from('feature_flags').select('*').eq('user_id', clientId).maybeSingle()
       .then(({ data }) => {
         if (data) {
