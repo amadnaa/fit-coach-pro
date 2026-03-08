@@ -315,7 +315,7 @@ export default function NutritionView() {
           </motion.div>
         )}
 
-        {tab === 'recipes' && (
+        {(tab === 'recipes' || !flags.food_tracking_enabled) && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
             {loading ? (
               <div className="py-12 text-center text-sm text-muted-foreground">Loading recipes...</div>
@@ -327,6 +327,16 @@ export default function NutritionView() {
               </div>
             ) : (
               <>
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search recipes..."
+                    value={recipeSearch}
+                    onChange={e => setRecipeSearch(e.target.value)}
+                    className="pl-9 rounded-xl"
+                  />
+                </div>
                 {/* Filters */}
                 {filters.length > 1 && (
                   <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
