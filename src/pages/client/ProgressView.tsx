@@ -50,7 +50,7 @@ export default function ProgressView() {
     fetchSessions();
     fetchWorkoutDays();
     fetchBodyweight();
-    fetchSteps();
+    fetchSleep();
     fetchWorkoutHistory();
   }, [user]);
 
