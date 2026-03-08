@@ -57,7 +57,9 @@ export default function ExerciseLibrary() {
   const [deleting, setDeleting] = useState(false);
 
   const fetchExercises = async () => {
-    const { data } = await supabase.from('exercises').select('id, name, description, video_url, muscle_group, movement_type, difficulty_level, rep_range_min, rep_range_max, category').order('name');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from('exercises').select('id, name, description, video_url, muscle_group, movement_type, difficulty_level, rep_range_min, rep_range_max, category').eq('created_by', user.id).order('name');
     if (data) setExercises(data);
   };
 
