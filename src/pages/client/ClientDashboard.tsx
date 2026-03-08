@@ -248,9 +248,9 @@ export default function ClientDashboard() {
 
   return (
     <MobileLayout>
-      <div className="px-5 pt-6 space-y-5 pb-4">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl bg-card border border-border flex items-center justify-between">
+      {/* Header Banner */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-card border-b border-border px-5 pt-6 pb-5 -mx-0">
+        <div className="flex items-center justify-between">
           <div>
             <p className="text-base font-display font-bold leading-tight">{format(today, 'EEEE')}</p>
             <p className="text-xs text-muted-foreground">{format(today, 'MMMM d')}</p>
@@ -273,8 +273,10 @@ export default function ClientDashboard() {
               </span>
             )}
           </button>
-        </motion.div>
+        </div>
+      </motion.div>
 
+      <div className="px-5 pt-5 space-y-5 pb-4">
         {/* Today's Workout */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <div className="p-5 rounded-2xl gradient-primary text-primary-foreground space-y-3">
