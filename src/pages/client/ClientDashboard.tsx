@@ -371,7 +371,7 @@ export default function ClientDashboard() {
           <div className="grid grid-cols-2 gap-3">
             {[
               { icon: Dumbbell, label: 'Workouts', value: String(workoutCount), sublabel: 'this month' },
-              { icon: TrendingUp, label: 'Streak', value: '5', sublabel: 'days' },
+              { icon: Weight, label: 'Volume', value: totalVolume >= 1000 ? `${(totalVolume / 1000).toFixed(1)}t` : `${totalVolume}kg`, sublabel: 'lifted this month' },
             ].map((stat) => (
               <div key={stat.label} className="p-4 rounded-2xl bg-card border border-border">
                 <stat.icon className="h-5 w-5 text-primary mb-2" />
