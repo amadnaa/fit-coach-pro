@@ -102,8 +102,12 @@ export type Database = {
       }
       client_onboarding: {
         Row: {
+          cardio_preference: string
           completed: boolean | null
           created_at: string
+          equipment_access: string
+          experience_level: string
+          fitness_goal: string
           id: string
           injuries: string | null
           preferred_split: string
@@ -113,8 +117,12 @@ export type Database = {
           workout_duration: number
         }
         Insert: {
+          cardio_preference?: string
           completed?: boolean | null
           created_at?: string
+          equipment_access?: string
+          experience_level?: string
+          fitness_goal?: string
           id?: string
           injuries?: string | null
           preferred_split: string
@@ -124,8 +132,12 @@ export type Database = {
           workout_duration: number
         }
         Update: {
+          cardio_preference?: string
           completed?: boolean | null
           created_at?: string
+          equipment_access?: string
+          experience_level?: string
+          fitness_goal?: string
           id?: string
           injuries?: string | null
           preferred_split?: string

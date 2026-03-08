@@ -106,11 +106,15 @@ export interface WeeklyCheckIn {
 }
 
 export interface OnboardingData {
-  training_focus: 'upper_body' | 'lower_body' | 'full_body';
-  training_frequency: 2 | 3 | 4 | 5;
-  preferred_split: SplitType;
-  workout_duration: 45 | 60 | 75;
+  fitness_goal: string;
+  training_frequency: number;
+  experience_level: string;
+  preferred_split: string;
+  workout_duration: number;
+  equipment_access: string;
   injuries?: string;
+  cardio_preference: string;
+  training_focus: string;
 }
 
 export interface Recipe {
