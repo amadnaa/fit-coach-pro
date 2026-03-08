@@ -27,14 +27,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Defer role fetch to avoid blocking
           setTimeout(async () => {
             const { data } = await supabase
               .from('user_roles')
               .select('role')
               .eq('user_id', session.user.id)
-              .single();
-            setRole(data?.role as UserRole ?? null);
+              .maybeSingle();
+            if (data) {
+              setRole(data.role as UserRole);
+            }
           }, 0);
         } else {
           setRole(null);
