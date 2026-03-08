@@ -723,6 +723,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_onboarding_workout_plan: {
+        Args: {
+          _days: Json
+          _frequency: number
+          _plan_name: string
+          _split_type: string
+          _user_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
