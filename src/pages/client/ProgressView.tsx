@@ -51,6 +51,7 @@ export default function ProgressView() {
     fetchWorkoutDays();
     fetchBodyweight();
     fetchSteps();
+    fetchWorkoutHistory();
   }, [user]);
 
   const fetchBodyweight = async () => {
