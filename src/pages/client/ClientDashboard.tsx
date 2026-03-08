@@ -250,8 +250,8 @@ export default function ClientDashboard() {
     <MobileLayout>
       <div className="px-5 pt-6 space-y-5 pb-4">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl bg-card border border-border flex items-start justify-between">
-          <div className="pt-0.5">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl bg-card border border-border flex items-center justify-between">
+          <div>
             <p className="text-base font-display font-bold leading-tight">{format(today, 'EEEE')}</p>
             <p className="text-xs text-muted-foreground">{format(today, 'MMMM d')}</p>
           </div>
