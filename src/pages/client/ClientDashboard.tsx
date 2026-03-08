@@ -249,7 +249,7 @@ export default function ClientDashboard() {
   return (
     <MobileLayout>
       {/* Header Banner */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-card border-b border-border px-5 pt-6 pb-5 -mx-0">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-5 pt-6 pb-5">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-base font-display font-bold leading-tight">{format(today, 'EEEE')}</p>
