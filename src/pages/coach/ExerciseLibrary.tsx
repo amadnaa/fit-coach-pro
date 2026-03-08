@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Play, X, Upload } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 import type { ExerciseCategory, MuscleGroup, MovementType } from '@/types';
 
 const allCategories: ExerciseCategory[] = ['warmup', 'chest', 'back', 'shoulders', 'biceps', 'triceps', 'legs', 'glutes', 'hamstrings', 'quads', 'core', 'cardio', 'stretching', 'other'];
@@ -29,11 +30,14 @@ interface ExerciseRow {
 }
 
 export default function ExerciseLibrary() {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [exercises, setExercises] = useState<ExerciseRow[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     name: '', description: '', video_url: '', muscle_group: 'chest' as string,
@@ -54,15 +58,59 @@ export default function ExerciseLibrary() {
     return matchesSearch && matchesCat;
   });
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    const maxSize = 20 * 1024 * 1024; // 20MB
+    if (file.size > maxSize) {
+      toast.error('File too large. Max 20MB.');
+      return;
+    }
+
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const filePath = `${user.id}/${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('exercise-videos')
+      .upload(filePath, file, { contentType: file.type });
+
+    if (uploadError) {
+      toast.error('Upload failed: ' + uploadError.message);
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('exercise-videos')
+      .getPublicUrl(filePath);
+
+    // Since bucket is private, we use a signed URL approach
+    const { data: signedData } = await supabase.storage
+      .from('exercise-videos')
+      .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
+
+    const videoUrl = signedData?.signedUrl || urlData.publicUrl;
+    setForm(f => ({ ...f, video_url: videoUrl }));
+    setUploading(false);
+    toast.success('Video uploaded!');
+  };
+
   const handleSave = async () => {
     if (!form.name.trim()) { toast.error('Exercise name is required'); return; }
     setSaving(true);
     const { error } = await supabase.from('exercises').insert({
-      name: form.name, description: form.description || null,
-      video_url: form.video_url || null, muscle_group: form.muscle_group,
-      movement_type: form.movement_type, difficulty_level: form.difficulty_level,
-      rep_range_min: form.rep_range_min, rep_range_max: form.rep_range_max,
+      name: form.name.trim(),
+      description: form.description.trim() || null,
+      video_url: form.video_url || null,
+      muscle_group: form.muscle_group,
+      movement_type: form.movement_type,
+      difficulty_level: form.difficulty_level,
+      rep_range_min: form.rep_range_min,
+      rep_range_max: form.rep_range_max,
       category: form.category,
+      created_by: user?.id,
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
@@ -98,7 +146,7 @@ export default function ExerciseLibrary() {
           {filtered.map((ex, i) => (
             <motion.div key={ex.id} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Play className="h-4 w-4 text-primary" />
+                {ex.video_url ? <Play className="h-4 w-4 text-primary" /> : <Play className="h-4 w-4 text-muted-foreground" />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{ex.name}</p>
@@ -127,16 +175,31 @@ export default function ExerciseLibrary() {
               <div className="space-y-3">
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Name *</label>
-                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="rounded-xl" placeholder="Barbell Bench Press" />
+                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="rounded-xl" placeholder="Barbell Bench Press" maxLength={100} />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Description</label>
-                  <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="rounded-xl" rows={2} placeholder="Optional description..." />
+                  <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="rounded-xl" rows={2} placeholder="Optional description..." maxLength={500} />
                 </div>
+
+                {/* Video Upload */}
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Video URL</label>
-                  <Input value={form.video_url} onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))} className="rounded-xl" placeholder="https://..." />
+                  <label className="text-xs text-muted-foreground mb-1 block">Video</label>
+                  <input ref={fileInputRef} type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+                  {form.video_url ? (
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary">
+                      <Play className="h-4 w-4 text-primary" />
+                      <span className="text-xs text-muted-foreground flex-1 truncate">Video uploaded</span>
+                      <button onClick={() => setForm(f => ({ ...f, video_url: '' }))} className="text-destructive"><X className="h-4 w-4" /></button>
+                    </div>
+                  ) : (
+                    <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full rounded-xl">
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploading ? 'Uploading...' : 'Upload Video'}
+                    </Button>
+                  )}
                 </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">Category</label>
@@ -176,11 +239,11 @@ export default function ExerciseLibrary() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">Rep Min</label>
-                    <Input type="number" value={form.rep_range_min} onChange={e => setForm(f => ({ ...f, rep_range_min: Number(e.target.value) }))} className="rounded-xl" />
+                    <Input type="number" value={form.rep_range_min} onChange={e => setForm(f => ({ ...f, rep_range_min: Number(e.target.value) }))} className="rounded-xl" min={1} max={100} />
                   </div>
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">Rep Max</label>
-                    <Input type="number" value={form.rep_range_max} onChange={e => setForm(f => ({ ...f, rep_range_max: Number(e.target.value) }))} className="rounded-xl" />
+                    <Input type="number" value={form.rep_range_max} onChange={e => setForm(f => ({ ...f, rep_range_max: Number(e.target.value) }))} className="rounded-xl" min={1} max={100} />
                   </div>
                 </div>
               </div>

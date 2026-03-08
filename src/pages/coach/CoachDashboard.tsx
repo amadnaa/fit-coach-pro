@@ -1,16 +1,27 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Users, TrendingUp, Dumbbell } from 'lucide-react';
+import { Plus, Search, Users, TrendingUp, Dumbbell, ClipboardList } from 'lucide-react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 
 interface ClientRow {
   client_id: string;
   full_name: string;
+}
+
+interface RecentCheckIn {
+  id: string;
+  user_id: string;
+  client_name: string;
+  week_start: string;
+  training_difficulty: string;
+  recovery_level: string;
+  energy_level: string;
 }
 
 export default function CoachDashboard() {
@@ -18,6 +29,7 @@ export default function CoachDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientRow[]>([]);
+  const [recentCheckins, setRecentCheckins] = useState<RecentCheckIn[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -26,8 +38,24 @@ export default function CoachDashboard() {
         if (!data) return;
         const clientIds = data.map(d => d.client_id);
         if (clientIds.length === 0) return;
+
         const { data: profiles } = await supabase.from('profiles').select('user_id, full_name').in('user_id', clientIds);
         if (profiles) setClients(profiles.map(p => ({ client_id: p.user_id, full_name: p.full_name })));
+
+        // Fetch recent weekly check-ins from all clients
+        const { data: checkins } = await supabase.from('weekly_check_ins')
+          .select('id, user_id, week_start, training_difficulty, recovery_level, energy_level')
+          .in('user_id', clientIds)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (checkins && profiles) {
+          const profileMap = new Map(profiles.map(p => [p.user_id, p.full_name]));
+          setRecentCheckins(checkins.map(ci => ({
+            ...ci,
+            client_name: profileMap.get(ci.user_id) || 'Unknown',
+          })));
+        }
       });
   }, [user]);
 
@@ -59,6 +87,27 @@ export default function CoachDashboard() {
             </motion.div>
           ))}
         </div>
+
+        {/* Recent Check-ins */}
+        {recentCheckins.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2">
+            <h2 className="text-sm font-semibold flex items-center gap-1.5"><ClipboardList className="h-4 w-4 text-primary" /> Recent Check-ins</h2>
+            {recentCheckins.map(ci => (
+              <div key={ci.id} onClick={() => navigate(`/coach/client/${ci.user_id}`)}
+                className="p-3 rounded-xl bg-card border border-border cursor-pointer active:scale-[0.98] transition-transform">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-sm font-medium">{ci.client_name}</p>
+                  <p className="text-[10px] text-muted-foreground">{format(new Date(ci.week_start), 'MMM d')}</p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-[10px] text-muted-foreground">Difficulty: <span className="text-foreground capitalize">{ci.training_difficulty}</span></span>
+                  <span className="text-[10px] text-muted-foreground">Recovery: <span className="text-foreground capitalize">{ci.recovery_level}</span></span>
+                  <span className="text-[10px] text-muted-foreground">Energy: <span className="text-foreground capitalize">{ci.energy_level}</span></span>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        )}
 
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
