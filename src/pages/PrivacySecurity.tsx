@@ -54,10 +54,10 @@ export default function PrivacySecurity() {
     if (!user) return;
     setExporting(true);
     try {
-      const tables = ['profiles', 'bodyweight_logs', 'workout_logs', 'food_logs', 'step_logs', 'cardio_logs', 'weekly_check_ins'] as const;
+      const tableNames = ['profiles', 'bodyweight_logs', 'workout_logs', 'food_logs', 'step_logs', 'cardio_logs', 'weekly_check_ins'];
       const results: Record<string, unknown> = {};
-      for (const table of tables) {
-        const { data } = await supabase.from(table).select('*').eq('user_id', user.id);
+      for (const table of tableNames) {
+        const { data } = await supabase.from(table as 'profiles').select('*').eq('user_id' as any, user.id);
         results[table] = data || [];
       }
       const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
