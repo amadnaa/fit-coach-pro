@@ -158,7 +158,8 @@ export default function ProgressView() {
           </div>
         </motion.div>
 
-        {/* Steps Chart */}
+        {/* Steps Chart - only show if enabled */}
+        {flags.step_tracking_enabled && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
           className="p-4 rounded-2xl bg-card border border-border space-y-3">
           <div className="flex items-center gap-2">
@@ -182,6 +183,7 @@ export default function ProgressView() {
             </ResponsiveContainer>
           </div>
         </motion.div>
+        )}
 
         {/* Workout History */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-3">
