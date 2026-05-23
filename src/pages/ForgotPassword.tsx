@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useTranslation, Trans } from 'react-i18next';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -25,7 +28,7 @@ export default function ForgotPassword() {
       if (error) throw error;
       setSent(true);
     } catch (err: any) {
-      toast.error(err.message || 'Failed to send reset email');
+      toast.error(err.message || t('errors.failedSendReset'));
     } finally {
       setLoading(false);
     }
@@ -34,22 +37,23 @@ export default function ForgotPassword() {
   if (sent) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
+        <LanguageSelector variant="floating" />
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-sm text-center space-y-4"
         >
           <CheckCircle className="h-12 w-12 text-primary mx-auto" />
-          <h1 className="text-2xl font-display font-bold">Check Your Email</h1>
+          <h1 className="text-2xl font-display font-bold">{t('auth.checkEmail')}</h1>
           <p className="text-muted-foreground text-sm">
-            We've sent a password reset link to <strong>{email}</strong>. Check your inbox and follow the link.
+            <Trans i18nKey="auth.resetSentMessage" values={{ email }} components={[<strong key="0" />]} />
           </p>
           <Button
             variant="ghost"
             onClick={() => navigate('/login')}
             className="mt-4"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Login
+            <ArrowLeft className="h-4 w-4 mr-2" /> {t('auth.backToLogin')}
           </Button>
         </motion.div>
       </div>
@@ -58,6 +62,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
+      <LanguageSelector variant="floating" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -68,16 +73,16 @@ export default function ForgotPassword() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary mb-2">
             <Mail className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-display font-bold">Forgot Password</h1>
+          <h1 className="text-2xl font-display font-bold">{t('auth.forgotTitle')}</h1>
           <p className="text-muted-foreground text-sm">
-            Enter your email and we'll send you a reset link
+            {t('auth.forgotSubtitle')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             type="email"
-            placeholder="Email address"
+            placeholder={t('auth.email')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="h-12 rounded-xl bg-secondary border-0 px-4"
@@ -88,7 +93,7 @@ export default function ForgotPassword() {
             disabled={loading}
             className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-semibold text-base shadow-lg"
           >
-            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Send Reset Link'}
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : t('auth.sendResetLink')}
           </Button>
         </form>
 
@@ -96,7 +101,7 @@ export default function ForgotPassword() {
           onClick={() => navigate('/login')}
           className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to Login
+          <ArrowLeft className="h-4 w-4" /> {t('auth.backToLogin')}
         </button>
       </motion.div>
     </div>
