@@ -4,37 +4,39 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useNotifications } from '@/hooks/useNotifications';
-
-const coachTabs = [
-  { icon: Home, label: 'Clients', path: '/coach' },
-  { icon: Dumbbell, label: 'Exercises', path: '/coach/exercises' },
-  { icon: Bell, label: 'Alerts', path: '/notifications', showBadge: true },
-  { icon: UtensilsCrossed, label: 'Recipes', path: '/coach/recipes' },
-  { icon: User, label: 'Profile', path: '/profile' },
-];
+import { useTranslation } from 'react-i18next';
 
 export function BottomNav() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { role } = useAuth();
   const { flags } = useFeatureFlags();
   const { unreadCount } = useNotifications();
 
-  const clientTabs = [
-    { icon: Home, label: 'Home', path: '/dashboard' },
-    { icon: Dumbbell, label: 'Workout', path: '/workout' },
-    { icon: BarChart3, label: 'Progress', path: '/progress' },
-    ...(flags?.food_tracking_enabled !== false ? [{ icon: UtensilsCrossed, label: 'Nutrition', path: '/nutrition' }] : []),
-    { icon: User, label: 'Profile', path: '/profile' },
+  const coachTabs = [
+    { icon: Home, label: t('nav.clients'), path: '/coach' },
+    { icon: Dumbbell, label: t('nav.exercises'), path: '/coach/exercises' },
+    { icon: Bell, label: t('nav.alerts'), path: '/notifications', showBadge: true },
+    { icon: UtensilsCrossed, label: t('nav.recipes'), path: '/coach/recipes' },
+    { icon: User, label: t('nav.profile'), path: '/profile' },
   ];
-  
+
+  const clientTabs = [
+    { icon: Home, label: t('nav.home'), path: '/dashboard' },
+    { icon: Dumbbell, label: t('nav.workout'), path: '/workout' },
+    { icon: BarChart3, label: t('nav.progress'), path: '/progress' },
+    ...(flags?.food_tracking_enabled !== false ? [{ icon: UtensilsCrossed, label: t('nav.nutrition'), path: '/nutrition' }] : []),
+    { icon: User, label: t('nav.profile'), path: '/profile' },
+  ];
+
   const tabs = role === 'coach' ? coachTabs : clientTabs;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-elevated safe-bottom">
       <div className="flex items-center justify-around px-2 pt-2 pb-1">
         {tabs.map((tab) => {
-          const isActive = location.pathname === tab.path || 
+          const isActive = location.pathname === tab.path ||
             (tab.path !== '/dashboard' && tab.path !== '/coach' && location.pathname.startsWith(tab.path));
           const showBadge = 'showBadge' in tab && tab.showBadge && unreadCount > 0;
           return (
@@ -43,8 +45,8 @@ export function BottomNav() {
               onClick={() => navigate(tab.path)}
               className={cn(
                 "relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[60px]",
-                isActive 
-                  ? "text-primary" 
+                isActive
+                  ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
