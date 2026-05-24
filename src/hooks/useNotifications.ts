@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -25,12 +25,17 @@ export function useNotifications() {
     setUnreadCount((directCount || 0) + (broadcastCount || 0));
   }, [user]);
 
+  // Keep a stable ref to fetchUnreadCount so the effect never needs it as a dep
+  const fetchUnreadCountRef = useRef(fetchUnreadCount);
+  useEffect(() => {
+    fetchUnreadCountRef.current = fetchUnreadCount;
+  }, [fetchUnreadCount]);
+
   useEffect(() => {
     if (!user) return;
 
-    fetchUnreadCount();
+    fetchUnreadCountRef.current();
 
-    // Unique channel name prevents Strict Mode double-mount collision
     const channelName = `notifications-realtime-${user.id}-${Date.now()}`;
 
     const channel = supabase
@@ -57,7 +62,7 @@ export function useNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, fetchUnreadCount]);
+  }, [user]); // ← only user here, not fetchUnreadCount
 
   return { unreadCount, refetchUnread: fetchUnreadCount };
 }
