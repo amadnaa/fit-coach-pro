@@ -9,8 +9,7 @@ export function useNotifications() {
 
   const fetchUnreadCount = useCallback(async () => {
     if (!user) { setUnreadCount(0); return; }
-    
-    // Count unread notifications for this user (direct + broadcast)
+
     const { count: directCount } = await supabase
       .from('notifications')
       .select('*', { count: 'exact', head: true })
@@ -28,11 +27,14 @@ export function useNotifications() {
 
   useEffect(() => {
     if (!user) return;
+
     fetchUnreadCount();
 
-    // Subscribe to realtime notifications
+    // Unique channel name prevents Strict Mode double-mount collision
+    const channelName = `notifications-realtime-${user.id}-${Date.now()}`;
+
     const channel = supabase
-      .channel('notifications-realtime')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -42,7 +44,6 @@ export function useNotifications() {
         },
         (payload) => {
           const newNotif = payload.new as any;
-          // Check if this notification is for the current user
           if (newNotif.recipient_id === user.id || newNotif.is_broadcast) {
             setUnreadCount(prev => prev + 1);
             toast(newNotif.title || 'New notification', {

@@ -41,9 +41,11 @@ export function useFeatureFlags() {
 
     fetchFlags();
 
-    // Listen for realtime changes
+    // Use a unique channel name to avoid conflicts on re-renders (e.g. React Strict Mode)
+    const channelName = `feature-flags-changes-${user.id}-${Date.now()}`;
+
     const channel = supabase
-      .channel('feature-flags-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
