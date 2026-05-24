@@ -437,7 +437,7 @@ export default function WorkoutView() {
 
           {exercises.length > 0 && (
           <Button onClick={handleStartWorkout} className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base">
-            <Play className="h-5 w-5 mr-2" /> {t('workout.exerciseOf') ? t('dashboard.startWorkout') : ''}{t('dashboard.startWorkout')}
+            <Play className="h-5 w-5 mr-2" /> {t('dashboard.startWorkout')}
           </Button>
           )}
         </div>
@@ -446,11 +446,11 @@ export default function WorkoutView() {
         <Dialog open={swapDialogOpen} onOpenChange={setSwapDialogOpen}>
           <DialogContent className="max-w-sm mx-auto">
             <DialogHeader>
-              <DialogTitle className="text-lg">Swap Exercise</DialogTitle>
+              <DialogTitle className="text-lg">{t('workout.swapExercise')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {loadingAlternatives ? (
-                <div className="py-8 text-center text-sm text-muted-foreground">Loading alternatives...</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">{t('workout.loadingAlternatives')}</div>
               ) : alternatives.length > 0 ? (
                 alternatives.map((alt) => (
                   <button
@@ -469,7 +469,7 @@ export default function WorkoutView() {
                   </button>
                 ))
               ) : (
-                <div className="py-8 text-center text-sm text-muted-foreground">No alternatives found for this muscle group</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">{t('workout.noAlternatives')}</div>
               )}
             </div>
           </DialogContent>
@@ -487,7 +487,7 @@ export default function WorkoutView() {
             <ChevronLeft className="h-6 w-6" />
           </button>
           <div className="flex-1">
-            <p className="text-xs text-muted-foreground">Exercise {currentExercise + 1}/{exercises.length}</p>
+            <p className="text-xs text-muted-foreground">{t('workout.exerciseOf', { a: currentExercise + 1, b: exercises.length })}</p>
             <h2 className="font-display font-bold text-lg">{exercise.name}</h2>
           </div>
           <div className="flex items-center gap-2">
@@ -510,14 +510,14 @@ export default function WorkoutView() {
 
         {/* Set Info */}
         <div className="text-center py-4 space-y-1">
-          <p className="text-muted-foreground text-sm">Set {completedSets[currentExercise].length + 1} of {exercise.targetSets}</p>
-          <p className="text-sm text-muted-foreground">Target: {exercise.repMin}-{exercise.repMax} reps @ {exercise.targetWeight}kg</p>
+          <p className="text-muted-foreground text-sm">{t('workout.setOf', { a: completedSets[currentExercise].length + 1, b: exercise.targetSets })}</p>
+          <p className="text-sm text-muted-foreground">{t('workout.targetReps', { min: exercise.repMin, max: exercise.repMax, w: exercise.targetWeight })}</p>
         </div>
 
         {/* Input Area */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground text-center block">Weight (kg)</label>
+            <label className="text-xs text-muted-foreground text-center block">{t('workout.weightKg')}</label>
             <div className="flex items-center gap-2">
               <button onClick={() => setWeight(Math.max(0, weight - 2.5))} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold">−</button>
               <div className="flex-1 h-14 rounded-xl bg-card border border-border flex items-center justify-center text-2xl font-display font-bold">{weight}</div>
@@ -525,7 +525,7 @@ export default function WorkoutView() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground text-center block">Reps</label>
+            <label className="text-xs text-muted-foreground text-center block">{t('workout.reps')}</label>
             <div className="flex items-center gap-2">
               <button onClick={() => setReps(Math.max(0, reps - 1))} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold">−</button>
               <div className="flex-1 h-14 rounded-xl bg-card border border-border flex items-center justify-center text-2xl font-display font-bold">{reps}</div>
@@ -536,22 +536,22 @@ export default function WorkoutView() {
 
         {/* Log Set Button */}
         <Button onClick={handleLogSet} disabled={reps === 0} className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base">
-          <Check className="h-5 w-5 mr-2" /> Log Set
+          <Check className="h-5 w-5 mr-2" /> {t('workout.logSet')}
         </Button>
 
         {/* End Workout Button */}
         <Button onClick={handleEndWorkout} variant="outline" className="w-full h-12 rounded-2xl border-destructive text-destructive hover:bg-destructive/10 font-semibold text-sm">
-          <Square className="h-4 w-4 mr-2" /> End Workout
+          <Square className="h-4 w-4 mr-2" /> {t('workout.endWorkout')}
         </Button>
 
         {/* Arrow Method */}
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground text-center">How did it feel?</p>
+          <p className="text-xs text-muted-foreground text-center">{t('workout.howFelt')}</p>
           <div className="flex gap-3 justify-center">
             {[
-              { dir: 'up' as const, icon: ArrowUp, label: 'Increase', color: 'text-primary' },
-              { dir: 'maintain' as const, icon: ArrowRight, label: 'Maintain', color: 'text-warning' },
-              { dir: 'down' as const, icon: ArrowDown, label: 'Decrease', color: 'text-destructive' },
+              { dir: 'up' as const, icon: ArrowUp, label: t('workout.increase'), color: 'text-primary' },
+              { dir: 'maintain' as const, icon: ArrowRight, label: t('workout.maintain'), color: 'text-warning' },
+              { dir: 'down' as const, icon: ArrowDown, label: t('workout.decrease'), color: 'text-destructive' },
             ].map(({ dir, icon: Icon, label, color }) => (
               <button key={dir} onClick={() => handleArrow(dir)}
                 className="flex flex-col items-center gap-1 px-4 py-3 rounded-xl bg-card border border-border hover:border-primary/50 transition-colors">
@@ -566,7 +566,7 @@ export default function WorkoutView() {
         <AnimatePresence>
           {completedSets[currentExercise].length > 0 && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
-              <p className="text-xs text-muted-foreground">Completed Sets</p>
+              <p className="text-xs text-muted-foreground">{t('workout.completedSets')}</p>
               {completedSets[currentExercise].map((set, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
                   <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">{i + 1}</div>
