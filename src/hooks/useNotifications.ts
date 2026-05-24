@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 export function useNotifications() {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const isSubscribedRef = useRef(false);
 
   const fetchUnreadCount = useCallback(async () => {
     if (!user) { setUnreadCount(0); return; }
@@ -25,7 +27,6 @@ export function useNotifications() {
     setUnreadCount((directCount || 0) + (broadcastCount || 0));
   }, [user]);
 
-  // Keep a stable ref to fetchUnreadCount so the effect never needs it as a dep
   const fetchUnreadCountRef = useRef(fetchUnreadCount);
   useEffect(() => {
     fetchUnreadCountRef.current = fetchUnreadCount;
@@ -34,11 +35,20 @@ export function useNotifications() {
   useEffect(() => {
     if (!user) return;
 
+    // Guard: if already subscribed, don't create another channel
+    if (isSubscribedRef.current) return;
+
     fetchUnreadCountRef.current();
+
+    // Tear down any existing channel before creating a new one
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
 
     const channelName = `notifications-realtime-${user.id}-${Date.now()}`;
 
-    const channel = supabase
+    channelRef.current = supabase
       .channel(channelName)
       .on(
         'postgres_changes',
@@ -59,10 +69,16 @@ export function useNotifications() {
       )
       .subscribe();
 
+    isSubscribedRef.current = true;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      isSubscribedRef.current = false;
     };
-  }, [user]); // ← only user here, not fetchUnreadCount
+  }, [user]);
 
   return { unreadCount, refetchUnread: fetchUnreadCount };
 }
