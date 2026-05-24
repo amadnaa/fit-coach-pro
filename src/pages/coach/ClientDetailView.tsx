@@ -293,9 +293,9 @@ export default function ClientDetailView() {
   const updateFlag = async (key: string, value: boolean) => {
     setFlags(f => ({ ...f, [key]: value }));
     if (flagsId) {
-      await supabase.from('feature_flags').update({ [key]: value }).eq('id', flagsId);
+      await supabase.from('feature_flags').update({ [key]: value } as any).eq('id', flagsId);
     } else {
-      const { data } = await supabase.from('feature_flags').insert({ user_id: clientId!, [key]: value }).select('id').single();
+      const { data } = await supabase.from('feature_flags').insert({ user_id: clientId!, [key]: value } as any).select('id').single();
       if (data) setFlagsId(data.id);
     }
     toast.success('Feature flag updated');
