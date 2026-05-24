@@ -7,7 +7,6 @@ export function useNotifications() {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const isSubscribedRef = useRef(false);
 
   const fetchUnreadCount = useCallback(async () => {
     if (!user) { setUnreadCount(0); return; }
@@ -27,28 +26,26 @@ export function useNotifications() {
     setUnreadCount((directCount || 0) + (broadcastCount || 0));
   }, [user]);
 
-  const fetchUnreadCountRef = useRef(fetchUnreadCount);
-  useEffect(() => {
-    fetchUnreadCountRef.current = fetchUnreadCount;
-  }, [fetchUnreadCount]);
-
   useEffect(() => {
     if (!user) return;
 
-    // Guard: if already subscribed, don't create another channel
-    if (isSubscribedRef.current) return;
+    let active = true; // prevents setState after unmount
 
-    fetchUnreadCountRef.current();
+    fetchUnreadCount();
 
-    // Tear down any existing channel before creating a new one
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
+    // Remove ALL existing channels that match our prefix to prevent
+    // any stale subscribed channel from blocking a new .on() call
+    const existingChannels = supabase.getChannels();
+    existingChannels.forEach((ch) => {
+      if (ch.topic.startsWith('realtime:notifications-realtime-')) {
+        supabase.removeChannel(ch);
+      }
+    });
+    channelRef.current = null;
 
     const channelName = `notifications-realtime-${user.id}-${Date.now()}`;
 
-    channelRef.current = supabase
+    const channel = supabase
       .channel(channelName)
       .on(
         'postgres_changes',
@@ -58,10 +55,11 @@ export function useNotifications() {
           table: 'notifications',
         },
         (payload) => {
+          if (!active) return;
           const newNotif = payload.new as any;
           if (newNotif.recipient_id === user.id || newNotif.is_broadcast) {
             setUnreadCount(prev => prev + 1);
-            toast(newNotif.title || 'New notification', {
+            toast(newNotif.title || 'Nueva notificación', {
               description: newNotif.body,
             });
           }
@@ -69,16 +67,14 @@ export function useNotifications() {
       )
       .subscribe();
 
-    isSubscribedRef.current = true;
+    channelRef.current = channel;
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-      isSubscribedRef.current = false;
+      active = false;
+      supabase.removeChannel(channel);
+      channelRef.current = null;
     };
-  }, [user]);
+  }, [user, fetchUnreadCount]);
 
   return { unreadCount, refetchUnread: fetchUnreadCount };
 }
