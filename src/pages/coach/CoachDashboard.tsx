@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface ClientRow {
   client_id: string;
@@ -30,6 +31,7 @@ interface RecentCheckIn {
 export default function CoachDashboard() {
   const [search, setSearch] = useState('');
   const { user } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [recentCheckins, setRecentCheckins] = useState<RecentCheckIn[]>([]);
@@ -73,7 +75,7 @@ export default function CoachDashboard() {
       const profileMap = new Map(profiles.map(p => [p.user_id, p.full_name]));
       setRecentCheckins(checkins.map(ci => ({
         ...ci,
-        client_name: profileMap.get(ci.user_id) || 'Unknown',
+        client_name: profileMap.get(ci.user_id) || t('common.unknown'),
       })));
     }
 
@@ -94,7 +96,7 @@ export default function CoachDashboard() {
 
   const handleCreateClient = async () => {
     if (!newClient.full_name.trim() || !newClient.email.trim()) {
-      toast.error('Name and email are required');
+      toast.error(t('errors.nameAndEmail'));
       return;
     }
     setCreating(true);
@@ -110,12 +112,12 @@ export default function CoachDashboard() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      toast.success(`Client created! Temporary password: ${data.temp_password}`);
+      toast.success(t('coach.clientCreated', { p: data.temp_password }));
       setShowCreateDialog(false);
       setNewClient({ full_name: '', email: '', phone: '', dob: '', gender: '', height: '', weight: '', fitness_goal: '', notes: '' });
       loadClients();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to create client');
+      toast.error(err.message || t('errors.failedCreateClient'));
     } finally {
       setCreating(false);
     }
@@ -128,8 +130,8 @@ export default function CoachDashboard() {
       <div className="px-5 pt-6 space-y-5">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
           <div>
-            <p className="text-muted-foreground text-sm">Coach Dashboard</p>
-            <h1 className="text-2xl font-display font-bold">Your Clients</h1>
+            <p className="text-muted-foreground text-sm">{t('coach.dashboardLabel')}</p>
+            <h1 className="text-2xl font-display font-bold">{t('coach.yourClients')}</h1>
           </div>
           <Button onClick={() => setShowCreateDialog(true)} size="icon" className="h-10 w-10 rounded-xl gradient-primary text-primary-foreground">
             <Plus className="h-5 w-5" />
@@ -138,9 +140,9 @@ export default function CoachDashboard() {
 
         <div className="grid grid-cols-3 gap-3">
           {[
-            { icon: Users, value: String(clients.length), label: 'Active' },
-            { icon: Dumbbell, value: weeklyWorkouts, label: 'Workouts/wk' },
-            { icon: TrendingUp, value: String(recentCheckins.length), label: 'Check-ins' },
+            { icon: Users, value: String(clients.length), label: t('coach.active') },
+            { icon: Dumbbell, value: weeklyWorkouts, label: t('coach.workoutsPerWeek') },
+            { icon: TrendingUp, value: String(recentCheckins.length), label: t('coach.checkIns') },
           ].map((stat, i) => (
             <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="p-3 rounded-xl bg-card border border-border text-center">
               <stat.icon className="h-4 w-4 text-primary mx-auto mb-1" />
@@ -152,7 +154,7 @@ export default function CoachDashboard() {
 
         {recentCheckins.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2">
-            <h2 className="text-sm font-semibold flex items-center gap-1.5"><ClipboardList className="h-4 w-4 text-primary" /> Recent Check-ins</h2>
+            <h2 className="text-sm font-semibold flex items-center gap-1.5"><ClipboardList className="h-4 w-4 text-primary" /> {t('coach.recentCheckins')}</h2>
             {recentCheckins.map(ci => (
               <div key={ci.id} onClick={() => navigate(`/coach/client/${ci.user_id}`)}
                 className="p-3 rounded-xl bg-card border border-border cursor-pointer active:scale-[0.98] transition-transform">
@@ -161,9 +163,9 @@ export default function CoachDashboard() {
                   <p className="text-[10px] text-muted-foreground">{format(new Date(ci.week_start), 'MMM d')}</p>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-[10px] text-muted-foreground">Difficulty: <span className="text-foreground capitalize">{ci.training_difficulty}</span></span>
-                  <span className="text-[10px] text-muted-foreground">Recovery: <span className="text-foreground capitalize">{ci.recovery_level}</span></span>
-                  <span className="text-[10px] text-muted-foreground">Energy: <span className="text-foreground capitalize">{ci.energy_level}</span></span>
+                  <span className="text-[10px] text-muted-foreground">{t('coach.difficulty')}: <span className="text-foreground capitalize">{ci.training_difficulty}</span></span>
+                  <span className="text-[10px] text-muted-foreground">{t('coach.recovery')}: <span className="text-foreground capitalize">{ci.recovery_level}</span></span>
+                  <span className="text-[10px] text-muted-foreground">{t('coach.energy')}: <span className="text-foreground capitalize">{ci.energy_level}</span></span>
                 </div>
               </div>
             ))}
@@ -172,7 +174,7 @@ export default function CoachDashboard() {
 
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search clients..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
+          <Input placeholder={t('coach.searchClients')} value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
         </div>
 
         <div className="space-y-2">
@@ -190,7 +192,7 @@ export default function CoachDashboard() {
             </motion.div>
           ))}
           {filtered.length === 0 && clients.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">No clients yet. Tap + to add your first client.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t('coach.noClientsYet')}</p>
           )}
         </div>
       </div>
@@ -204,41 +206,41 @@ export default function CoachDashboard() {
             className="w-full max-w-md bg-card border border-border rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-auto pb-20"
           >
             <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card rounded-t-3xl z-10">
-              <h2 className="text-lg font-display font-bold">Create Client</h2>
+              <h2 className="text-lg font-display font-bold">{t('coach.createClient')}</h2>
               <button onClick={() => setShowCreateDialog(false)} className="text-muted-foreground"><X className="h-5 w-5" /></button>
             </div>
 
             <div className="p-5 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Full Name *</label>
+                <label className="text-xs font-medium text-muted-foreground">{t('coach.fullName')} *</label>
                 <Input value={newClient.full_name} onChange={(e) => setNewClient({ ...newClient, full_name: e.target.value })} placeholder="John Smith" className="h-11 rounded-xl bg-secondary border-0" />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Email Address *</label>
+                <label className="text-xs font-medium text-muted-foreground">{t('coach.emailAddress')} *</label>
                 <Input type="email" value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} placeholder="john@example.com" className="h-11 rounded-xl bg-secondary border-0" />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Phone Number (optional)</label>
+                <label className="text-xs font-medium text-muted-foreground">{t('coach.phoneNumber')} ({t('common.optional')})</label>
                 <Input value={newClient.phone} onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })} placeholder="+44 7700 900000" className="h-11 rounded-xl bg-secondary border-0" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Date of Birth</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t('coach.dob')}</label>
                   <Input type="date" value={newClient.dob} onChange={(e) => setNewClient({ ...newClient, dob: e.target.value })} className="h-11 rounded-xl bg-secondary border-0" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Gender</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t('coach.gender')}</label>
                   <Select value={newClient.gender} onValueChange={(v) => setNewClient({ ...newClient, gender: v })}>
                     <SelectTrigger className="h-11 rounded-xl bg-secondary border-0">
-                      <SelectValue placeholder="Select" />
+                      <SelectValue placeholder={t('common.select')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="male">{t('coach.male')}</SelectItem>
+                      <SelectItem value="female">{t('coach.female')}</SelectItem>
+                      <SelectItem value="other">{t('coach.other')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -246,38 +248,38 @@ export default function CoachDashboard() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Height (cm)</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t('coach.heightCm')}</label>
                   <Input type="number" value={newClient.height} onChange={(e) => setNewClient({ ...newClient, height: e.target.value })} placeholder="175" className="h-11 rounded-xl bg-secondary border-0" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Weight (kg)</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t('coach.weightKg')}</label>
                   <Input type="number" value={newClient.weight} onChange={(e) => setNewClient({ ...newClient, weight: e.target.value })} placeholder="75" className="h-11 rounded-xl bg-secondary border-0" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Fitness Goal</label>
+                <label className="text-xs font-medium text-muted-foreground">{t('coach.fitnessGoal')}</label>
                 <Select value={newClient.fitness_goal} onValueChange={(v) => setNewClient({ ...newClient, fitness_goal: v })}>
                   <SelectTrigger className="h-11 rounded-xl bg-secondary border-0">
-                    <SelectValue placeholder="Select goal" />
+                    <SelectValue placeholder={t('coach.selectGoal')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="lose_fat">Lose Fat</SelectItem>
-                    <SelectItem value="build_muscle">Build Muscle</SelectItem>
-                    <SelectItem value="improve_endurance">Improve Endurance</SelectItem>
-                    <SelectItem value="increase_strength">Increase Strength</SelectItem>
-                    <SelectItem value="general_fitness">General Fitness</SelectItem>
+                    <SelectItem value="lose_fat">{t('onboarding.options.lose_fat')}</SelectItem>
+                    <SelectItem value="build_muscle">{t('onboarding.options.build_muscle')}</SelectItem>
+                    <SelectItem value="improve_endurance">{t('onboarding.options.improve_endurance')}</SelectItem>
+                    <SelectItem value="increase_strength">{t('onboarding.options.increase_strength')}</SelectItem>
+                    <SelectItem value="general_fitness">{t('onboarding.options.general_fitness')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Notes</label>
-                <Textarea value={newClient.notes} onChange={(e) => setNewClient({ ...newClient, notes: e.target.value })} placeholder="Any notes about this client..." className="min-h-[80px] rounded-xl bg-secondary border-0 resize-none" />
+                <label className="text-xs font-medium text-muted-foreground">{t('coach.notes')}</label>
+                <Textarea value={newClient.notes} onChange={(e) => setNewClient({ ...newClient, notes: e.target.value })} placeholder={t('coach.notesPlaceholder')} className="min-h-[80px] rounded-xl bg-secondary border-0 resize-none" />
               </div>
 
               <Button onClick={handleCreateClient} disabled={creating} className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-semibold">
-                {creating ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Create Client'}
+                {creating ? <Loader2 className="h-5 w-5 animate-spin" /> : t('coach.createClient')}
               </Button>
             </div>
           </motion.div>

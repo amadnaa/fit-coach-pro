@@ -34,6 +34,7 @@ function hexToHsl(hex: string): [number, number, number] {
 
 export default function ProfileView() {
   const { user, role, signOut } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { selectedColor, updateColor } = useAccentColor(user?.id);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains('dark'));
@@ -61,13 +62,13 @@ export default function ProfileView() {
     const [h, s, l] = hexToHsl(hex);
     const hslStr = `${h} ${s}% ${l}%`;
     await updateColor(hslStr);
-    toast.success('Theme updated!');
+    toast.success(t('profile.themeUpdated'));
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error(t('errors.max5MB')); return; }
     const ext = file.name.split('.').pop();
     const path = `${user.id}/avatar.${ext}`;
     const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
@@ -76,7 +77,7 @@ export default function ProfileView() {
     const url = urlData.publicUrl + '?t=' + Date.now();
     setAvatarUrl(url);
     await supabase.from('profiles').update({ avatar_url: url }).eq('user_id', user.id);
-    toast.success('Photo updated!');
+    toast.success(t('profile.photoUpdated'));
   };
 
   const handleSaveName = async () => {
@@ -85,18 +86,18 @@ export default function ProfileView() {
     await supabase.from('profiles').update({ full_name: fullName.trim() }).eq('user_id', user.id);
     await supabase.auth.updateUser({ data: { full_name: fullName.trim() } });
     setSaving(false);
-    toast.success('Name updated!');
+    toast.success(t('profile.nameUpdated'));
     setEditMode(false);
   };
 
   const handleChangePassword = async () => {
-    if (passwords.new1 !== passwords.new2) { toast.error('Passwords do not match'); return; }
-    if (passwords.new1.length < 8) { toast.error('Password must be at least 8 characters'); return; }
+    if (passwords.new1 !== passwords.new2) { toast.error(t('errors.passwordsDontMatch')); return; }
+    if (passwords.new1.length < 8) { toast.error(t('errors.passwordMin8')); return; }
     setChangingPassword(true);
     const { error } = await supabase.auth.updateUser({ password: passwords.new1 });
     setChangingPassword(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Password changed!');
+    toast.success(t('profile.passwordChanged'));
     setShowPasswordForm(false);
     setPasswords({ current: '', new1: '', new2: '' });
   };
@@ -136,9 +137,9 @@ export default function ProfileView() {
                 <h1 className="text-xl font-display font-bold" onClick={() => setEditMode(true)}>
                   {fullName || user?.email}
                 </h1>
-                <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium capitalize",
+                <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
                   role === 'coach' ? "bg-coach/10 text-coach" : "bg-primary/10 text-primary")}>
-                  {role || 'user'}
+                  {role === 'coach' ? t('profile.coach') : role === 'client' ? t('profile.client') : t('profile.user')}
                 </span>
               </div>
             )}
@@ -149,18 +150,18 @@ export default function ProfileView() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="p-4 rounded-2xl bg-card border border-border space-y-3">
           <div className="flex items-center gap-2">
             <Palette className="h-4 w-4 text-primary" />
-            <p className="text-sm font-semibold">Accent Color</p>
+            <p className="text-sm font-semibold">{t('profile.accentColor')}</p>
           </div>
           <div className="flex gap-3 flex-wrap justify-center">
             {[
-              { hex: '#22c55e', label: 'Green' },
-              { hex: '#3b82f6', label: 'Blue' },
-              { hex: '#a855f7', label: 'Purple' },
-              { hex: '#f97316', label: 'Orange' },
-              { hex: '#ec4899', label: 'Pink' },
-              { hex: '#14b8a6', label: 'Teal' },
-              { hex: '#ef4444', label: 'Red' },
-              { hex: '#eab308', label: 'Yellow' },
+              { hex: '#22c55e', label: t('profile.colors.green') },
+              { hex: '#3b82f6', label: t('profile.colors.blue') },
+              { hex: '#a855f7', label: t('profile.colors.purple') },
+              { hex: '#f97316', label: t('profile.colors.orange') },
+              { hex: '#ec4899', label: t('profile.colors.pink') },
+              { hex: '#14b8a6', label: t('profile.colors.teal') },
+              { hex: '#ef4444', label: t('profile.colors.red') },
+              { hex: '#eab308', label: t('profile.colors.yellow') },
             ].map(p => {
               const [h] = hexToHsl(p.hex);
               return (
@@ -182,13 +183,13 @@ export default function ProfileView() {
         {/* Menu Items */}
         <div className="space-y-2">
           {[
-            { icon: User, label: editMode ? 'Done Editing' : 'Edit Name', action: () => setEditMode(!editMode) },
-            { icon: Lock, label: 'Change Password', action: () => setShowPasswordForm(!showPasswordForm) },
-            { icon: Bell, label: 'Notifications', action: () => navigate('/notifications') },
-            { icon: Bell, label: 'Notification Settings', action: () => navigate('/notification-settings') },
-            { icon: darkMode ? Sun : Moon, label: darkMode ? 'Light Mode' : 'Dark Mode', action: toggleDark },
-            { icon: Shield, label: 'Privacy & Security', action: () => navigate('/privacy') },
-            { icon: Shield, label: 'Privacy Policy', action: () => navigate('/privacy-policy') },
+            { icon: User, label: editMode ? t('profile.doneEditing') : t('profile.editName'), action: () => setEditMode(!editMode) },
+            { icon: Lock, label: t('profile.changePassword'), action: () => setShowPasswordForm(!showPasswordForm) },
+            { icon: Bell, label: t('profile.notifications'), action: () => navigate('/notifications') },
+            { icon: Bell, label: t('profile.notificationSettings'), action: () => navigate('/notification-settings') },
+            { icon: darkMode ? Sun : Moon, label: darkMode ? t('profile.lightMode') : t('profile.darkMode'), action: toggleDark },
+            { icon: Shield, label: t('profile.privacySecurity'), action: () => navigate('/privacy') },
+            { icon: Shield, label: t('profile.privacyPolicy'), action: () => navigate('/privacy-policy') },
           ].map((item, i) => (
             <motion.button key={item.label} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
               onClick={item.action}
@@ -202,17 +203,17 @@ export default function ProfileView() {
         {/* Password Form */}
         {showPasswordForm && (
           <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl bg-card border border-border space-y-3">
-            <p className="text-sm font-semibold">Change Password</p>
-            <Input type="password" placeholder="New password" value={passwords.new1} onChange={e => setPasswords(p => ({ ...p, new1: e.target.value }))} className="rounded-xl" />
-            <Input type="password" placeholder="Confirm new password" value={passwords.new2} onChange={e => setPasswords(p => ({ ...p, new2: e.target.value }))} className="rounded-xl" />
+            <p className="text-sm font-semibold">{t('profile.changePassword')}</p>
+            <Input type="password" placeholder={t('profile.newPasswordPh')} value={passwords.new1} onChange={e => setPasswords(p => ({ ...p, new1: e.target.value }))} className="rounded-xl" />
+            <Input type="password" placeholder={t('profile.confirmNewPasswordPh')} value={passwords.new2} onChange={e => setPasswords(p => ({ ...p, new2: e.target.value }))} className="rounded-xl" />
             <Button onClick={handleChangePassword} disabled={changingPassword || !passwords.new1 || !passwords.new2} className="w-full rounded-xl gradient-primary text-primary-foreground font-semibold">
-              {changingPassword ? 'Changing...' : 'Update Password'}
+              {changingPassword ? t('profile.changing') : t('profile.updatePassword')}
             </Button>
           </motion.div>
         )}
 
         <Button onClick={signOut} variant="outline" className="w-full h-12 rounded-xl text-destructive border-destructive/20 hover:bg-destructive/10">
-          <LogOut className="h-4 w-4 mr-2" /> Sign Out
+          <LogOut className="h-4 w-4 mr-2" /> {t('profile.signOut')}
         </Button>
       </div>
     </MobileLayout>
