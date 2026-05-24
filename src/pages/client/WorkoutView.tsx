@@ -9,6 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useTranslation } from 'react-i18next';
+
 
 interface SetLog {
   reps: number;
@@ -41,6 +43,7 @@ interface ExerciseState {
 
 export default function WorkoutView() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [currentExercise, setCurrentExercise] = useState(0);
@@ -193,7 +196,7 @@ export default function WorkoutView() {
     };
     setExercises(updated);
     setSwapDialogOpen(false);
-    toast.success(`Swapped to ${alt.name}`);
+    toast.success(t('workout.swappedTo', { name: alt.name }));
   };
 
   const handleStartWorkout = async () => {
@@ -270,7 +273,7 @@ export default function WorkoutView() {
 
     setWorkoutFinished(true);
     if (timerRef.current) clearInterval(timerRef.current);
-    toast.success('Workout saved!');
+    toast.success(t('workout.workoutSaved'));
   };
 
   // Summary screen
@@ -288,27 +291,27 @@ export default function WorkoutView() {
             </div>
           </motion.div>
           <div>
-            <h1 className="text-2xl font-display font-bold">Workout Complete!</h1>
-            <p className="text-muted-foreground text-sm mt-1">Great session 💪</p>
+            <h1 className="text-2xl font-display font-bold">{t('workout.workoutComplete')}</h1>
+            <p className="text-muted-foreground text-sm mt-1">{t('workout.greatSession')}</p>
           </div>
           <div className="grid grid-cols-3 gap-4 w-full">
             <div className="p-4 rounded-2xl bg-card border border-border">
               <Clock className="h-5 w-5 text-primary mx-auto mb-1" />
               <p className="text-lg font-bold">{formatTime(elapsed)}</p>
-              <p className="text-[10px] text-muted-foreground">Duration</p>
+              <p className="text-[10px] text-muted-foreground">{t('workout.duration')}</p>
             </div>
             <div className="p-4 rounded-2xl bg-card border border-border">
               <p className="text-lg font-bold">{totalSets}</p>
-              <p className="text-[10px] text-muted-foreground">Sets</p>
+              <p className="text-[10px] text-muted-foreground">{t('workout.sets')}</p>
             </div>
             <div className="p-4 rounded-2xl bg-card border border-border">
               <p className="text-lg font-bold">{totalRepsCount}</p>
-              <p className="text-[10px] text-muted-foreground">Total Reps</p>
+              <p className="text-[10px] text-muted-foreground">{t('workout.totalReps')}</p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">{exercisesCompleted}/{exercises.length} exercises completed</p>
+          <p className="text-sm text-muted-foreground">{t('workout.exercisesCompleted', { a: exercisesCompleted, b: exercises.length })}</p>
           <Button onClick={() => navigate('/dashboard')} className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold">
-            Back to Dashboard
+            {t('workout.backToDashboard')}
           </Button>
         </div>
       </MobileLayout>
@@ -321,7 +324,7 @@ export default function WorkoutView() {
         <div className="px-5 pt-6 space-y-6">
           <h1 className="text-2xl font-display font-bold">{workoutName}</h1>
           <p className="text-muted-foreground text-sm">
-            {planInfo ? `${planInfo.name} · Cycle ${planInfo.cycle_week}` : ''}
+            {planInfo ? t('workout.cycle', { name: planInfo.name, n: planInfo.cycle_week }) : ''}
           </p>
 
           {/* Workout Day Selector */}
@@ -338,19 +341,19 @@ export default function WorkoutView() {
                       : "bg-card border-border text-muted-foreground hover:border-primary/30"
                   )}
                 >
-                  Day {w.day_number}: {w.name}
+                  {t('workout.dayN', { n: w.day_number, name: w.name })}
                 </button>
               ))}
             </div>
           )}
 
           {loadingPlan ? (
-            <div className="p-8 text-center text-muted-foreground text-sm">Loading workout plan...</div>
+            <div className="p-8 text-center text-muted-foreground text-sm">{t('workout.loadingPlan')}</div>
           ) : exercises.length === 0 ? (
             <div className="p-8 text-center space-y-2">
               <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto" />
-              <p className="text-sm text-muted-foreground">No workout plan assigned yet</p>
-              <p className="text-xs text-muted-foreground">Your coach will set up your program</p>
+              <p className="text-sm text-muted-foreground">{t('workout.noPlan')}</p>
+              <p className="text-xs text-muted-foreground">{t('workout.coachWillSet')}</p>
             </div>
           ) : (
           <div className="space-y-3">
@@ -398,7 +401,7 @@ export default function WorkoutView() {
                               {ex.videoUrl.includes('youtube') || ex.videoUrl.includes('youtu.be') ? (
                                 <a href={ex.videoUrl} target="_blank" rel="noopener noreferrer"
                                   className="flex items-center gap-2 p-3 text-sm text-primary hover:underline">
-                                  <Video className="h-4 w-4" /> Watch Video
+                                  <Video className="h-4 w-4" /> {t('workout.watchVideo')}
                                 </a>
                               ) : (
                                 <video src={ex.videoUrl} controls className="w-full h-32 object-cover" />
@@ -411,15 +414,15 @@ export default function WorkoutView() {
                           <div className="grid grid-cols-3 gap-2 text-center">
                             <div className="p-2 rounded-lg bg-secondary">
                               <p className="text-sm font-bold">{ex.targetSets}</p>
-                              <p className="text-[10px] text-muted-foreground">Sets</p>
+                              <p className="text-[10px] text-muted-foreground">{t('workout.sets')}</p>
                             </div>
                             <div className="p-2 rounded-lg bg-secondary">
                               <p className="text-sm font-bold">{ex.repMin}-{ex.repMax}</p>
-                              <p className="text-[10px] text-muted-foreground">Reps</p>
+                              <p className="text-[10px] text-muted-foreground">{t('workout.reps')}</p>
                             </div>
                             <div className="p-2 rounded-lg bg-secondary">
                               <p className="text-sm font-bold">{ex.targetWeight}kg</p>
-                              <p className="text-[10px] text-muted-foreground">Target</p>
+                              <p className="text-[10px] text-muted-foreground">{t('workout.target')}</p>
                             </div>
                           </div>
                         </div>
@@ -434,7 +437,7 @@ export default function WorkoutView() {
 
           {exercises.length > 0 && (
           <Button onClick={handleStartWorkout} className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base">
-            <Play className="h-5 w-5 mr-2" /> Start Workout
+            <Play className="h-5 w-5 mr-2" /> {t('dashboard.startWorkout')}
           </Button>
           )}
         </div>
@@ -443,11 +446,11 @@ export default function WorkoutView() {
         <Dialog open={swapDialogOpen} onOpenChange={setSwapDialogOpen}>
           <DialogContent className="max-w-sm mx-auto">
             <DialogHeader>
-              <DialogTitle className="text-lg">Swap Exercise</DialogTitle>
+              <DialogTitle className="text-lg">{t('workout.swapExercise')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {loadingAlternatives ? (
-                <div className="py-8 text-center text-sm text-muted-foreground">Loading alternatives...</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">{t('workout.loadingAlternatives')}</div>
               ) : alternatives.length > 0 ? (
                 alternatives.map((alt) => (
                   <button
@@ -466,7 +469,7 @@ export default function WorkoutView() {
                   </button>
                 ))
               ) : (
-                <div className="py-8 text-center text-sm text-muted-foreground">No alternatives found for this muscle group</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">{t('workout.noAlternatives')}</div>
               )}
             </div>
           </DialogContent>
@@ -484,7 +487,7 @@ export default function WorkoutView() {
             <ChevronLeft className="h-6 w-6" />
           </button>
           <div className="flex-1">
-            <p className="text-xs text-muted-foreground">Exercise {currentExercise + 1}/{exercises.length}</p>
+            <p className="text-xs text-muted-foreground">{t('workout.exerciseOf', { a: currentExercise + 1, b: exercises.length })}</p>
             <h2 className="font-display font-bold text-lg">{exercise.name}</h2>
           </div>
           <div className="flex items-center gap-2">
@@ -507,14 +510,14 @@ export default function WorkoutView() {
 
         {/* Set Info */}
         <div className="text-center py-4 space-y-1">
-          <p className="text-muted-foreground text-sm">Set {completedSets[currentExercise].length + 1} of {exercise.targetSets}</p>
-          <p className="text-sm text-muted-foreground">Target: {exercise.repMin}-{exercise.repMax} reps @ {exercise.targetWeight}kg</p>
+          <p className="text-muted-foreground text-sm">{t('workout.setOf', { a: completedSets[currentExercise].length + 1, b: exercise.targetSets })}</p>
+          <p className="text-sm text-muted-foreground">{t('workout.targetReps', { min: exercise.repMin, max: exercise.repMax, w: exercise.targetWeight })}</p>
         </div>
 
         {/* Input Area */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground text-center block">Weight (kg)</label>
+            <label className="text-xs text-muted-foreground text-center block">{t('workout.weightKg')}</label>
             <div className="flex items-center gap-2">
               <button onClick={() => setWeight(Math.max(0, weight - 2.5))} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold">−</button>
               <div className="flex-1 h-14 rounded-xl bg-card border border-border flex items-center justify-center text-2xl font-display font-bold">{weight}</div>
@@ -522,7 +525,7 @@ export default function WorkoutView() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground text-center block">Reps</label>
+            <label className="text-xs text-muted-foreground text-center block">{t('workout.reps')}</label>
             <div className="flex items-center gap-2">
               <button onClick={() => setReps(Math.max(0, reps - 1))} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold">−</button>
               <div className="flex-1 h-14 rounded-xl bg-card border border-border flex items-center justify-center text-2xl font-display font-bold">{reps}</div>
@@ -533,22 +536,22 @@ export default function WorkoutView() {
 
         {/* Log Set Button */}
         <Button onClick={handleLogSet} disabled={reps === 0} className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base">
-          <Check className="h-5 w-5 mr-2" /> Log Set
+          <Check className="h-5 w-5 mr-2" /> {t('workout.logSet')}
         </Button>
 
         {/* End Workout Button */}
         <Button onClick={handleEndWorkout} variant="outline" className="w-full h-12 rounded-2xl border-destructive text-destructive hover:bg-destructive/10 font-semibold text-sm">
-          <Square className="h-4 w-4 mr-2" /> End Workout
+          <Square className="h-4 w-4 mr-2" /> {t('workout.endWorkout')}
         </Button>
 
         {/* Arrow Method */}
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground text-center">How did it feel?</p>
+          <p className="text-xs text-muted-foreground text-center">{t('workout.howFelt')}</p>
           <div className="flex gap-3 justify-center">
             {[
-              { dir: 'up' as const, icon: ArrowUp, label: 'Increase', color: 'text-primary' },
-              { dir: 'maintain' as const, icon: ArrowRight, label: 'Maintain', color: 'text-warning' },
-              { dir: 'down' as const, icon: ArrowDown, label: 'Decrease', color: 'text-destructive' },
+              { dir: 'up' as const, icon: ArrowUp, label: t('workout.increase'), color: 'text-primary' },
+              { dir: 'maintain' as const, icon: ArrowRight, label: t('workout.maintain'), color: 'text-warning' },
+              { dir: 'down' as const, icon: ArrowDown, label: t('workout.decrease'), color: 'text-destructive' },
             ].map(({ dir, icon: Icon, label, color }) => (
               <button key={dir} onClick={() => handleArrow(dir)}
                 className="flex flex-col items-center gap-1 px-4 py-3 rounded-xl bg-card border border-border hover:border-primary/50 transition-colors">
@@ -563,7 +566,7 @@ export default function WorkoutView() {
         <AnimatePresence>
           {completedSets[currentExercise].length > 0 && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
-              <p className="text-xs text-muted-foreground">Completed Sets</p>
+              <p className="text-xs text-muted-foreground">{t('workout.completedSets')}</p>
               {completedSets[currentExercise].map((set, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
                   <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">{i + 1}</div>
