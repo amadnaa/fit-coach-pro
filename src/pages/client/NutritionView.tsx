@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useTranslation } from 'react-i18next';
 
 interface Recipe {
   id: string;
@@ -39,6 +40,7 @@ interface FoodLogEntry {
 export default function NutritionView() {
   const { user } = useAuth();
   const { flags } = useFeatureFlags();
+  const { t } = useTranslation();
   const [activeFilter, setActiveFilter] = useState('All');
   const [tab, setTab] = useState<'recipes' | 'tracker'>('recipes');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -134,7 +136,7 @@ export default function NutritionView() {
     } else if (logMode === 'custom' && customMeal.name) {
       entry = { food_name: customMeal.name, calories: customMeal.calories, protein: customMeal.protein, carbs: customMeal.carbs, fat: customMeal.fat };
     } else {
-      toast.error('Please select a recipe or enter custom meal details');
+      toast.error(t('errors.selectRecipeOrCustom'));
       setSavingLog(false);
       return;
     }
@@ -145,9 +147,9 @@ export default function NutritionView() {
     });
 
     if (error) {
-      toast.error('Failed to log meal');
+      toast.error(t('errors.failedLogMeal'));
     } else {
-      toast.success('Meal logged!');
+      toast.success(t('nutrition.mealLogged'));
       setLogDialogOpen(false);
       setSelectedLogRecipe(null);
       setServings(1);
@@ -163,7 +165,7 @@ export default function NutritionView() {
       <MobileLayout hideNav>
         <div className="px-5 pt-6 space-y-5 pb-8">
           <button onClick={() => setSelectedRecipe(null)} className="flex items-center gap-1 text-muted-foreground text-sm">
-            <ChevronLeft className="h-4 w-4" /> Back
+            <ChevronLeft className="h-4 w-4" /> {t('common.back')}
           </button>
 
           {selectedRecipe.photo_url && (
@@ -186,10 +188,10 @@ export default function NutritionView() {
           {/* Macros */}
           <div className="grid grid-cols-4 gap-2">
             {[
-              { label: 'Calories', value: selectedRecipe.calories, unit: '', icon: Flame, color: 'text-warning' },
-              { label: 'Protein', value: selectedRecipe.protein, unit: 'g', icon: Beef, color: 'text-destructive' },
-              { label: 'Carbs', value: selectedRecipe.carbs, unit: 'g', icon: Wheat, color: 'text-primary' },
-              { label: 'Fat', value: selectedRecipe.fat, unit: 'g', icon: Droplets, color: 'text-info' },
+              { label: t('nutrition.calories'), value: selectedRecipe.calories, unit: '', icon: Flame, color: 'text-warning' },
+              { label: t('nutrition.protein'), value: selectedRecipe.protein, unit: 'g', icon: Beef, color: 'text-destructive' },
+              { label: t('nutrition.carbs'), value: selectedRecipe.carbs, unit: 'g', icon: Wheat, color: 'text-primary' },
+              { label: t('nutrition.fat'), value: selectedRecipe.fat, unit: 'g', icon: Droplets, color: 'text-info' },
             ].map(m => (
               <div key={m.label} className="p-3 rounded-xl bg-card border border-border text-center">
                 <m.icon className={cn("h-4 w-4 mx-auto mb-1", m.color)} />
@@ -202,7 +204,7 @@ export default function NutritionView() {
           {/* Ingredients */}
           {selectedRecipe.ingredients && selectedRecipe.ingredients.length > 0 && (
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold">Ingredients</h2>
+              <h2 className="text-sm font-semibold">{t('nutrition.ingredients')}</h2>
               <ul className="space-y-1.5">
                 {selectedRecipe.ingredients.map((ing, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -217,7 +219,7 @@ export default function NutritionView() {
           {/* Instructions */}
           {selectedRecipe.instructions && (
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold">Instructions</h2>
+              <h2 className="text-sm font-semibold">{t('nutrition.instructions')}</h2>
               <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{selectedRecipe.instructions}</p>
             </div>
           )}
@@ -230,7 +232,7 @@ export default function NutritionView() {
             }}
             className="w-full h-12 rounded-2xl gradient-primary text-primary-foreground font-semibold"
           >
-            <Plus className="h-4 w-4 mr-2" /> Log This Meal
+            <Plus className="h-4 w-4 mr-2" /> {t('nutrition.logThisMeal')}
           </Button>
         </div>
       </MobileLayout>
@@ -241,21 +243,21 @@ export default function NutritionView() {
     <MobileLayout>
       <div className="px-5 pt-6 space-y-5">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-display font-bold">Nutrition</h1>
+          <h1 className="text-2xl font-display font-bold">{t('nutrition.title')}</h1>
         </motion.div>
 
         {/* Tab Toggle - only show if food tracking is enabled */}
         {flags.food_tracking_enabled && (
         <div className="flex gap-1 p-1 rounded-xl bg-secondary">
-          {(['recipes', 'tracker'] as const).map(t => (
+          {(['recipes', 'tracker'] as const).map(tb => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tb}
+              onClick={() => setTab(tb)}
               className={cn(
                 "flex-1 py-2 rounded-lg text-sm font-medium transition-all capitalize",
-                tab === t ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
+                tab === tb ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
               )}
-            >{t}</button>
+            >{t(`nutrition.${tb}`)}</button>
           ))}
         </div>
         )}
@@ -265,10 +267,10 @@ export default function NutritionView() {
             {/* Daily Macros */}
             <div className="grid grid-cols-4 gap-2">
               {[
-                { label: 'Calories', icon: Flame, current: dailyTotals.calories, target: targets.calories, unit: '', color: 'text-warning' },
-                { label: 'Protein', icon: Beef, current: dailyTotals.protein, target: targets.protein, unit: 'g', color: 'text-destructive' },
-                { label: 'Carbs', icon: Wheat, current: dailyTotals.carbs, target: targets.carbs, unit: 'g', color: 'text-primary' },
-                { label: 'Fat', icon: Droplets, current: dailyTotals.fat, target: targets.fat, unit: 'g', color: 'text-info' },
+                { label: t('nutrition.calories'), icon: Flame, current: dailyTotals.calories, target: targets.calories, unit: '', color: 'text-warning' },
+                { label: t('nutrition.protein'), icon: Beef, current: dailyTotals.protein, target: targets.protein, unit: 'g', color: 'text-destructive' },
+                { label: t('nutrition.carbs'), icon: Wheat, current: dailyTotals.carbs, target: targets.carbs, unit: 'g', color: 'text-primary' },
+                { label: t('nutrition.fat'), icon: Droplets, current: dailyTotals.fat, target: targets.fat, unit: 'g', color: 'text-info' },
               ].map(m => {
                 const pct = Math.min(100, (m.current / m.target) * 100);
                 return (
@@ -288,13 +290,13 @@ export default function NutritionView() {
               onClick={() => { setLogMode('recipe'); setLogDialogOpen(true); }}
               className="w-full py-3 rounded-xl border-2 border-dashed border-border text-muted-foreground text-sm flex items-center justify-center gap-2 hover:border-primary/50 transition-colors"
             >
-              <Plus className="h-4 w-4" /> Log Meal
+              <Plus className="h-4 w-4" /> {t('nutrition.logMeal')}
             </button>
 
             {/* Today's Logged Meals */}
             {todayLogs.length > 0 && (
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold">Today's Meals</h3>
+                <h3 className="text-sm font-semibold">{t('nutrition.todaysMeals')}</h3>
                 {todayLogs.map(log => (
                   <div key={log.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -303,7 +305,7 @@ export default function NutritionView() {
                     <div className="flex-1">
                       <p className="text-sm font-medium">{log.food_name}</p>
                       <p className="text-[10px] text-muted-foreground">
-                        {log.calories} cal · {log.protein}g P · {log.carbs}g C · {log.fat}g F
+                        {t('nutrition.macroLine', { cal: log.calories, p: log.protein, c: log.carbs, f: log.fat })}
                       </p>
                     </div>
                     <p className="text-[10px] text-muted-foreground">
@@ -319,12 +321,12 @@ export default function NutritionView() {
         {(tab === 'recipes' || !flags.food_tracking_enabled) && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
             {loading ? (
-              <div className="py-12 text-center text-sm text-muted-foreground">Loading recipes...</div>
+              <div className="py-12 text-center text-sm text-muted-foreground">{t('nutrition.loadingRecipes')}</div>
             ) : recipes.length === 0 ? (
               <div className="py-12 text-center space-y-2">
                 <UtensilsCrossed className="h-10 w-10 text-muted-foreground mx-auto" />
-                <p className="text-sm font-medium">No recipes yet</p>
-                <p className="text-xs text-muted-foreground">Your trainer hasn't added any recipes yet.</p>
+                <p className="text-sm font-medium">{t('nutrition.noRecipesYet')}</p>
+                <p className="text-xs text-muted-foreground">{t('nutrition.trainerNoRecipes')}</p>
               </div>
             ) : (
               <>
@@ -332,7 +334,7 @@ export default function NutritionView() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search recipes..."
+                    placeholder={t('nutrition.searchRecipes')}
                     value={recipeSearch}
                     onChange={e => setRecipeSearch(e.target.value)}
                     className="pl-9 rounded-xl"
@@ -349,7 +351,7 @@ export default function NutritionView() {
                           "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
                           activeFilter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
                         )}
-                      >{f}</button>
+                      >{f === 'All' ? t('nutrition.all') : f}</button>
                     ))}
                   </div>
                 )}
@@ -378,10 +380,10 @@ export default function NutritionView() {
                       <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div className="flex gap-4 text-xs text-muted-foreground">
-                      <span>{recipe.calories} cal</span>
-                      <span>{recipe.protein}g protein</span>
-                      <span>{recipe.carbs}g carbs</span>
-                      <span>{recipe.fat}g fat</span>
+                      <span>{t('nutrition.caloriesG', { n: recipe.calories })}</span>
+                      <span>{t('nutrition.proteinG', { n: recipe.protein })}</span>
+                      <span>{t('nutrition.carbsG', { n: recipe.carbs })}</span>
+                      <span>{t('nutrition.fatG', { n: recipe.fat })}</span>
                     </div>
                   </motion.div>
                 ))}
@@ -395,7 +397,7 @@ export default function NutritionView() {
       <Dialog open={logDialogOpen} onOpenChange={setLogDialogOpen}>
         <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Log Meal</DialogTitle>
+            <DialogTitle>{t('nutrition.logMeal')}</DialogTitle>
           </DialogHeader>
 
           {/* Mode Toggle */}
@@ -408,7 +410,7 @@ export default function NutritionView() {
                   "flex-1 py-2 rounded-lg text-xs font-medium transition-all capitalize",
                   logMode === m ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
                 )}
-              >{m === 'recipe' ? 'From Recipe' : 'Custom Meal'}</button>
+              >{m === 'recipe' ? t('nutrition.fromRecipe') : t('nutrition.customMeal')}</button>
             ))}
           </div>
 
@@ -418,7 +420,7 @@ export default function NutritionView() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search recipes..."
+                  placeholder={t('nutrition.searchRecipes')}
                   value={logSearch}
                   onChange={e => setLogSearch(e.target.value)}
                   className="pl-9 rounded-xl"
@@ -439,18 +441,18 @@ export default function NutritionView() {
                       )}
                     >
                       <p className="text-sm font-medium">{r.title}</p>
-                      <p className="text-[10px] text-muted-foreground">{r.calories} cal · {r.protein}g P</p>
+                      <p className="text-[10px] text-muted-foreground">{t('nutrition.caloriesG', { n: r.calories })} · {t('nutrition.proteinG', { n: r.protein })}</p>
                     </button>
                   ))}
                 {recipes.filter(r => r.title.toLowerCase().includes(logSearch.toLowerCase())).length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">No recipes match your search</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">{t('nutrition.noRecipesMatch')}</p>
                 )}
               </div>
 
               {selectedLogRecipe && (
                 <div className="space-y-3 pt-2 border-t border-border">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">Servings</p>
+                    <p className="text-sm font-medium">{t('nutrition.servings')}</p>
                     <div className="flex items-center gap-3">
                       <button onClick={() => setServings(Math.max(0.5, servings - 0.5))} className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
                         <Minus className="h-3 w-3" />
@@ -464,19 +466,19 @@ export default function NutritionView() {
                   <div className="grid grid-cols-4 gap-2 text-center text-xs">
                     <div className="p-2 rounded-lg bg-secondary">
                       <p className="font-bold">{Math.round(selectedLogRecipe.calories * servings)}</p>
-                      <p className="text-[9px] text-muted-foreground">cal</p>
+                      <p className="text-[9px] text-muted-foreground">{t('nutrition.cal')}</p>
                     </div>
                     <div className="p-2 rounded-lg bg-secondary">
                       <p className="font-bold">{Math.round(selectedLogRecipe.protein * servings)}g</p>
-                      <p className="text-[9px] text-muted-foreground">protein</p>
+                      <p className="text-[9px] text-muted-foreground">{t('nutrition.proteinShort')}</p>
                     </div>
                     <div className="p-2 rounded-lg bg-secondary">
                       <p className="font-bold">{Math.round(selectedLogRecipe.carbs * servings)}g</p>
-                      <p className="text-[9px] text-muted-foreground">carbs</p>
+                      <p className="text-[9px] text-muted-foreground">{t('nutrition.carbsShort')}</p>
                     </div>
                     <div className="p-2 rounded-lg bg-secondary">
                       <p className="font-bold">{Math.round(selectedLogRecipe.fat * servings)}g</p>
-                      <p className="text-[9px] text-muted-foreground">fat</p>
+                      <p className="text-[9px] text-muted-foreground">{t('nutrition.fatShort')}</p>
                     </div>
                   </div>
                 </div>
@@ -484,22 +486,22 @@ export default function NutritionView() {
             </div>
           ) : (
             <div className="space-y-3">
-              <Input placeholder="Meal name" value={customMeal.name} onChange={e => setCustomMeal(p => ({ ...p, name: e.target.value }))} className="rounded-xl" />
+              <Input placeholder={t('nutrition.mealName')} value={customMeal.name} onChange={e => setCustomMeal(p => ({ ...p, name: e.target.value }))} className="rounded-xl" />
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-muted-foreground">Calories</label>
+                  <label className="text-[10px] text-muted-foreground">{t('coach.calories')}</label>
                   <Input type="number" value={customMeal.calories || ''} onChange={e => setCustomMeal(p => ({ ...p, calories: Number(e.target.value) }))} className="rounded-xl" />
                 </div>
                 <div>
-                  <label className="text-[10px] text-muted-foreground">Protein (g)</label>
+                  <label className="text-[10px] text-muted-foreground">{t('coach.proteinLabel')}</label>
                   <Input type="number" value={customMeal.protein || ''} onChange={e => setCustomMeal(p => ({ ...p, protein: Number(e.target.value) }))} className="rounded-xl" />
                 </div>
                 <div>
-                  <label className="text-[10px] text-muted-foreground">Carbs (g)</label>
+                  <label className="text-[10px] text-muted-foreground">{t('coach.carbsLabel')}</label>
                   <Input type="number" value={customMeal.carbs || ''} onChange={e => setCustomMeal(p => ({ ...p, carbs: Number(e.target.value) }))} className="rounded-xl" />
                 </div>
                 <div>
-                  <label className="text-[10px] text-muted-foreground">Fat (g)</label>
+                  <label className="text-[10px] text-muted-foreground">{t('coach.fatLabel')}</label>
                   <Input type="number" value={customMeal.fat || ''} onChange={e => setCustomMeal(p => ({ ...p, fat: Number(e.target.value) }))} className="rounded-xl" />
                 </div>
               </div>
@@ -511,7 +513,7 @@ export default function NutritionView() {
             disabled={savingLog || (logMode === 'recipe' ? !selectedLogRecipe : !customMeal.name)}
             className="w-full h-12 rounded-2xl gradient-primary text-primary-foreground font-semibold"
           >
-            {savingLog ? 'Saving...' : 'Log Meal'}
+            {savingLog ? t('common.saving') : t('nutrition.logMeal')}
           </Button>
         </DialogContent>
       </Dialog>

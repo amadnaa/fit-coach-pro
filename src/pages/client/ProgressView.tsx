@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 
 interface ScheduledSession {
@@ -33,6 +34,7 @@ export default function ProgressView() {
   const { user } = useAuth();
   const { flags } = useFeatureFlags();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sessions, setSessions] = useState<ScheduledSession[]>([]);
   const [showAddSession, setShowAddSession] = useState(false);
@@ -97,11 +99,11 @@ export default function ProgressView() {
 
   const handleAddSession = async () => {
     if (!user || !selectedDate) return;
-    if (eventType === 'workout' && !selectedWorkoutId) { toast.error('Pick a workout day'); return; }
-    if (eventType === 'other' && !sessionTitle.trim()) { toast.error('Enter event name'); return; }
+    if (eventType === 'workout' && !selectedWorkoutId) { toast.error(t('errors.pickWorkoutDay')); return; }
+    if (eventType === 'other' && !sessionTitle.trim()) { toast.error(t('errors.enterEventName')); return; }
 
     const workout = workoutDays.find(w => w.id === selectedWorkoutId);
-    const title = eventType === 'workout' ? `Day ${workout?.day_number}: ${workout?.name}` : sessionTitle.trim();
+    const title = eventType === 'workout' ? `${t('workout.day')} ${workout?.day_number}: ${workout?.name}` : sessionTitle.trim();
 
     setSaving(true);
     const { error } = await supabase.from('scheduled_sessions').insert({
@@ -112,7 +114,7 @@ export default function ProgressView() {
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Session scheduled!');
+    toast.success(t('progress.sessionScheduled'));
     resetForm();
     fetchSessions();
   };
@@ -126,7 +128,7 @@ export default function ProgressView() {
 
   const handleDeleteSession = async (id: string) => {
     await supabase.from('scheduled_sessions').delete().eq('id', id);
-    toast.success('Session removed');
+    toast.success(t('progress.sessionRemoved'));
     fetchSessions();
   };
 
@@ -140,8 +142,8 @@ export default function ProgressView() {
     <MobileLayout>
       <div className="px-5 pt-6 space-y-6 pb-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-display font-bold">Progress</h1>
-          <p className="text-muted-foreground text-sm">Track your journey</p>
+          <h1 className="text-2xl font-display font-bold">{t('progress.title')}</h1>
+          <p className="text-muted-foreground text-sm">{t('progress.subtitle')}</p>
         </motion.div>
 
         {/* Calendar */}
@@ -150,7 +152,7 @@ export default function ProgressView() {
           <div className="flex items-center justify-between px-4 pt-3">
             <div className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold text-sm">Training Calendar</h3>
+              <h3 className="font-semibold text-sm">{t('progress.trainingCalendar')}</h3>
             </div>
             <button onClick={() => setShowAddSession(true)} className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
               <Plus className="h-4 w-4" />
@@ -183,7 +185,7 @@ export default function ProgressView() {
                   <button onClick={(e) => { e.stopPropagation(); handleDeleteSession(s.id); }} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
                 </div>
               )) : (
-                <p className="text-[10px] text-muted-foreground">No sessions scheduled</p>
+                <p className="text-[10px] text-muted-foreground">{t('progress.noSessionsScheduled')}</p>
               )}
             </div>
           )}
@@ -193,21 +195,21 @@ export default function ProgressView() {
               {/* Event type selector */}
               {eventType === null && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-foreground">What would you like to schedule?</p>
+                  <p className="text-xs font-medium text-foreground">{t('progress.scheduleQuestion')}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setEventType('workout')}
                       className="flex-1 p-3 rounded-xl border border-border bg-card text-center hover:border-primary/50 transition-colors"
                     >
                       <Dumbbell className="h-5 w-5 text-primary mx-auto mb-1" />
-                      <p className="text-xs font-medium">Workout Day</p>
+                      <p className="text-xs font-medium">{t('progress.workoutDay')}</p>
                     </button>
                     <button
                       onClick={() => setEventType('other')}
                       className="flex-1 p-3 rounded-xl border border-border bg-card text-center hover:border-primary/50 transition-colors"
                     >
                       <CalendarIcon className="h-5 w-5 text-primary mx-auto mb-1" />
-                      <p className="text-xs font-medium">Other Event</p>
+                      <p className="text-xs font-medium">{t('progress.otherEvent')}</p>
                     </button>
                   </div>
                 </div>
@@ -216,7 +218,7 @@ export default function ProgressView() {
               {/* Workout day picker */}
               {eventType === 'workout' && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-foreground">Choose workout day</p>
+                  <p className="text-xs font-medium text-foreground">{t('progress.chooseWorkoutDay')}</p>
                   {workoutDays.length > 0 ? (
                     <div className="space-y-1.5">
                       {workoutDays.map(w => (
@@ -238,7 +240,7 @@ export default function ProgressView() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground">No workout plan found. Complete onboarding first.</p>
+                    <p className="text-xs text-muted-foreground">{t('progress.noWorkoutPlan')}</p>
                   )}
                 </div>
               )}
@@ -246,11 +248,11 @@ export default function ProgressView() {
               {/* Custom event name */}
               {eventType === 'other' && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-foreground">Event name</p>
+                  <p className="text-xs font-medium text-foreground">{t('progress.eventName')}</p>
                   <Input
                     value={sessionTitle}
                     onChange={e => setSessionTitle(e.target.value)}
-                    placeholder="e.g. Yoga, Swimming, Rest day..."
+                    placeholder={t('progress.eventPlaceholder')}
                     className="rounded-xl text-sm h-9"
                     maxLength={50}
                   />
@@ -266,14 +268,14 @@ export default function ProgressView() {
                     size="sm"
                     className="rounded-xl gradient-primary text-primary-foreground text-xs flex-1"
                   >
-                    {saving ? 'Saving...' : `Schedule for ${selectedDate ? format(selectedDate, 'MMM d') : '...'}`}
+                    {saving ? t('common.saving') : t('progress.scheduleFor', { date: selectedDate ? format(selectedDate, 'MMM d') : '...' })}
                   </Button>
-                  <Button onClick={resetForm} size="sm" variant="outline" className="rounded-xl text-xs">Cancel</Button>
+                  <Button onClick={resetForm} size="sm" variant="outline" className="rounded-xl text-xs">{t('common.cancel')}</Button>
                 </div>
               )}
 
               {eventType === null && (
-                <Button onClick={resetForm} size="sm" variant="outline" className="rounded-xl text-xs w-full">Cancel</Button>
+                <Button onClick={resetForm} size="sm" variant="outline" className="rounded-xl text-xs w-full">{t('common.cancel')}</Button>
               )}
             </div>
           )}
@@ -284,7 +286,7 @@ export default function ProgressView() {
           className="p-4 rounded-2xl bg-card border border-border space-y-3">
           <div className="flex items-center gap-2">
             <Scale className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold text-sm">Body Weight</h3>
+            <h3 className="font-semibold text-sm">{t('progress.bodyWeight')}</h3>
             {bodyweightData.length >= 2 && (() => {
               const delta = bodyweightData[bodyweightData.length - 1].value - bodyweightData[0].value;
               const sign = delta > 0 ? '+' : '';
@@ -309,7 +311,7 @@ export default function ProgressView() {
             </div>
           ) : (
             <div className="h-36 flex items-center justify-center">
-              <p className="text-xs text-muted-foreground">No weight data yet. Log your bodyweight from the dashboard.</p>
+              <p className="text-xs text-muted-foreground">{t('progress.noWeightData')}</p>
             </div>
           )}
         </motion.div>
@@ -320,10 +322,10 @@ export default function ProgressView() {
           className="p-4 rounded-2xl bg-card border border-border space-y-3">
           <div className="flex items-center gap-2">
             <Moon className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold text-sm">Sleep</h3>
+            <h3 className="font-semibold text-sm">{t('progress.sleep')}</h3>
             {sleepData.length > 0 && (
               <span className="ml-auto text-xs text-muted-foreground">
-                Avg {(sleepData.reduce((s, d) => s + d.value, 0) / sleepData.length).toFixed(1)}h
+                {t('progress.avg', { v: (sleepData.reduce((s, d) => s + d.value, 0) / sleepData.length).toFixed(1) })}
               </span>
             )}
           </div>
@@ -345,7 +347,7 @@ export default function ProgressView() {
             </div>
           ) : (
             <div className="h-36 flex items-center justify-center">
-              <p className="text-xs text-muted-foreground">No sleep data yet. Log your sleep from the dashboard.</p>
+              <p className="text-xs text-muted-foreground">{t('progress.noSleepData')}</p>
             </div>
           )}
         </motion.div>
@@ -355,10 +357,10 @@ export default function ProgressView() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-3">
           <div className="flex items-center gap-2">
             <Dumbbell className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold text-sm">Workout History</h3>
+            <h3 className="font-semibold text-sm">{t('progress.workoutHistory')}</h3>
           </div>
           {workoutHistory.length > 0 ? workoutHistory.map((session) => {
-            const duration = session.duration_seconds ? `${Math.floor(session.duration_seconds / 60)} min` : '';
+            const duration = session.duration_seconds ? `${Math.floor(session.duration_seconds / 60)} ${t('common.min')}` : '';
             const timeAgo = formatDistanceToNow(new Date(session.ended_at || session.started_at), { addSuffix: true });
             return (
               <div key={session.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
@@ -375,7 +377,7 @@ export default function ProgressView() {
               </div>
             );
           }) : (
-            <p className="text-xs text-muted-foreground">No completed workouts yet</p>
+            <p className="text-xs text-muted-foreground">{t('progress.noHistoryYet')}</p>
           )}
         </motion.div>
       </div>

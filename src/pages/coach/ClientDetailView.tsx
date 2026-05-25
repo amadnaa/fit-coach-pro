@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useTranslation } from 'react-i18next';
 
 interface WorkoutPlan {
   id: string;
@@ -48,6 +49,7 @@ interface WorkoutExerciseDetail {
 export default function ClientDetailView() {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [clientName, setClientName] = useState('');
   const [bodyweightData, setBodyweightData] = useState<{ date: string; weight: number }[]>([]);
   const [sleepData, setSleepData] = useState<{ date: string; hours: number }[]>([]);
@@ -87,7 +89,7 @@ export default function ClientDetailView() {
         .maybeSingle();
 
       if (!onb) {
-        toast.error('No onboarding data found for this client');
+        toast.error(t('errors.noOnboardingData'));
         setGeneratingPlan(false);
         return;
       }
@@ -163,7 +165,7 @@ export default function ClientDetailView() {
       });
 
       if (error) throw error;
-      toast.success('Workout plan generated!');
+      toast.success(t('coach.planGenerated'));
       
       // Refresh plans
       const { data: newPlans } = await supabase.from('workout_plans').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
@@ -174,7 +176,7 @@ export default function ClientDetailView() {
         else if (newPlans.length > 0) setSelectedPlanId(newPlans[0].id);
       }
     } catch (err: any) {
-      toast.error(err.message || 'Failed to generate plan');
+      toast.error(err.message || t('errors.failedGeneratePlan'));
     } finally {
       setGeneratingPlan(false);
     }
@@ -267,7 +269,7 @@ export default function ClientDetailView() {
         exercises.push({
           id: ex.id,
           exercise_id: ex.exercise_id,
-          exercise_name: (ex.exercises as any)?.name || 'Unknown',
+          exercise_name: (ex.exercises as any)?.name || t('common.unknown'),
           muscle_group: (ex.exercises as any)?.muscle_group || '',
           sets: ex.sets,
           rep_range_min: ex.rep_range_min,
@@ -298,13 +300,13 @@ export default function ClientDetailView() {
       const { data } = await supabase.from('feature_flags').insert({ user_id: clientId!, [key]: value } as any).select('id').single();
       if (data) setFlagsId(data.id);
     }
-    toast.success('Feature flag updated');
+    toast.success(t('coach.featureFlagUpdated'));
   };
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return '—';
     const m = Math.floor(seconds / 60);
-    return `${m} min`;
+    return `${m} ${t('common.min')}`;
   };
 
   const startEditExercise = (ex: WorkoutExerciseDetail) => {
@@ -320,16 +322,16 @@ export default function ClientDetailView() {
       target_weight: editValues.target_weight,
     }).eq('id', exerciseId);
 
-    if (error) { toast.error('Failed to update'); return; }
-    toast.success('Exercise updated');
+    if (error) { toast.error(t('errors.failedToUpdate')); return; }
+    toast.success(t('coach.exerciseUpdated'));
     setEditingExercise(null);
     fetchPlanWorkouts();
   };
 
   const deleteExerciseFromWorkout = async (exerciseId: string) => {
     const { error } = await supabase.from('workout_exercises').delete().eq('id', exerciseId);
-    if (error) { toast.error('Failed to remove'); return; }
-    toast.success('Exercise removed');
+    if (error) { toast.error(t('errors.failedToRemove')); return; }
+    toast.success(t('coach.exerciseRemoved'));
     fetchPlanWorkouts();
   };
 
@@ -344,15 +346,15 @@ export default function ClientDetailView() {
       rep_range_max: 12,
       sort_order: maxOrder + 1,
     });
-    if (error) { toast.error('Failed to add exercise'); return; }
-    toast.success('Exercise added');
+    if (error) { toast.error(t('errors.failedAddExercise')); return; }
+    toast.success(t('coach.exerciseAdded'));
     setAddExerciseDialog(null);
     setSelectedNewExercise('');
     fetchPlanWorkouts();
   };
 
   const createPlanFromScratch = async () => {
-    if (!clientId || !newPlanName.trim()) { toast.error('Plan name is required'); return; }
+    if (!clientId || !newPlanName.trim()) { toast.error(t('errors.planNameRequired')); return; }
     try {
       const { error } = await supabase.from('workout_plans').insert({
         client_id: clientId,
@@ -363,7 +365,7 @@ export default function ClientDetailView() {
         is_active: true,
       });
       if (error) throw error;
-      toast.success('Plan created! Add workouts and exercises.');
+      toast.success(t('coach.planCreated'));
       setShowCreatePlanDialog(false);
       setNewPlanName('');
       const { data: newPlans } = await supabase.from('workout_plans').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
@@ -372,7 +374,7 @@ export default function ClientDetailView() {
         setSelectedPlanId(newPlans[0]?.id || null);
       }
     } catch (err: any) {
-      toast.error(err.message || 'Failed to create plan');
+      toast.error(err.message || t('errors.failedToCreatePlan'));
     }
   };
 
@@ -382,36 +384,36 @@ export default function ClientDetailView() {
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/coach')} className="text-muted-foreground"><ChevronLeft className="h-6 w-6" /></button>
           <div className="flex-1">
-            <h1 className="text-xl font-display font-bold">{clientName || 'Client'}</h1>
+            <h1 className="text-xl font-display font-bold">{clientName || t('clientDetail.client')}</h1>
           </div>
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="w-full grid grid-cols-6 rounded-xl bg-secondary h-9">
-            <TabsTrigger value="overview" className="text-[9px] rounded-lg">Overview</TabsTrigger>
-            <TabsTrigger value="program" className="text-[9px] rounded-lg">Program</TabsTrigger>
-            <TabsTrigger value="sessions" className="text-[9px] rounded-lg">Sessions</TabsTrigger>
-            <TabsTrigger value="nutrition" className="text-[9px] rounded-lg">Nutrition</TabsTrigger>
-            <TabsTrigger value="checkins" className="text-[9px] rounded-lg">Check-ins</TabsTrigger>
-            <TabsTrigger value="settings" className="text-[9px] rounded-lg">Settings</TabsTrigger>
+            <TabsTrigger value="overview" className="text-[9px] rounded-lg">{t('clientDetail.overview')}</TabsTrigger>
+            <TabsTrigger value="program" className="text-[9px] rounded-lg">{t('clientDetail.program')}</TabsTrigger>
+            <TabsTrigger value="sessions" className="text-[9px] rounded-lg">{t('clientDetail.sessions')}</TabsTrigger>
+            <TabsTrigger value="nutrition" className="text-[9px] rounded-lg">{t('clientDetail.nutritionTab')}</TabsTrigger>
+            <TabsTrigger value="checkins" className="text-[9px] rounded-lg">{t('clientDetail.checkins')}</TabsTrigger>
+            <TabsTrigger value="settings" className="text-[9px] rounded-lg">{t('clientDetail.settings')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
             <div className="p-4 rounded-2xl bg-card border border-border space-y-2">
-              <div className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /><p className="text-sm font-medium">Bodyweight</p></div>
+              <div className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /><p className="text-sm font-medium">{t('clientDetail.bodyweight')}</p></div>
               {bodyweightData.length > 1 ? (
                 <ResponsiveContainer width="100%" height={120}>
                   <LineChart data={bodyweightData}><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis hide domain={['dataMin - 1', 'dataMax + 1']} /><Line type="monotone" dataKey="weight" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} /></LineChart>
                 </ResponsiveContainer>
-              ) : <p className="text-xs text-muted-foreground text-center py-4">No data</p>}
+              ) : <p className="text-xs text-muted-foreground text-center py-4">{t('clientDetail.noData')}</p>}
             </div>
             <div className="p-4 rounded-2xl bg-card border border-border space-y-2">
-              <div className="flex items-center gap-2"><Moon className="h-4 w-4 text-primary" /><p className="text-sm font-medium">Sleep</p></div>
+              <div className="flex items-center gap-2"><Moon className="h-4 w-4 text-primary" /><p className="text-sm font-medium">{t('clientDetail.sleep')}</p></div>
               {sleepData.length > 1 ? (
                 <ResponsiveContainer width="100%" height={120}>
                   <LineChart data={sleepData}><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis hide domain={[0, 12]} /><Line type="monotone" dataKey="hours" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} /></LineChart>
                 </ResponsiveContainer>
-              ) : <p className="text-xs text-muted-foreground text-center py-4">No data</p>}
+              ) : <p className="text-xs text-muted-foreground text-center py-4">{t('clientDetail.noData')}</p>}
             </div>
           </TabsContent>
 
@@ -420,8 +422,8 @@ export default function ClientDetailView() {
             {plans.length === 0 ? (
               <div className="py-8 text-center space-y-3">
                 <Dumbbell className="h-10 w-10 text-muted-foreground mx-auto" />
-                <p className="text-sm text-muted-foreground">No workout plans yet</p>
-                <p className="text-xs text-muted-foreground">Generate a plan from onboarding data, or create one from scratch.</p>
+                <p className="text-sm text-muted-foreground">{t('clientDetail.noWorkoutPlansYet')}</p>
+                <p className="text-xs text-muted-foreground">{t('clientDetail.generateOrCreate')}</p>
                 <div className="flex flex-col gap-2 items-center">
                   <Button
                     size="sm"
@@ -429,7 +431,7 @@ export default function ClientDetailView() {
                     onClick={generatePlanFromOnboarding}
                     disabled={generatingPlan}
                   >
-                    {generatingPlan ? 'Generating...' : 'Generate from Onboarding'}
+                    {generatingPlan ? t('clientDetail.generating') : t('clientDetail.generateFromOnboarding')}
                   </Button>
                   <Button
                     size="sm"
@@ -437,7 +439,7 @@ export default function ClientDetailView() {
                     className="rounded-xl"
                     onClick={() => setShowCreatePlanDialog(true)}
                   >
-                    Create from Scratch
+                    {t('clientDetail.createFromScratch')}
                   </Button>
                 </div>
               </div>
@@ -447,12 +449,12 @@ export default function ClientDetailView() {
                 <div className="flex items-center gap-2">
                   <Select value={selectedPlanId || ''} onValueChange={setSelectedPlanId}>
                     <SelectTrigger className="rounded-xl h-9 text-sm">
-                      <SelectValue placeholder="Select plan" />
+                      <SelectValue placeholder={t('clientDetail.selectPlan')} />
                     </SelectTrigger>
                     <SelectContent>
                       {plans.map(p => (
                         <SelectItem key={p.id} value={p.id}>
-                          {p.name} {p.is_active ? '(Active)' : ''}
+                          {p.name} {p.is_active ? `(${t('clientDetail.active')})` : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -460,9 +462,9 @@ export default function ClientDetailView() {
                 </div>
 
                 {loadingProgram ? (
-                  <div className="py-8 text-center text-sm text-muted-foreground">Loading program...</div>
+                  <div className="py-8 text-center text-sm text-muted-foreground">{t('clientDetail.loadingProgram')}</div>
                 ) : workouts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">No workouts in this plan</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">{t('clientDetail.noWorkoutsInPlan')}</p>
                 ) : (
                   workouts.map(workout => (
                     <div key={workout.id} className="rounded-2xl bg-card border border-border overflow-hidden">
@@ -477,7 +479,7 @@ export default function ClientDetailView() {
                           </div>
                           <div>
                             <p className="text-sm font-semibold">{workout.name}</p>
-                            <p className="text-[10px] text-muted-foreground">Day {workout.day_number} · {workout.exercises.length} exercises</p>
+                            <p className="text-[10px] text-muted-foreground">{t('clientDetail.dayLabel', { n: workout.day_number, count: workout.exercises.length })}</p>
                           </div>
                         </div>
                         {expandedWorkout === workout.id ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
@@ -494,25 +496,25 @@ export default function ClientDetailView() {
                                   <p className="text-sm font-medium">{ex.exercise_name}</p>
                                   <div className="grid grid-cols-4 gap-2">
                                     <div>
-                                      <label className="text-[9px] text-muted-foreground">Sets</label>
+                                      <label className="text-[9px] text-muted-foreground">{t('clientDetail.sets')}</label>
                                       <Input type="number" value={editValues.sets} onChange={e => setEditValues(v => ({ ...v, sets: parseInt(e.target.value) || 0 }))} className="h-8 text-xs rounded-lg" />
                                     </div>
                                     <div>
-                                      <label className="text-[9px] text-muted-foreground">Min Reps</label>
+                                      <label className="text-[9px] text-muted-foreground">{t('clientDetail.minReps')}</label>
                                       <Input type="number" value={editValues.rep_range_min} onChange={e => setEditValues(v => ({ ...v, rep_range_min: parseInt(e.target.value) || 0 }))} className="h-8 text-xs rounded-lg" />
                                     </div>
                                     <div>
-                                      <label className="text-[9px] text-muted-foreground">Max Reps</label>
+                                      <label className="text-[9px] text-muted-foreground">{t('clientDetail.maxReps')}</label>
                                       <Input type="number" value={editValues.rep_range_max} onChange={e => setEditValues(v => ({ ...v, rep_range_max: parseInt(e.target.value) || 0 }))} className="h-8 text-xs rounded-lg" />
                                     </div>
                                     <div>
-                                      <label className="text-[9px] text-muted-foreground">Target kg</label>
+                                      <label className="text-[9px] text-muted-foreground">{t('clientDetail.targetKg')}</label>
                                       <Input type="number" value={editValues.target_weight ?? ''} onChange={e => setEditValues(v => ({ ...v, target_weight: e.target.value ? parseFloat(e.target.value) : null }))} className="h-8 text-xs rounded-lg" placeholder="—" />
                                     </div>
                                   </div>
                                   <div className="flex gap-2">
                                     <Button size="sm" onClick={() => saveExerciseEdit(ex.id)} className="h-7 text-xs rounded-lg gradient-primary text-primary-foreground flex-1">
-                                      <Check className="h-3 w-3 mr-1" /> Save
+                                      <Check className="h-3 w-3 mr-1" /> {t('clientDetail.save')}
                                     </Button>
                                     <Button size="sm" variant="outline" onClick={() => setEditingExercise(null)} className="h-7 text-xs rounded-lg">
                                       <X className="h-3 w-3" />
@@ -537,8 +539,8 @@ export default function ClientDetailView() {
                                     </div>
                                   </div>
                                   <div className="flex gap-3 text-[11px]">
-                                    <span className="px-2 py-0.5 rounded-md bg-secondary text-muted-foreground">{ex.sets} sets</span>
-                                    <span className="px-2 py-0.5 rounded-md bg-secondary text-muted-foreground">{ex.rep_range_min}-{ex.rep_range_max} reps</span>
+                                    <span className="px-2 py-0.5 rounded-md bg-secondary text-muted-foreground">{ex.sets} {t('clientDetail.setsShort').toLowerCase()}</span>
+                                    <span className="px-2 py-0.5 rounded-md bg-secondary text-muted-foreground">{ex.rep_range_min}-{ex.rep_range_max} {t('clientDetail.repsShort').toLowerCase()}</span>
                                     {ex.target_weight && (
                                       <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">{ex.target_weight} kg</span>
                                     )}
@@ -547,7 +549,7 @@ export default function ClientDetailView() {
                                   {/* Recent Logs */}
                                   {ex.recent_logs.length > 0 && (
                                     <div className="mt-2 space-y-1">
-                                      <p className="text-[10px] text-muted-foreground font-medium">Recent Performance</p>
+                                      <p className="text-[10px] text-muted-foreground font-medium">{t('clientDetail.recentPerformance')}</p>
                                       {/* Group by session date */}
                                       {(() => {
                                         const sessions = new Map<string, typeof ex.recent_logs>();
@@ -581,7 +583,7 @@ export default function ClientDetailView() {
                             onClick={() => setAddExerciseDialog(workout.id)}
                             className="w-full p-3 flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                           >
-                            <Plus className="h-3.5 w-3.5" /> Add Exercise
+                            <Plus className="h-3.5 w-3.5" /> {t('clientDetail.addExercise')}
                           </button>
                         </div>
                       )}
@@ -593,34 +595,34 @@ export default function ClientDetailView() {
           </TabsContent>
 
           <TabsContent value="sessions" className="space-y-3 mt-4">
-            {workoutSessions.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No workout sessions yet</p> : (
+            {workoutSessions.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">{t('clientDetail.noSessions')}</p> : (
               workoutSessions.map((session: any) => (
                 <div key={session.id} className="p-4 rounded-2xl bg-card border border-border space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-muted-foreground">{format(new Date(session.started_at), 'MMM d, yyyy · HH:mm')}</p>
                     {session.completed ? (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">Completed</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{t('clientDetail.completed')}</span>
                     ) : (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-warning/10 text-warning font-medium">Incomplete</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-warning/10 text-warning font-medium">{t('clientDetail.incomplete')}</span>
                     )}
                   </div>
                   <div className="grid grid-cols-4 gap-2">
                     <div className="text-center">
                       <Clock className="h-3.5 w-3.5 text-muted-foreground mx-auto mb-0.5" />
                       <p className="text-sm font-medium">{formatDuration(session.duration_seconds)}</p>
-                      <p className="text-[9px] text-muted-foreground">Duration</p>
+                      <p className="text-[9px] text-muted-foreground">{t('clientDetail.duration')}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-medium">{session.exercises_completed}/{session.total_exercises}</p>
-                      <p className="text-[9px] text-muted-foreground">Exercises</p>
+                      <p className="text-[9px] text-muted-foreground">{t('clientDetail.exercisesShort')}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-medium">{session.total_sets_completed}</p>
-                      <p className="text-[9px] text-muted-foreground">Sets</p>
+                      <p className="text-[9px] text-muted-foreground">{t('clientDetail.setsShort')}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-medium">{session.total_reps}</p>
-                      <p className="text-[9px] text-muted-foreground">Reps</p>
+                      <p className="text-[9px] text-muted-foreground">{t('clientDetail.repsShort')}</p>
                     </div>
                   </div>
                 </div>
@@ -668,7 +670,7 @@ export default function ClientDetailView() {
                       <p className="text-[10px] text-muted-foreground">{format(new Date(log.logged_at), 'MMM d, HH:mm')}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-medium">{log.calories} kcal</p>
+                      <p className="text-xs font-medium">{log.calories} {t('clientDetail.kcal')}</p>
                       <p className="text-[9px] text-muted-foreground">P{log.protein} C{log.carbs} F{log.fat}</p>
                     </div>
                   </div>
@@ -678,7 +680,7 @@ export default function ClientDetailView() {
           </TabsContent>
 
           <TabsContent value="checkins" className="space-y-3 mt-4">
-            {weeklyCheckins.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No check-ins yet</p> : (
+            {weeklyCheckins.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">{t('clientDetail.noCheckinsYet')}</p> : (
               weeklyCheckins.map(ci => (
                 <div key={ci.id} className="p-4 rounded-2xl bg-card border border-border space-y-2">
                   <div className="flex items-center justify-between">
@@ -686,9 +688,9 @@ export default function ClientDetailView() {
                     <p className="text-xs text-muted-foreground">{format(new Date(ci.week_start), 'MMM d, yyyy')}</p>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="text-center"><p className="text-[10px] text-muted-foreground">Difficulty</p><p className="text-sm font-medium capitalize">{ci.training_difficulty}</p></div>
-                    <div className="text-center"><p className="text-[10px] text-muted-foreground">Recovery</p><p className="text-sm font-medium capitalize">{ci.recovery_level}</p></div>
-                    <div className="text-center"><p className="text-[10px] text-muted-foreground">Energy</p><p className="text-sm font-medium capitalize">{ci.energy_level}</p></div>
+                    <div className="text-center"><p className="text-[10px] text-muted-foreground">{t('clientDetail.difficulty')}</p><p className="text-sm font-medium capitalize">{ci.training_difficulty}</p></div>
+                    <div className="text-center"><p className="text-[10px] text-muted-foreground">{t('clientDetail.recovery')}</p><p className="text-sm font-medium capitalize">{ci.recovery_level}</p></div>
+                    <div className="text-center"><p className="text-[10px] text-muted-foreground">{t('clientDetail.energy')}</p><p className="text-sm font-medium capitalize">{ci.energy_level}</p></div>
                   </div>
                   {ci.notes && <p className="text-xs text-muted-foreground">{ci.notes}</p>}
                 </div>
@@ -698,11 +700,11 @@ export default function ClientDetailView() {
 
           <TabsContent value="settings" className="space-y-4 mt-4">
             <div className="p-4 rounded-2xl bg-card border border-border space-y-4">
-              <h3 className="text-sm font-semibold flex items-center gap-2"><Settings2 className="h-4 w-4 text-primary" /> Feature Flags</h3>
+              <h3 className="text-sm font-semibold flex items-center gap-2"><Settings2 className="h-4 w-4 text-primary" /> {t('clientDetail.featureFlags')}</h3>
               {[
-                { key: 'food_tracking_enabled', label: 'Food Tracker' },
-                { key: 'sleep_tracking_enabled', label: 'Sleep Tracking' },
-                { key: 'cardio_tracking_enabled', label: 'Cardio Tracker' },
+                { key: 'food_tracking_enabled', label: t('clientDetail.foodTracker') },
+                { key: 'sleep_tracking_enabled', label: t('clientDetail.sleepTracking') },
+                { key: 'cardio_tracking_enabled', label: t('clientDetail.cardioTracker') },
               ].map(f => (
                 <div key={f.key} className="flex items-center justify-between">
                   <p className="text-sm">{f.label}</p>
@@ -718,12 +720,12 @@ export default function ClientDetailView() {
       <Dialog open={!!addExerciseDialog} onOpenChange={open => { if (!open) setAddExerciseDialog(null); }}>
         <DialogContent className="max-w-sm mx-auto">
           <DialogHeader>
-            <DialogTitle>Add Exercise</DialogTitle>
+            <DialogTitle>{t('clientDetail.addExercise')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <Select value={selectedNewExercise} onValueChange={setSelectedNewExercise}>
               <SelectTrigger className="rounded-xl">
-                <SelectValue placeholder="Select exercise" />
+                <SelectValue placeholder={t('clientDetail.selectExercise')} />
               </SelectTrigger>
               <SelectContent className="max-h-60">
                 {availableExercises.map(ex => (
@@ -738,7 +740,7 @@ export default function ClientDetailView() {
               disabled={!selectedNewExercise}
               className="w-full gradient-primary text-primary-foreground rounded-xl"
             >
-              Add to Workout
+              {t('clientDetail.addToWorkout')}
             </Button>
           </div>
         </DialogContent>
@@ -748,31 +750,31 @@ export default function ClientDetailView() {
       <Dialog open={showCreatePlanDialog} onOpenChange={setShowCreatePlanDialog}>
         <DialogContent className="max-w-sm mx-auto">
           <DialogHeader>
-            <DialogTitle>Create Workout Plan</DialogTitle>
+            <DialogTitle>{t('clientDetail.createWorkoutPlan')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Plan Name *</label>
-              <Input value={newPlanName} onChange={e => setNewPlanName(e.target.value)} placeholder="e.g. Push / Pull / Legs" className="rounded-xl" />
+              <label className="text-xs text-muted-foreground mb-1 block">{t('clientDetail.planNameLabel')}</label>
+              <Input value={newPlanName} onChange={e => setNewPlanName(e.target.value)} placeholder={t('clientDetail.planNamePh')} className="rounded-xl" />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Split Type</label>
+              <label className="text-xs text-muted-foreground mb-1 block">{t('clientDetail.splitType')}</label>
               <Select value={newPlanSplit} onValueChange={setNewPlanSplit}>
                 <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="full_body">Full Body</SelectItem>
-                  <SelectItem value="upper_lower">Upper / Lower</SelectItem>
-                  <SelectItem value="push_pull_legs">Push / Pull / Legs</SelectItem>
-                  <SelectItem value="body_part_split">Body Part Split</SelectItem>
+                  <SelectItem value="full_body">{t('clientDetail.splitFullBody')}</SelectItem>
+                  <SelectItem value="upper_lower">{t('clientDetail.splitUpperLower')}</SelectItem>
+                  <SelectItem value="push_pull_legs">{t('clientDetail.splitPushPullLegs')}</SelectItem>
+                  <SelectItem value="body_part_split">{t('clientDetail.splitBodyPart')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Frequency (days/week)</label>
+              <label className="text-xs text-muted-foreground mb-1 block">{t('clientDetail.frequencyLabel')}</label>
               <Input type="number" min={1} max={7} value={newPlanFrequency} onChange={e => setNewPlanFrequency(Number(e.target.value))} className="rounded-xl" />
             </div>
             <Button onClick={createPlanFromScratch} disabled={!newPlanName.trim()} className="w-full gradient-primary text-primary-foreground rounded-xl">
-              Create Plan
+              {t('clientDetail.createPlan')}
             </Button>
           </div>
         </DialogContent>
