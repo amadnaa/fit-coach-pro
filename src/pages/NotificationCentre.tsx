@@ -29,11 +29,14 @@ interface Notification {
 export default function NotificationCentre() {
   const { user, role } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showCompose, setShowCompose] = useState(false);
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
   const [form, setForm] = useState({ title: '', body: '', recipientId: 'all' });
   const [sending, setSending] = useState(false);
+
+
 
   useEffect(() => {
     if (!user) return;
