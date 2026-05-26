@@ -146,7 +146,7 @@ export default function ExerciseLibrary() {
   };
 
   const handleUpdate = async () => {
-    if (!selectedExercise || !editForm.name.trim()) { toast.error('Name is required'); return; }
+    if (!selectedExercise || !editForm.name.trim()) { toast.error(t('errors.nameRequired')); return; }
     setSaving(true);
     const { error } = await supabase.from('exercises').update({
       name: editForm.name.trim(),
