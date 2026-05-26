@@ -87,9 +87,9 @@ export default function RecipeManager() {
     });
 
     if (error) {
-      toast.error('Failed to save recipe');
+      toast.error(t('errors.failedSaveRecipe'));
     } else {
-      toast.success('Recipe added!');
+      toast.success(t('coach.recipeAdded'));
       setAddOpen(false);
       resetForm();
       fetchRecipes();
@@ -100,13 +100,14 @@ export default function RecipeManager() {
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from('recipes').delete().eq('id', id);
     if (error) {
-      toast.error('Failed to delete');
+      toast.error(t('errors.failedToDelete'));
     } else {
-      toast.success('Recipe deleted');
+      toast.success(t('coach.recipeDeleted'));
       setRecipes(prev => prev.filter(r => r.id !== id));
       if (selectedRecipe?.id === id) setSelectedRecipe(null);
     }
   };
+
 
   // Detail view
   if (selectedRecipe) {
