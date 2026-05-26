@@ -184,12 +184,13 @@ export default function ExerciseLibrary() {
   };
 
   const renderVideoSection = (url: string | null) => {
-    if (!url) return <p className="text-xs text-muted-foreground py-4 text-center">No video attached</p>;
+    if (!url) return <p className="text-xs text-muted-foreground py-4 text-center">{t('coach.noVideo')}</p>;
     if (isVideoUrl(url)) {
       return (
         <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-xl bg-secondary text-sm text-primary hover:underline">
-          <Play className="h-4 w-4" /> Watch Video
+          <Play className="h-4 w-4" /> {t('workout.watchVideo')}
         </a>
+
       );
     }
     return (
