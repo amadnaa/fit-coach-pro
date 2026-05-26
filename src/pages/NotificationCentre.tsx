@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
+
 
 interface Notification {
   id: string;
@@ -27,11 +29,14 @@ interface Notification {
 export default function NotificationCentre() {
   const { user, role } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showCompose, setShowCompose] = useState(false);
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
   const [form, setForm] = useState({ title: '', body: '', recipientId: 'all' });
   const [sending, setSending] = useState(false);
+
+
 
   useEffect(() => {
     if (!user) return;
@@ -69,7 +74,7 @@ export default function NotificationCentre() {
         const { data: profiles } = await supabase.from('profiles').select('user_id, full_name').in('user_id', senderIds);
         if (profiles) senderMap = new Map(profiles.map(p => [p.user_id, p.full_name]));
       }
-      setNotifications(data.map(n => ({ ...n, sender_name: n.sender_id ? senderMap.get(n.sender_id) || 'Unknown' : 'System' })));
+      setNotifications(data.map(n => ({ ...n, sender_name: n.sender_id ? senderMap.get(n.sender_id) || t('notifCentre.unknown') : t('notifCentre.system') })));
 
       // Mark unread as read
       const unreadIds = data.filter(n => !n.read).map(n => n.id);
@@ -112,7 +117,7 @@ export default function NotificationCentre() {
       });
     }
 
-    toast.success('Notification sent!');
+    toast.success(t('notifications.sentToast'));
     setForm({ title: '', body: '', recipientId: 'all' });
     setShowCompose(false);
     setSending(false);
@@ -125,7 +130,7 @@ export default function NotificationCentre() {
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-muted-foreground"><ChevronLeft className="h-6 w-6" /></button>
           <div className="flex-1">
-            <h1 className="text-xl font-display font-bold">Notifications</h1>
+            <h1 className="text-xl font-display font-bold">{t('notifications.title')}</h1>
           </div>
           {role === 'coach' && (
             <button onClick={() => setShowCompose(!showCompose)} className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground">
@@ -137,20 +142,20 @@ export default function NotificationCentre() {
         {/* Compose */}
         {showCompose && role === 'coach' && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl bg-card border border-border space-y-3">
-            <h3 className="text-sm font-semibold">Send Notification</h3>
+            <h3 className="text-sm font-semibold">{t('notifications.sendNotification')}</h3>
             <Select value={form.recipientId} onValueChange={v => setForm(f => ({ ...f, recipientId: v }))}>
-              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Recipient" /></SelectTrigger>
+              <SelectTrigger className="rounded-xl"><SelectValue placeholder={t('notifications.recipient')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all"><div className="flex items-center gap-2"><Users className="h-3.5 w-3.5" /> All Clients</div></SelectItem>
+                <SelectItem value="all"><div className="flex items-center gap-2"><Users className="h-3.5 w-3.5" /> {t('notifications.allClients')}</div></SelectItem>
                 {clients.map(c => (
                   <SelectItem key={c.id} value={c.id}><div className="flex items-center gap-2"><User className="h-3.5 w-3.5" /> {c.name}</div></SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Title (optional)" className="rounded-xl" maxLength={100} />
-            <Textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} placeholder="Message..." className="rounded-xl" rows={3} maxLength={500} />
+            <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder={t('notifications.titleOptional')} className="rounded-xl" maxLength={100} />
+            <Textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} placeholder={t('notifications.messagePlaceholder')} className="rounded-xl" rows={3} maxLength={500} />
             <Button onClick={handleSend} disabled={sending || !form.body.trim()} className="w-full rounded-xl gradient-primary text-primary-foreground font-semibold">
-              {sending ? 'Sending...' : 'Send'}
+              {sending ? t('notifications.sending') : t('notifications.send')}
             </Button>
           </motion.div>
         )}
@@ -160,7 +165,7 @@ export default function NotificationCentre() {
           {notifications.length === 0 ? (
             <div className="text-center py-12">
               <Bell className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-30" />
-              <p className="text-sm text-muted-foreground">No notifications yet</p>
+              <p className="text-sm text-muted-foreground">{t('notifications.noNotificationsYet')}</p>
             </div>
           ) : (
             notifications.map((n, i) => (
@@ -172,10 +177,11 @@ export default function NotificationCentre() {
                   <p className="text-[10px] text-muted-foreground">{n.sender_name}</p>
                   <span className="text-[10px] text-muted-foreground">·</span>
                   <p className="text-[10px] text-muted-foreground">{format(new Date(n.created_at), 'MMM d, HH:mm')}</p>
-                  {n.is_broadcast && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">Broadcast</span>}
+                  {n.is_broadcast && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{t('notifications.broadcast')}</span>}
                 </div>
               </motion.div>
             ))
+
           )}
         </div>
       </div>

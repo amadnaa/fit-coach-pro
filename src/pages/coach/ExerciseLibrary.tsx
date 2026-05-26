@@ -11,7 +11,9 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import type { ExerciseCategory, MuscleGroup, MovementType } from '@/types';
+
 
 const allCategories: ExerciseCategory[] = ['warmup', 'chest', 'back', 'shoulders', 'biceps', 'triceps', 'legs', 'glutes', 'hamstrings', 'quads', 'core', 'cardio', 'stretching', 'other'];
 const muscleGroups: MuscleGroup[] = ['chest', 'back', 'shoulders', 'quads', 'hamstrings', 'glutes', 'biceps', 'triceps', 'core'];
@@ -38,6 +40,9 @@ const defaultForm = {
 
 export default function ExerciseLibrary() {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const tCat = (k: string) => t(`exCat.${k}`, { defaultValue: k });
+
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [exercises, setExercises] = useState<ExerciseRow[]>([]);
@@ -76,7 +81,7 @@ export default function ExerciseLibrary() {
     if (!file || !user) return;
 
     const maxSize = 20 * 1024 * 1024;
-    if (file.size > maxSize) { toast.error('File too large. Max 20MB.'); return; }
+    if (file.size > maxSize) { toast.error(t('errors.fileTooLarge')); return; }
 
     if (target === 'create') setUploading(true);
     else setEditUploading(true);
@@ -86,7 +91,7 @@ export default function ExerciseLibrary() {
 
     const { error: uploadError } = await supabase.storage.from('exercise-videos').upload(filePath, file, { contentType: file.type });
     if (uploadError) {
-      toast.error('Upload failed: ' + uploadError.message);
+      toast.error(t('errors.uploadFailed') + ': ' + uploadError.message);
       if (target === 'create') setUploading(false); else setEditUploading(false);
       return;
     }
@@ -97,11 +102,12 @@ export default function ExerciseLibrary() {
 
     if (target === 'create') { setForm(f => ({ ...f, video_url: videoUrl })); setUploading(false); }
     else { setEditForm(f => ({ ...f, video_url: videoUrl })); setEditUploading(false); }
-    toast.success('Video uploaded!');
+    toast.success(t('coach.videoUploaded'));
   };
 
   const handleSave = async () => {
-    if (!form.name.trim()) { toast.error('Exercise name is required'); return; }
+    if (!form.name.trim()) { toast.error(t('errors.exerciseNameRequired')); return; }
+
     setSaving(true);
     const { error } = await supabase.from('exercises').insert({
       name: form.name.trim(),
@@ -117,7 +123,7 @@ export default function ExerciseLibrary() {
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Exercise added!');
+    toast.success(t('coach.exerciseAdded'));
     setShowForm(false);
     setForm({ ...defaultForm });
     fetchExercises();
@@ -140,7 +146,7 @@ export default function ExerciseLibrary() {
   };
 
   const handleUpdate = async () => {
-    if (!selectedExercise || !editForm.name.trim()) { toast.error('Name is required'); return; }
+    if (!selectedExercise || !editForm.name.trim()) { toast.error(t('errors.nameRequired')); return; }
     setSaving(true);
     const { error } = await supabase.from('exercises').update({
       name: editForm.name.trim(),
@@ -155,7 +161,7 @@ export default function ExerciseLibrary() {
     }).eq('id', selectedExercise.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Exercise updated!');
+    toast.success(t('coach.exerciseUpdated'));
     setSelectedExercise(null);
     setIsEditing(false);
     fetchExercises();
@@ -167,7 +173,7 @@ export default function ExerciseLibrary() {
     const { error } = await supabase.from('exercises').delete().eq('id', selectedExercise.id);
     setDeleting(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Exercise deleted');
+    toast.success(t('coach.exerciseDeleted'));
     setSelectedExercise(null);
     fetchExercises();
   };
@@ -178,12 +184,13 @@ export default function ExerciseLibrary() {
   };
 
   const renderVideoSection = (url: string | null) => {
-    if (!url) return <p className="text-xs text-muted-foreground py-4 text-center">No video attached</p>;
+    if (!url) return <p className="text-xs text-muted-foreground py-4 text-center">{t('coach.noVideo')}</p>;
     if (isVideoUrl(url)) {
       return (
         <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-xl bg-secondary text-sm text-primary hover:underline">
-          <Play className="h-4 w-4" /> Watch Video
+          <Play className="h-4 w-4" /> {t('workout.watchVideo')}
         </a>
+
       );
     }
     return (
@@ -195,7 +202,7 @@ export default function ExerciseLibrary() {
     <MobileLayout>
       <div className="px-5 pt-6 space-y-4 pb-24">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-display font-bold">Exercises</h1>
+          <h1 className="text-2xl font-display font-bold">{t('coach.exercisesTitle')}</h1>
           <button onClick={() => setShowForm(true)} className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground">
             <Plus className="h-5 w-5" />
           </button>
@@ -203,13 +210,13 @@ export default function ExerciseLibrary() {
 
         <div className="relative">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search exercises..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
+          <Input placeholder={t('coach.searchExercises')} value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          <button onClick={() => setActiveCategory('all')} className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap", activeCategory === 'all' ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>All</button>
+          <button onClick={() => setActiveCategory('all')} className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap", activeCategory === 'all' ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>{t('exLib.all')}</button>
           {allCategories.map(c => (
-            <button key={c} onClick={() => setActiveCategory(c)} className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap capitalize", activeCategory === c ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>{c}</button>
+            <button key={c} onClick={() => setActiveCategory(c)} className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap", activeCategory === c ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>{tCat(c)}</button>
           ))}
         </div>
 
@@ -228,15 +235,15 @@ export default function ExerciseLibrary() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{ex.name}</p>
-                <p className="text-xs text-muted-foreground capitalize">{ex.category} · {ex.muscle_group} · {ex.movement_type}</p>
+                <p className="text-xs text-muted-foreground">{tCat(ex.category)} · {tCat(ex.muscle_group)} · {tCat(ex.movement_type)}</p>
               </div>
-              <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium capitalize",
+              <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium",
                 ex.difficulty_level === 'beginner' ? 'bg-primary/10 text-primary' :
                 ex.difficulty_level === 'intermediate' ? 'bg-warning/10 text-warning' : 'bg-destructive/10 text-destructive'
-              )}>{ex.difficulty_level}</span>
+              )}>{t(`coach.${ex.difficulty_level}`, { defaultValue: ex.difficulty_level })}</span>
             </motion.div>
           ))}
-          {filtered.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">No exercises found</p>}
+          {filtered.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">{t('coach.noExercisesFound')}</p>}
         </div>
       </div>
 
@@ -244,12 +251,14 @@ export default function ExerciseLibrary() {
       <Dialog open={!!selectedExercise} onOpenChange={open => { if (!open) { setSelectedExercise(null); setIsEditing(false); } }}>
         <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{isEditing ? 'Edit Exercise' : selectedExercise?.name}</DialogTitle>
-            <DialogDescription className="capitalize">
-              {!isEditing && selectedExercise && `${selectedExercise.category} · ${selectedExercise.muscle_group} · ${selectedExercise.movement_type}`}
-              {isEditing && 'Update exercise details below'}
+            <DialogTitle>{isEditing ? t('coach.editExercise') : selectedExercise?.name}</DialogTitle>
+            <DialogDescription>
+              {!isEditing && selectedExercise && `${tCat(selectedExercise.category)} · ${tCat(selectedExercise.muscle_group)} · ${tCat(selectedExercise.movement_type)}`}
+              {isEditing && t('coach.updateExerciseDetails')}
             </DialogDescription>
           </DialogHeader>
+
+
 
           {selectedExercise && !isEditing && (
             <div className="space-y-4">
@@ -257,7 +266,7 @@ export default function ExerciseLibrary() {
 
               {selectedExercise.description && (
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Description</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t('coach.description')}</p>
                   <p className="text-sm">{selectedExercise.description}</p>
                 </div>
               )}
@@ -265,25 +274,26 @@ export default function ExerciseLibrary() {
               <div className="grid grid-cols-3 gap-3">
                 <div className="text-center p-2 rounded-xl bg-secondary overflow-hidden">
                   <p className="text-base font-bold">{selectedExercise.rep_range_min}-{selectedExercise.rep_range_max}</p>
-                  <p className="text-[10px] text-muted-foreground">Rep Range</p>
+                  <p className="text-[10px] text-muted-foreground">{t('coach.repRange')}</p>
                 </div>
                 <div className="text-center p-2 rounded-xl bg-secondary overflow-hidden">
-                  <p className="text-xs font-bold capitalize leading-5 truncate">{selectedExercise.difficulty_level}</p>
-                  <p className="text-[10px] text-muted-foreground">Difficulty</p>
+                  <p className="text-xs font-bold leading-5 truncate">{t(`coach.${selectedExercise.difficulty_level}`, { defaultValue: selectedExercise.difficulty_level })}</p>
+                  <p className="text-[10px] text-muted-foreground">{t('coach.difficulty2')}</p>
                 </div>
                 <div className="text-center p-2 rounded-xl bg-secondary overflow-hidden">
-                  <p className="text-xs font-bold capitalize leading-5 truncate">{selectedExercise.movement_type}</p>
-                  <p className="text-[10px] text-muted-foreground">Type</p>
+                  <p className="text-xs font-bold leading-5 truncate">{tCat(selectedExercise.movement_type)}</p>
+                  <p className="text-[10px] text-muted-foreground">{t('coach.type')}</p>
                 </div>
               </div>
 
               <div className="flex gap-2">
                 <Button onClick={() => setIsEditing(true)} variant="outline" className="flex-1 rounded-xl">
-                  <Pencil className="h-4 w-4 mr-1" /> Edit
+                  <Pencil className="h-4 w-4 mr-1" /> {t('common.edit')}
                 </Button>
                 <Button onClick={handleDelete} disabled={deleting} className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Trash2 className="h-4 w-4 mr-1" /> {deleting ? '...' : 'Delete'}
+                  <Trash2 className="h-4 w-4 mr-1" /> {deleting ? '...' : t('common.delete')}
                 </Button>
+
               </div>
             </div>
           )}
@@ -293,26 +303,26 @@ export default function ExerciseLibrary() {
               <input ref={editFileInputRef} type="file" accept="video/*" onChange={(e) => handleVideoUpload(e, 'edit')} className="hidden" />
 
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Name *</label>
+                <label className="text-xs text-muted-foreground mb-1 block">{t('exLib.nameStar')}</label>
                 <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="rounded-xl" />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Description</label>
+                <label className="text-xs text-muted-foreground mb-1 block">{t('coach.description')}</label>
                 <Textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} className="rounded-xl" rows={2} />
               </div>
 
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Video</label>
+                <label className="text-xs text-muted-foreground mb-1 block">{t('coach.video')}</label>
                 {editForm.video_url ? (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary">
                     <Play className="h-4 w-4 text-primary" />
-                    <span className="text-xs text-muted-foreground flex-1 truncate">Video attached</span>
+                    <span className="text-xs text-muted-foreground flex-1 truncate">{t('coach.videoAttached')}</span>
                     <button onClick={() => setEditForm(f => ({ ...f, video_url: '' }))} className="text-destructive"><X className="h-4 w-4" /></button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Button variant="outline" onClick={() => editFileInputRef.current?.click()} disabled={editUploading} className="w-full rounded-xl">
-                      <Upload className="h-4 w-4 mr-2" /> {editUploading ? 'Uploading...' : 'Upload Video'}
+                      <Upload className="h-4 w-4 mr-2" /> {editUploading ? t('coach.uploading') : t('coach.uploadVideo')}
                     </Button>
                     <Input placeholder="https://youtube.com/watch?v=..." onChange={e => setEditForm(f => ({ ...f, video_url: e.target.value }))} className="rounded-xl text-xs" />
                   </div>
@@ -321,59 +331,60 @@ export default function ExerciseLibrary() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Category</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.category')}</label>
                   <Select value={editForm.category} onValueChange={v => setEditForm(f => ({ ...f, category: v }))}>
                     <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                    <SelectContent>{allCategories.map(c => <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>)}</SelectContent>
+                    <SelectContent>{allCategories.map(c => <SelectItem key={c} value={c}>{tCat(c)}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Muscle Group</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.muscleGroup')}</label>
                   <Select value={editForm.muscle_group} onValueChange={v => setEditForm(f => ({ ...f, muscle_group: v }))}>
                     <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                    <SelectContent>{muscleGroups.map(g => <SelectItem key={g} value={g} className="capitalize">{g}</SelectItem>)}</SelectContent>
+                    <SelectContent>{muscleGroups.map(g => <SelectItem key={g} value={g}>{tCat(g)}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Movement Type</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.movementType')}</label>
                   <Select value={editForm.movement_type} onValueChange={v => setEditForm(f => ({ ...f, movement_type: v }))}>
                     <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                    <SelectContent>{movementTypes.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}</SelectContent>
+                    <SelectContent>{movementTypes.map(mt => <SelectItem key={mt} value={mt}>{tCat(mt)}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Difficulty</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.difficulty2')}</label>
                   <Select value={editForm.difficulty_level} onValueChange={v => setEditForm(f => ({ ...f, difficulty_level: v }))}>
                     <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="beginner">{t('coach.beginner')}</SelectItem>
+                      <SelectItem value="intermediate">{t('coach.intermediate')}</SelectItem>
+                      <SelectItem value="advanced">{t('coach.advanced')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Rep Min</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.repMin')}</label>
                   <Input type="number" value={editForm.rep_range_min} onChange={e => setEditForm(f => ({ ...f, rep_range_min: Number(e.target.value) }))} className="rounded-xl" />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Rep Max</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.repMax')}</label>
                   <Input type="number" value={editForm.rep_range_max} onChange={e => setEditForm(f => ({ ...f, rep_range_max: Number(e.target.value) }))} className="rounded-xl" />
                 </div>
               </div>
 
               <div className="flex gap-2">
                 <Button onClick={handleUpdate} disabled={saving} className="flex-1 rounded-xl gradient-primary text-primary-foreground">
-                  {saving ? 'Saving...' : 'Save Changes'}
+                  {saving ? t('common.saving') : t('exLib.saveChanges')}
                 </Button>
-                <Button variant="outline" onClick={() => setIsEditing(false)} className="rounded-xl">Cancel</Button>
+                <Button variant="outline" onClick={() => setIsEditing(false)} className="rounded-xl">{t('common.cancel')}</Button>
               </div>
             </div>
           )}
+
         </DialogContent>
       </Dialog>
 
@@ -383,38 +394,38 @@ export default function ExerciseLibrary() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end" onClick={() => setShowForm(false)}>
             <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25 }} className="w-full max-h-[85vh] overflow-y-auto bg-card rounded-t-3xl p-5 pb-32 space-y-4 border-t border-border" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-display font-semibold">Add Exercise</h2>
+                <h2 className="text-lg font-display font-semibold">{t('coach.addExercise')}</h2>
                 <button onClick={() => setShowForm(false)}><X className="h-5 w-5 text-muted-foreground" /></button>
               </div>
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Name *</label>
-                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="rounded-xl" placeholder="Barbell Bench Press" maxLength={100} />
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('exLib.nameStar')}</label>
+                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="rounded-xl" placeholder={t('exLib.namePh')} maxLength={100} />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Description</label>
-                  <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="rounded-xl" rows={2} placeholder="Optional description..." maxLength={500} />
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.description')}</label>
+                  <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="rounded-xl" rows={2} placeholder={t('exLib.descriptionPh')} maxLength={500} />
                 </div>
 
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Video</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.video')}</label>
                   <input ref={fileInputRef} type="file" accept="video/*" onChange={(e) => handleVideoUpload(e, 'create')} className="hidden" />
                   {form.video_url ? (
                     <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary">
                       <Play className="h-4 w-4 text-primary" />
-                      <span className="text-xs text-muted-foreground flex-1 truncate">{form.video_url.startsWith('http') && !form.video_url.includes('supabase') ? form.video_url : 'Video uploaded'}</span>
+                      <span className="text-xs text-muted-foreground flex-1 truncate">{form.video_url.startsWith('http') && !form.video_url.includes('supabase') ? form.video_url : t('exCat.videoUploaded')}</span>
                       <button onClick={() => setForm(f => ({ ...f, video_url: '' }))} className="text-destructive"><X className="h-4 w-4" /></button>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full rounded-xl">
                         <Upload className="h-4 w-4 mr-2" />
-                        {uploading ? 'Uploading...' : 'Upload Video'}
+                        {uploading ? t('coach.uploading') : t('coach.uploadVideo')}
                       </Button>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <div className="flex-1 h-px bg-border" />
-                        <span>or paste a link</span>
+                        <span>{t('exLib.orPasteLink')}</span>
                         <div className="flex-1 h-px bg-border" />
                       </div>
                       <Input placeholder="https://youtube.com/watch?v=..." onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))} className="rounded-xl text-xs" />
@@ -424,55 +435,56 @@ export default function ExerciseLibrary() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Category</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t('coach.category')}</label>
                     <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
                       <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>{allCategories.map(c => <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>)}</SelectContent>
+                      <SelectContent>{allCategories.map(c => <SelectItem key={c} value={c}>{tCat(c)}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Muscle Group</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t('coach.muscleGroup')}</label>
                     <Select value={form.muscle_group} onValueChange={v => setForm(f => ({ ...f, muscle_group: v }))}>
                       <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>{muscleGroups.map(g => <SelectItem key={g} value={g} className="capitalize">{g}</SelectItem>)}</SelectContent>
+                      <SelectContent>{muscleGroups.map(g => <SelectItem key={g} value={g}>{tCat(g)}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Movement Type</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t('coach.movementType')}</label>
                     <Select value={form.movement_type} onValueChange={v => setForm(f => ({ ...f, movement_type: v }))}>
                       <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>{movementTypes.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}</SelectContent>
+                      <SelectContent>{movementTypes.map(mt => <SelectItem key={mt} value={mt}>{tCat(mt)}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Difficulty</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t('coach.difficulty2')}</label>
                     <Select value={form.difficulty_level} onValueChange={v => setForm(f => ({ ...f, difficulty_level: v }))}>
                       <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="beginner">{t('coach.beginner')}</SelectItem>
+                        <SelectItem value="intermediate">{t('coach.intermediate')}</SelectItem>
+                        <SelectItem value="advanced">{t('coach.advanced')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Rep Min</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t('coach.repMin')}</label>
                     <Input type="number" value={form.rep_range_min} onChange={e => setForm(f => ({ ...f, rep_range_min: Number(e.target.value) }))} className="rounded-xl" min={1} max={100} />
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Rep Max</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t('coach.repMax')}</label>
                     <Input type="number" value={form.rep_range_max} onChange={e => setForm(f => ({ ...f, rep_range_max: Number(e.target.value) }))} className="rounded-xl" min={1} max={100} />
                   </div>
                 </div>
               </div>
 
               <Button onClick={handleSave} disabled={saving} className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-semibold">
-                {saving ? 'Saving...' : 'Add Exercise'}
+                {saving ? t('common.saving') : t('coach.addExercise')}
               </Button>
+
             </motion.div>
           </motion.div>
         )}
