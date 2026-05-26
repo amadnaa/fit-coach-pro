@@ -266,7 +266,7 @@ export default function ExerciseLibrary() {
 
               {selectedExercise.description && (
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Description</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t('coach.description')}</p>
                   <p className="text-sm">{selectedExercise.description}</p>
                 </div>
               )}
@@ -274,25 +274,26 @@ export default function ExerciseLibrary() {
               <div className="grid grid-cols-3 gap-3">
                 <div className="text-center p-2 rounded-xl bg-secondary overflow-hidden">
                   <p className="text-base font-bold">{selectedExercise.rep_range_min}-{selectedExercise.rep_range_max}</p>
-                  <p className="text-[10px] text-muted-foreground">Rep Range</p>
+                  <p className="text-[10px] text-muted-foreground">{t('coach.repRange')}</p>
                 </div>
                 <div className="text-center p-2 rounded-xl bg-secondary overflow-hidden">
-                  <p className="text-xs font-bold capitalize leading-5 truncate">{selectedExercise.difficulty_level}</p>
-                  <p className="text-[10px] text-muted-foreground">Difficulty</p>
+                  <p className="text-xs font-bold leading-5 truncate">{t(`coach.${selectedExercise.difficulty_level}`, { defaultValue: selectedExercise.difficulty_level })}</p>
+                  <p className="text-[10px] text-muted-foreground">{t('coach.difficulty2')}</p>
                 </div>
                 <div className="text-center p-2 rounded-xl bg-secondary overflow-hidden">
-                  <p className="text-xs font-bold capitalize leading-5 truncate">{selectedExercise.movement_type}</p>
-                  <p className="text-[10px] text-muted-foreground">Type</p>
+                  <p className="text-xs font-bold leading-5 truncate">{tCat(selectedExercise.movement_type)}</p>
+                  <p className="text-[10px] text-muted-foreground">{t('coach.type')}</p>
                 </div>
               </div>
 
               <div className="flex gap-2">
                 <Button onClick={() => setIsEditing(true)} variant="outline" className="flex-1 rounded-xl">
-                  <Pencil className="h-4 w-4 mr-1" /> Edit
+                  <Pencil className="h-4 w-4 mr-1" /> {t('common.edit')}
                 </Button>
                 <Button onClick={handleDelete} disabled={deleting} className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Trash2 className="h-4 w-4 mr-1" /> {deleting ? '...' : 'Delete'}
+                  <Trash2 className="h-4 w-4 mr-1" /> {deleting ? '...' : t('common.delete')}
                 </Button>
+
               </div>
             </div>
           )}
