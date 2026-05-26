@@ -202,7 +202,7 @@ export default function ExerciseLibrary() {
     <MobileLayout>
       <div className="px-5 pt-6 space-y-4 pb-24">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-display font-bold">Exercises</h1>
+          <h1 className="text-2xl font-display font-bold">{t('coach.exercisesTitle')}</h1>
           <button onClick={() => setShowForm(true)} className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground">
             <Plus className="h-5 w-5" />
           </button>
@@ -210,13 +210,13 @@ export default function ExerciseLibrary() {
 
         <div className="relative">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search exercises..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
+          <Input placeholder={t('coach.searchExercises')} value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          <button onClick={() => setActiveCategory('all')} className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap", activeCategory === 'all' ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>All</button>
+          <button onClick={() => setActiveCategory('all')} className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap", activeCategory === 'all' ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>{t('exLib.all')}</button>
           {allCategories.map(c => (
-            <button key={c} onClick={() => setActiveCategory(c)} className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap capitalize", activeCategory === c ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>{c}</button>
+            <button key={c} onClick={() => setActiveCategory(c)} className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap", activeCategory === c ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground")}>{tCat(c)}</button>
           ))}
         </div>
 
@@ -235,15 +235,15 @@ export default function ExerciseLibrary() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{ex.name}</p>
-                <p className="text-xs text-muted-foreground capitalize">{ex.category} · {ex.muscle_group} · {ex.movement_type}</p>
+                <p className="text-xs text-muted-foreground">{tCat(ex.category)} · {tCat(ex.muscle_group)} · {tCat(ex.movement_type)}</p>
               </div>
-              <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium capitalize",
+              <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium",
                 ex.difficulty_level === 'beginner' ? 'bg-primary/10 text-primary' :
                 ex.difficulty_level === 'intermediate' ? 'bg-warning/10 text-warning' : 'bg-destructive/10 text-destructive'
-              )}>{ex.difficulty_level}</span>
+              )}>{t(`coach.${ex.difficulty_level}`, { defaultValue: ex.difficulty_level })}</span>
             </motion.div>
           ))}
-          {filtered.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">No exercises found</p>}
+          {filtered.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">{t('coach.noExercisesFound')}</p>}
         </div>
       </div>
 
@@ -251,12 +251,14 @@ export default function ExerciseLibrary() {
       <Dialog open={!!selectedExercise} onOpenChange={open => { if (!open) { setSelectedExercise(null); setIsEditing(false); } }}>
         <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{isEditing ? 'Edit Exercise' : selectedExercise?.name}</DialogTitle>
-            <DialogDescription className="capitalize">
-              {!isEditing && selectedExercise && `${selectedExercise.category} · ${selectedExercise.muscle_group} · ${selectedExercise.movement_type}`}
-              {isEditing && 'Update exercise details below'}
+            <DialogTitle>{isEditing ? t('coach.editExercise') : selectedExercise?.name}</DialogTitle>
+            <DialogDescription>
+              {!isEditing && selectedExercise && `${tCat(selectedExercise.category)} · ${tCat(selectedExercise.muscle_group)} · ${tCat(selectedExercise.movement_type)}`}
+              {isEditing && t('coach.updateExerciseDetails')}
             </DialogDescription>
           </DialogHeader>
+
+
 
           {selectedExercise && !isEditing && (
             <div className="space-y-4">
