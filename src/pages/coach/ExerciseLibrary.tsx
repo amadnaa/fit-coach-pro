@@ -81,7 +81,7 @@ export default function ExerciseLibrary() {
     if (!file || !user) return;
 
     const maxSize = 20 * 1024 * 1024;
-    if (file.size > maxSize) { toast.error('File too large. Max 20MB.'); return; }
+    if (file.size > maxSize) { toast.error(t('errors.fileTooLarge')); return; }
 
     if (target === 'create') setUploading(true);
     else setEditUploading(true);
@@ -91,7 +91,7 @@ export default function ExerciseLibrary() {
 
     const { error: uploadError } = await supabase.storage.from('exercise-videos').upload(filePath, file, { contentType: file.type });
     if (uploadError) {
-      toast.error('Upload failed: ' + uploadError.message);
+      toast.error(t('errors.uploadFailed') + ': ' + uploadError.message);
       if (target === 'create') setUploading(false); else setEditUploading(false);
       return;
     }
@@ -102,11 +102,12 @@ export default function ExerciseLibrary() {
 
     if (target === 'create') { setForm(f => ({ ...f, video_url: videoUrl })); setUploading(false); }
     else { setEditForm(f => ({ ...f, video_url: videoUrl })); setEditUploading(false); }
-    toast.success('Video uploaded!');
+    toast.success(t('coach.videoUploaded'));
   };
 
   const handleSave = async () => {
-    if (!form.name.trim()) { toast.error('Exercise name is required'); return; }
+    if (!form.name.trim()) { toast.error(t('errors.exerciseNameRequired')); return; }
+
     setSaving(true);
     const { error } = await supabase.from('exercises').insert({
       name: form.name.trim(),
