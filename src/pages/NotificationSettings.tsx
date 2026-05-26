@@ -102,7 +102,7 @@ export default function NotificationSettings() {
           <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl bg-card border border-border flex items-center justify-center">
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-display font-bold">Notification Settings</h1>
+          <h1 className="text-xl font-display font-bold">{t('notifications.settingsTitle')}</h1>
         </motion.div>
 
         {/* Master Toggle */}
@@ -112,8 +112,8 @@ export default function NotificationSettings() {
             <div className="flex items-center gap-3">
               <Bell className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-sm font-semibold">Push Notifications</p>
-                <p className="text-xs text-muted-foreground">Enable or disable all notifications</p>
+                <p className="text-sm font-semibold">{t('notifications.pushNotifications')}</p>
+                <p className="text-xs text-muted-foreground">{t('notifications.pushNotificationsDesc')}</p>
               </div>
             </div>
             <Switch
@@ -128,13 +128,13 @@ export default function NotificationSettings() {
           className="p-4 rounded-2xl bg-card border border-border space-y-4">
           <div className="flex items-center gap-2">
             <Dumbbell className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold">Workout Reminders</h2>
+            <h2 className="text-sm font-semibold">{t('notifications.workoutReminders')}</h2>
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Remind before workouts</p>
-              <p className="text-xs text-muted-foreground">Get notified before scheduled sessions</p>
+              <p className="text-sm font-medium">{t('notifications.remindBefore')}</p>
+              <p className="text-xs text-muted-foreground">{t('notifications.remindBeforeDesc')}</p>
             </div>
             <Switch
               checked={prefs.workout_reminders_enabled}
@@ -148,7 +148,7 @@ export default function NotificationSettings() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-sm">Remind me</p>
+                  <p className="text-sm">{t('notifications.remindMe')}</p>
                 </div>
                 <Select
                   value={String(prefs.workout_reminder_minutes_before)}
@@ -158,10 +158,10 @@ export default function NotificationSettings() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="15">15 min before</SelectItem>
-                    <SelectItem value="30">30 min before</SelectItem>
-                    <SelectItem value="60">1 hour before</SelectItem>
-                    <SelectItem value="120">2 hours before</SelectItem>
+                    <SelectItem value="15">{t('notifications.minBefore15')}</SelectItem>
+                    <SelectItem value="30">{t('notifications.minBefore30')}</SelectItem>
+                    <SelectItem value="60">{t('notifications.hourBefore1')}</SelectItem>
+                    <SelectItem value="120">{t('notifications.hoursBefore2')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -169,7 +169,7 @@ export default function NotificationSettings() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-sm">Default morning reminder</p>
+                  <p className="text-sm">{t('notifications.morningReminder')}</p>
                 </div>
                 <Select
                   value={prefs.default_morning_reminder_time}
@@ -196,17 +196,15 @@ export default function NotificationSettings() {
           className="p-4 rounded-2xl bg-card border border-border space-y-4">
           <div className="flex items-center gap-2">
             <UtensilsCrossed className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold">Nutrition Logging Reminders</h2>
+            <h2 className="text-sm font-semibold">{t('notifications.nutritionReminders')}</h2>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Get reminded to log your meals at different times of the day. Reminders only fire if you haven't logged anything yet.
-          </p>
+          <p className="text-xs text-muted-foreground">{t('notifications.nutritionDesc')}</p>
 
           {[
-            { key: 'nutrition_reminder_morning' as const, label: 'Morning (8:00 AM)', desc: 'Breakfast reminder' },
-            { key: 'nutrition_reminder_midday' as const, label: 'Midday (1:00 PM)', desc: 'Lunch reminder' },
-            { key: 'nutrition_reminder_evening' as const, label: 'Evening (7:00 PM)', desc: 'Dinner / end-of-day reminder' },
+            { key: 'nutrition_reminder_morning' as const, label: t('notifications.morning'), desc: t('notifications.breakfast') },
+            { key: 'nutrition_reminder_midday' as const, label: t('notifications.midday'), desc: t('notifications.lunch') },
+            { key: 'nutrition_reminder_evening' as const, label: t('notifications.evening'), desc: t('notifications.dinner') },
           ].map(({ key, label, desc }) => (
             <div key={key} className="flex items-center justify-between">
               <div>
@@ -223,8 +221,9 @@ export default function NotificationSettings() {
         </motion.div>
 
         <p className="text-xs text-muted-foreground text-center px-4">
-          Push notifications require device permission. You may need to allow notifications in your device settings.
+          {t('notifications.permissionNote')}
         </p>
+
       </div>
     </MobileLayout>
   );
