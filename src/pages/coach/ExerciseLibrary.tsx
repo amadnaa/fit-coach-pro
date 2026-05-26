@@ -123,7 +123,7 @@ export default function ExerciseLibrary() {
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Exercise added!');
+    toast.success(t('coach.exerciseAdded'));
     setShowForm(false);
     setForm({ ...defaultForm });
     fetchExercises();
