@@ -115,15 +115,15 @@ export default function RecipeManager() {
       <MobileLayout>
         <div className="px-5 pt-6 space-y-5 pb-8">
           <button onClick={() => setSelectedRecipe(null)} className="flex items-center gap-1 text-muted-foreground text-sm">
-            <ChevronLeft className="h-4 w-4" /> Back
+            <ChevronLeft className="h-4 w-4" /> {t('recMan.back')}
           </button>
           <h1 className="text-2xl font-display font-bold">{selectedRecipe.title}</h1>
           <div className="grid grid-cols-4 gap-2 text-center">
             {[
-              { label: 'Cal', value: selectedRecipe.calories },
-              { label: 'Protein', value: `${selectedRecipe.protein}g` },
-              { label: 'Carbs', value: `${selectedRecipe.carbs}g` },
-              { label: 'Fat', value: `${selectedRecipe.fat}g` },
+              { label: t('coach.cal'), value: selectedRecipe.calories },
+              { label: t('coach.proteinLabel').replace(' (g)', ''), value: `${selectedRecipe.protein}g` },
+              { label: t('coach.carbsLabel').replace(' (g)', ''), value: `${selectedRecipe.carbs}g` },
+              { label: t('coach.fatLabel').replace(' (g)', ''), value: `${selectedRecipe.fat}g` },
             ].map(m => (
               <div key={m.label} className="p-3 rounded-xl bg-card border border-border">
                 <p className="text-lg font-bold">{m.value}</p>
@@ -133,7 +133,7 @@ export default function RecipeManager() {
           </div>
           {selectedRecipe.ingredients && selectedRecipe.ingredients.length > 0 && (
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold">Ingredients</h2>
+              <h2 className="text-sm font-semibold">{t('recMan.ingredients')}</h2>
               <ul className="space-y-1">
                 {selectedRecipe.ingredients.map((ing, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -146,17 +146,18 @@ export default function RecipeManager() {
           )}
           {selectedRecipe.instructions && (
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold">Instructions</h2>
+              <h2 className="text-sm font-semibold">{t('recMan.instructions')}</h2>
               <p className="text-sm text-muted-foreground whitespace-pre-line">{selectedRecipe.instructions}</p>
             </div>
           )}
           <Button variant="destructive" onClick={() => handleDelete(selectedRecipe.id)} className="w-full rounded-2xl">
-            <Trash2 className="h-4 w-4 mr-2" /> Delete Recipe
+            <Trash2 className="h-4 w-4 mr-2" /> {t('coach.deleteRecipe')}
           </Button>
         </div>
       </MobileLayout>
     );
   }
+
 
   return (
     <MobileLayout>
