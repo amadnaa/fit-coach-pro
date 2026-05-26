@@ -303,26 +303,26 @@ export default function ExerciseLibrary() {
               <input ref={editFileInputRef} type="file" accept="video/*" onChange={(e) => handleVideoUpload(e, 'edit')} className="hidden" />
 
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Name *</label>
+                <label className="text-xs text-muted-foreground mb-1 block">{t('exLib.nameStar')}</label>
                 <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="rounded-xl" />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Description</label>
+                <label className="text-xs text-muted-foreground mb-1 block">{t('coach.description')}</label>
                 <Textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} className="rounded-xl" rows={2} />
               </div>
 
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Video</label>
+                <label className="text-xs text-muted-foreground mb-1 block">{t('coach.video')}</label>
                 {editForm.video_url ? (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary">
                     <Play className="h-4 w-4 text-primary" />
-                    <span className="text-xs text-muted-foreground flex-1 truncate">Video attached</span>
+                    <span className="text-xs text-muted-foreground flex-1 truncate">{t('coach.videoAttached')}</span>
                     <button onClick={() => setEditForm(f => ({ ...f, video_url: '' }))} className="text-destructive"><X className="h-4 w-4" /></button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Button variant="outline" onClick={() => editFileInputRef.current?.click()} disabled={editUploading} className="w-full rounded-xl">
-                      <Upload className="h-4 w-4 mr-2" /> {editUploading ? 'Uploading...' : 'Upload Video'}
+                      <Upload className="h-4 w-4 mr-2" /> {editUploading ? t('coach.uploading') : t('coach.uploadVideo')}
                     </Button>
                     <Input placeholder="https://youtube.com/watch?v=..." onChange={e => setEditForm(f => ({ ...f, video_url: e.target.value }))} className="rounded-xl text-xs" />
                   </div>
@@ -331,59 +331,60 @@ export default function ExerciseLibrary() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Category</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.category')}</label>
                   <Select value={editForm.category} onValueChange={v => setEditForm(f => ({ ...f, category: v }))}>
                     <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                    <SelectContent>{allCategories.map(c => <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>)}</SelectContent>
+                    <SelectContent>{allCategories.map(c => <SelectItem key={c} value={c}>{tCat(c)}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Muscle Group</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.muscleGroup')}</label>
                   <Select value={editForm.muscle_group} onValueChange={v => setEditForm(f => ({ ...f, muscle_group: v }))}>
                     <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                    <SelectContent>{muscleGroups.map(g => <SelectItem key={g} value={g} className="capitalize">{g}</SelectItem>)}</SelectContent>
+                    <SelectContent>{muscleGroups.map(g => <SelectItem key={g} value={g}>{tCat(g)}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Movement Type</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.movementType')}</label>
                   <Select value={editForm.movement_type} onValueChange={v => setEditForm(f => ({ ...f, movement_type: v }))}>
                     <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                    <SelectContent>{movementTypes.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}</SelectContent>
+                    <SelectContent>{movementTypes.map(mt => <SelectItem key={mt} value={mt}>{tCat(mt)}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Difficulty</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.difficulty2')}</label>
                   <Select value={editForm.difficulty_level} onValueChange={v => setEditForm(f => ({ ...f, difficulty_level: v }))}>
                     <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="beginner">{t('coach.beginner')}</SelectItem>
+                      <SelectItem value="intermediate">{t('coach.intermediate')}</SelectItem>
+                      <SelectItem value="advanced">{t('coach.advanced')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Rep Min</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.repMin')}</label>
                   <Input type="number" value={editForm.rep_range_min} onChange={e => setEditForm(f => ({ ...f, rep_range_min: Number(e.target.value) }))} className="rounded-xl" />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Rep Max</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">{t('coach.repMax')}</label>
                   <Input type="number" value={editForm.rep_range_max} onChange={e => setEditForm(f => ({ ...f, rep_range_max: Number(e.target.value) }))} className="rounded-xl" />
                 </div>
               </div>
 
               <div className="flex gap-2">
                 <Button onClick={handleUpdate} disabled={saving} className="flex-1 rounded-xl gradient-primary text-primary-foreground">
-                  {saving ? 'Saving...' : 'Save Changes'}
+                  {saving ? t('common.saving') : t('exLib.saveChanges')}
                 </Button>
-                <Button variant="outline" onClick={() => setIsEditing(false)} className="rounded-xl">Cancel</Button>
+                <Button variant="outline" onClick={() => setIsEditing(false)} className="rounded-xl">{t('common.cancel')}</Button>
               </div>
             </div>
           )}
+
         </DialogContent>
       </Dialog>
 
