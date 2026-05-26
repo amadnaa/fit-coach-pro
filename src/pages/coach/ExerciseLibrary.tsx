@@ -40,6 +40,9 @@ const defaultForm = {
 
 export default function ExerciseLibrary() {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const tCat = (k: string) => t(`exCat.${k}`, { defaultValue: k });
+
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [exercises, setExercises] = useState<ExerciseRow[]>([]);
