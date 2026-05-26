@@ -161,7 +161,7 @@ export default function ExerciseLibrary() {
     }).eq('id', selectedExercise.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Exercise updated!');
+    toast.success(t('coach.exerciseUpdated'));
     setSelectedExercise(null);
     setIsEditing(false);
     fetchExercises();
