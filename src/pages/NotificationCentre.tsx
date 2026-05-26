@@ -74,7 +74,7 @@ export default function NotificationCentre() {
         const { data: profiles } = await supabase.from('profiles').select('user_id, full_name').in('user_id', senderIds);
         if (profiles) senderMap = new Map(profiles.map(p => [p.user_id, p.full_name]));
       }
-      setNotifications(data.map(n => ({ ...n, sender_name: n.sender_id ? senderMap.get(n.sender_id) || 'Unknown' : 'System' })));
+      setNotifications(data.map(n => ({ ...n, sender_name: n.sender_id ? senderMap.get(n.sender_id) || t('notifCentre.unknown') : t('notifCentre.system') })));
 
       // Mark unread as read
       const unreadIds = data.filter(n => !n.read).map(n => n.id);
