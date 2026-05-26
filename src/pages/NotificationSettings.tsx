@@ -34,7 +34,9 @@ const defaultPrefs: NotificationPrefs = {
 export default function NotificationSettings() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultPrefs);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
