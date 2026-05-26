@@ -79,7 +79,8 @@ export default function NotificationSettings() {
       }, { onConflict: 'user_id' });
 
     if (error) {
-      toast.error('Failed to save preference');
+      toast.error(t('errors.failedSavePref'));
+
       console.error(error);
     }
   };
