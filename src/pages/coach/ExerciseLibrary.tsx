@@ -173,7 +173,7 @@ export default function ExerciseLibrary() {
     const { error } = await supabase.from('exercises').delete().eq('id', selectedExercise.id);
     setDeleting(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Exercise deleted');
+    toast.success(t('coach.exerciseDeleted'));
     setSelectedExercise(null);
     fetchExercises();
   };
