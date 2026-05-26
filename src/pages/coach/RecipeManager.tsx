@@ -163,7 +163,7 @@ export default function RecipeManager() {
     <MobileLayout>
       <div className="px-5 pt-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-display font-bold">Recipes</h1>
+          <h1 className="text-2xl font-display font-bold">{t('coach.recipesTitle')}</h1>
           <button onClick={() => { resetForm(); setAddOpen(true); }} className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground">
             <Plus className="h-5 w-5" />
           </button>
@@ -171,17 +171,17 @@ export default function RecipeManager() {
 
         <div className="relative">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search recipes..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
+          <Input placeholder={t('coach.searchRecipes')} value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
         </div>
 
         {(() => {
           const filtered = recipes.filter(r => r.title.toLowerCase().includes(search.toLowerCase()));
           return loading ? (
-          <div className="py-12 text-center text-sm text-muted-foreground">Loading...</div>
+          <div className="py-12 text-center text-sm text-muted-foreground">{t('common.loading')}</div>
           ) : filtered.length === 0 ? (
           <div className="py-12 text-center space-y-2">
             <UtensilsCrossed className="h-10 w-10 text-muted-foreground mx-auto" />
-            <p className="text-sm text-muted-foreground">{recipes.length === 0 ? 'No recipes yet. Tap + to add one.' : 'No recipes match your search.'}</p>
+            <p className="text-sm text-muted-foreground">{recipes.length === 0 ? t('coach.noRecipesYet') : t('coach.noRecipesMatch')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -201,10 +201,10 @@ export default function RecipeManager() {
                   </button>
                 </div>
                 <div className="flex gap-3 text-xs text-muted-foreground">
-                  <span>{recipe.calories} cal</span>
-                  <span>{recipe.protein}g protein</span>
-                  <span>{recipe.carbs}g carbs</span>
-                  <span>{recipe.fat}g fat</span>
+                  <span>{t('nutrition.caloriesG', { n: recipe.calories })}</span>
+                  <span>{t('nutrition.proteinG', { n: recipe.protein })}</span>
+                  <span>{t('nutrition.carbsG', { n: recipe.carbs })}</span>
+                  <span>{t('nutrition.fatG', { n: recipe.fat })}</span>
                 </div>
                 {recipe.diet_type && recipe.diet_type.length > 0 && (
                   <div className="flex gap-1">
@@ -224,36 +224,37 @@ export default function RecipeManager() {
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto pb-32">
           <DialogHeader>
-            <DialogTitle>Add Recipe</DialogTitle>
+            <DialogTitle>{t('coach.addRecipe')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Input placeholder="Recipe title" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="rounded-xl" />
-            <Input placeholder="Photo URL (optional)" value={form.photo_url} onChange={e => setForm(p => ({ ...p, photo_url: e.target.value }))} className="rounded-xl" />
-            <Textarea placeholder="Ingredients (one per line)" value={form.ingredients} onChange={e => setForm(p => ({ ...p, ingredients: e.target.value }))} className="rounded-xl min-h-[80px]" />
-            <Textarea placeholder="Instructions" value={form.instructions} onChange={e => setForm(p => ({ ...p, instructions: e.target.value }))} className="rounded-xl min-h-[80px]" />
+            <Input placeholder={t('coach.recipeTitle')} value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="rounded-xl" />
+            <Input placeholder={t('coach.photoUrl')} value={form.photo_url} onChange={e => setForm(p => ({ ...p, photo_url: e.target.value }))} className="rounded-xl" />
+            <Textarea placeholder={t('coach.ingredientsPlaceholder')} value={form.ingredients} onChange={e => setForm(p => ({ ...p, ingredients: e.target.value }))} className="rounded-xl min-h-[80px]" />
+            <Textarea placeholder={t('coach.instructionsPlaceholder')} value={form.instructions} onChange={e => setForm(p => ({ ...p, instructions: e.target.value }))} className="rounded-xl min-h-[80px]" />
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-muted-foreground">Calories</label>
+                <label className="text-[10px] text-muted-foreground">{t('coach.calories')}</label>
                 <Input type="number" value={form.calories || ''} onChange={e => setForm(p => ({ ...p, calories: Number(e.target.value) }))} className="rounded-xl" />
               </div>
               <div>
-                <label className="text-[10px] text-muted-foreground">Protein (g)</label>
+                <label className="text-[10px] text-muted-foreground">{t('coach.proteinLabel')}</label>
                 <Input type="number" value={form.protein || ''} onChange={e => setForm(p => ({ ...p, protein: Number(e.target.value) }))} className="rounded-xl" />
               </div>
               <div>
-                <label className="text-[10px] text-muted-foreground">Carbs (g)</label>
+                <label className="text-[10px] text-muted-foreground">{t('coach.carbsLabel')}</label>
                 <Input type="number" value={form.carbs || ''} onChange={e => setForm(p => ({ ...p, carbs: Number(e.target.value) }))} className="rounded-xl" />
               </div>
               <div>
-                <label className="text-[10px] text-muted-foreground">Fat (g)</label>
+                <label className="text-[10px] text-muted-foreground">{t('coach.fatLabel')}</label>
                 <Input type="number" value={form.fat || ''} onChange={e => setForm(p => ({ ...p, fat: Number(e.target.value) }))} className="rounded-xl" />
               </div>
             </div>
-            <Input placeholder="Diet types (comma separated, e.g. high protein, keto)" value={form.diet_type} onChange={e => setForm(p => ({ ...p, diet_type: e.target.value }))} className="rounded-xl" />
+            <Input placeholder={t('coach.dietTypesPlaceholder')} value={form.diet_type} onChange={e => setForm(p => ({ ...p, diet_type: e.target.value }))} className="rounded-xl" />
             <Button onClick={handleSave} disabled={saving || !form.title} className="w-full h-12 rounded-2xl gradient-primary text-primary-foreground font-semibold">
-              {saving ? 'Saving...' : 'Add Recipe'}
+              {saving ? t('common.saving') : t('coach.addRecipe')}
             </Button>
           </div>
+
         </DialogContent>
       </Dialog>
     </MobileLayout>
