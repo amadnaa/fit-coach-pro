@@ -117,7 +117,7 @@ export default function NotificationCentre() {
       });
     }
 
-    toast.success('Notification sent!');
+    toast.success(t('notifications.sentToast'));
     setForm({ title: '', body: '', recipientId: 'all' });
     setShowCompose(false);
     setSending(false);
