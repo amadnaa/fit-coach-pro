@@ -28,6 +28,8 @@ interface Recipe {
 
 export default function RecipeManager() {
   const { user } = useAuth();
+  const { t } = useTranslation();
+
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
