@@ -11,7 +11,9 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import type { ExerciseCategory, MuscleGroup, MovementType } from '@/types';
+
 
 const allCategories: ExerciseCategory[] = ['warmup', 'chest', 'back', 'shoulders', 'biceps', 'triceps', 'legs', 'glutes', 'hamstrings', 'quads', 'core', 'cardio', 'stretching', 'other'];
 const muscleGroups: MuscleGroup[] = ['chest', 'back', 'shoulders', 'quads', 'hamstrings', 'glutes', 'biceps', 'triceps', 'core'];
