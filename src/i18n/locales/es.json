@@ -586,7 +586,35 @@
   "onboardingExtra": {
     "continue": "Continuar",
     "generateProgramme": "Generar mi programa",
-    "none": "✅ Ninguna"
+    "none": "✅ Ninguna",
+    "dayLabel": "Día {{n}}: {{name}}",
+    "dayNames": {
+      "full_body_a": "Cuerpo completo A",
+      "full_body_b": "Cuerpo completo B",
+      "full_body_c": "Cuerpo completo C",
+      "upper_body": "Tren superior",
+      "lower_body": "Tren inferior",
+      "push": "Empuje",
+      "pull": "Tirón",
+      "legs": "Piernas",
+      "push_b": "Empuje B",
+      "pull_b": "Tirón B",
+      "legs_b": "Piernas B",
+      "chest_triceps": "Pecho y tríceps",
+      "back_biceps": "Espalda y bíceps",
+      "shoulders_core": "Hombros y core",
+      "arms_abs": "Brazos y abdominales"
+    },
+    "splitNames": {
+      "full_body": "Cuerpo completo",
+      "upper_lower": "Superior / Inferior",
+      "push_pull_legs": "Empuje / Tirón / Piernas",
+      "body_part_split": "División por grupo muscular"
+    },
+    "cardio": {
+      "enjoy": "Incluye 20-30 min de cardio moderado en días de descanso y 10 min después del entrenamiento.",
+      "some": "Incluye 15-20 min de cardio ligero 2-3 veces por semana."
+    }
   },
   "exCat": {
     "warmup": "Calentamiento", "chest": "Pecho", "back": "Espalda", "shoulders": "Hombros",

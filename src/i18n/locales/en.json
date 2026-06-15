@@ -586,7 +586,35 @@
   "onboardingExtra": {
     "continue": "Continue",
     "generateProgramme": "Generate My Programme",
-    "none": "✅ None"
+    "none": "✅ None",
+    "dayLabel": "Day {{n}}: {{name}}",
+    "dayNames": {
+      "full_body_a": "Full Body A",
+      "full_body_b": "Full Body B",
+      "full_body_c": "Full Body C",
+      "upper_body": "Upper Body",
+      "lower_body": "Lower Body",
+      "push": "Push",
+      "pull": "Pull",
+      "legs": "Legs",
+      "push_b": "Push B",
+      "pull_b": "Pull B",
+      "legs_b": "Legs B",
+      "chest_triceps": "Chest & Triceps",
+      "back_biceps": "Back & Biceps",
+      "shoulders_core": "Shoulders & Core",
+      "arms_abs": "Arms & Abs"
+    },
+    "splitNames": {
+      "full_body": "Full Body",
+      "upper_lower": "Upper / Lower",
+      "push_pull_legs": "Push / Pull / Legs",
+      "body_part_split": "Body Part Split"
+    },
+    "cardio": {
+      "enjoy": "Include 20-30 min of moderate cardio on rest days and 10 min post-workout.",
+      "some": "Include 15-20 min of light cardio 2-3 times per week."
+    }
   },
   "exCat": {
     "warmup": "Warmup", "chest": "Chest", "back": "Back", "shoulders": "Shoulders",
