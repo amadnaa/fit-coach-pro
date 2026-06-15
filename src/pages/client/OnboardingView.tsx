@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,104 +12,86 @@ import { toast } from 'sonner';
 import type { OnboardingData } from '@/types';
 
 interface Step {
-  title: string;
-  subtitle: string;
   key: keyof OnboardingData;
-  options?: { label: string; value: string | number }[];
   type: 'select' | 'text';
+  options?: { optKey: string; value: string | number }[];
 }
 
 const steps: Step[] = [
   {
-    title: 'Fitness Goal',
-    subtitle: 'What is your primary fitness goal?',
     key: 'fitness_goal',
     type: 'select',
     options: [
-      { label: '🔥 Lose Fat', value: 'lose_fat' },
-      { label: '💪 Build Muscle', value: 'build_muscle' },
-      { label: '🏃 Improve Endurance', value: 'improve_endurance' },
-      { label: '🏋️ Increase Strength', value: 'increase_strength' },
-      { label: '⚡ General Fitness', value: 'general_fitness' },
+      { optKey: 'lose_fat', value: 'lose_fat' },
+      { optKey: 'build_muscle', value: 'build_muscle' },
+      { optKey: 'improve_endurance', value: 'improve_endurance' },
+      { optKey: 'increase_strength', value: 'increase_strength' },
+      { optKey: 'general_fitness', value: 'general_fitness' },
     ],
   },
   {
-    title: 'Training Availability',
-    subtitle: 'How many days per week can you train?',
     key: 'training_frequency',
     type: 'select',
     options: [
-      { label: '1–2 days', value: 2 },
-      { label: '3 days', value: 3 },
-      { label: '4 days', value: 4 },
-      { label: '5 days', value: 5 },
-      { label: '6–7 days', value: 6 },
+      { optKey: 'days_2', value: 2 },
+      { optKey: 'days_3', value: 3 },
+      { optKey: 'days_4', value: 4 },
+      { optKey: 'days_5', value: 5 },
+      { optKey: 'days_6', value: 6 },
     ],
   },
   {
-    title: 'Training Experience',
-    subtitle: 'What is your current fitness level?',
     key: 'experience_level',
     type: 'select',
     options: [
-      { label: '🌱 Beginner – never trained consistently', value: 'beginner' },
-      { label: '📈 Intermediate – 6+ months of training', value: 'intermediate' },
-      { label: '🏆 Advanced – 2+ years of structured training', value: 'advanced' },
+      { optKey: 'beginner', value: 'beginner' },
+      { optKey: 'intermediate', value: 'intermediate' },
+      { optKey: 'advanced', value: 'advanced' },
     ],
   },
   {
-    title: 'Programme Structure',
-    subtitle: 'Which training split do you prefer?',
     key: 'preferred_split',
     type: 'select',
     options: [
-      { label: '🔄 Full Body', value: 'full_body' },
-      { label: '⬆️⬇️ Upper / Lower', value: 'upper_lower' },
-      { label: '💥 Push / Pull / Legs', value: 'push_pull_legs' },
-      { label: '🎯 Body Part Split', value: 'body_part_split' },
-      { label: '🤔 Not sure – recommend one for me', value: 'auto' },
+      { optKey: 'full_body', value: 'full_body' },
+      { optKey: 'upper_lower', value: 'upper_lower' },
+      { optKey: 'push_pull_legs', value: 'push_pull_legs' },
+      { optKey: 'body_part_split', value: 'body_part_split' },
+      { optKey: 'auto', value: 'auto' },
     ],
   },
   {
-    title: 'Session Length',
-    subtitle: 'How long can you train per session?',
     key: 'workout_duration',
     type: 'select',
     options: [
-      { label: '30 minutes', value: 30 },
-      { label: '45 minutes', value: 45 },
-      { label: '60 minutes', value: 60 },
-      { label: '75+ minutes', value: 75 },
+      { optKey: 'min_30', value: 30 },
+      { optKey: 'min_45', value: 45 },
+      { optKey: 'min_60', value: 60 },
+      { optKey: 'min_75', value: 75 },
     ],
   },
   {
-    title: 'Equipment Access',
-    subtitle: 'What equipment do you have access to?',
     key: 'equipment_access',
     type: 'select',
     options: [
-      { label: '🏢 Full Gym', value: 'full_gym' },
-      { label: '🏋️ Dumbbells & Barbells only', value: 'dumbbells_barbells' },
-      { label: '💪 Dumbbells only', value: 'dumbbells_only' },
-      { label: '🔗 Resistance Bands', value: 'resistance_bands' },
-      { label: '🧍 No equipment – bodyweight only', value: 'bodyweight' },
+      { optKey: 'full_gym', value: 'full_gym' },
+      { optKey: 'dumbbells_barbells', value: 'dumbbells_barbells' },
+      { optKey: 'dumbbells_only', value: 'dumbbells_only' },
+      { optKey: 'resistance_bands', value: 'resistance_bands' },
+      { optKey: 'bodyweight', value: 'bodyweight' },
     ],
   },
   {
-    title: 'Injuries & Limitations',
-    subtitle: 'Do you have any injuries or physical limitations?',
     key: 'injuries',
     type: 'text',
   },
   {
-    title: 'Cardio Preference',
-    subtitle: 'How do you feel about cardio?',
     key: 'cardio_preference',
     type: 'select',
     options: [
-      { label: '❤️ I enjoy it – include plenty', value: 'enjoy' },
-      { label: '🤷 I tolerate it – include some', value: 'some' },
-      { label: '🚫 I prefer to skip it', value: 'skip' },
+      { optKey: 'enjoy', value: 'enjoy' },
+      { optKey: 'some', value: 'some' },
+      { optKey: 'skip', value: 'skip' },
     ],
   },
 ];
@@ -118,26 +101,21 @@ function generateWorkoutPlan(data: OnboardingData) {
   const freq = data.training_frequency;
   let split = data.preferred_split;
 
-  // Auto-recommend split based on frequency
   if (split === 'auto') {
     if (freq <= 3) split = 'full_body';
     else if (freq === 4) split = 'upper_lower';
     else split = 'push_pull_legs';
   }
 
-  const splitName = {
-    full_body: 'Full Body',
-    upper_lower: 'Upper / Lower',
-    push_pull_legs: 'Push / Pull / Legs',
-    body_part_split: 'Body Part Split',
-  }[split] || 'Full Body';
+  const splitKey = (['full_body', 'upper_lower', 'push_pull_legs', 'body_part_split'].includes(split)
+    ? split
+    : 'full_body') as 'full_body' | 'upper_lower' | 'push_pull_legs' | 'body_part_split';
 
   const isBodyweight = data.equipment_access === 'bodyweight';
   const isBands = data.equipment_access === 'resistance_bands';
   const isDBOnly = data.equipment_access === 'dumbbells_only';
   const limited = isBodyweight || isBands || isDBOnly;
 
-  // Exercise pools by category
   const exercises: Record<string, { name: string; sets: number; reps: string }[]> = {
     chest: limited
       ? [{ name: 'Push-Ups', sets: 3, reps: '10-15' }, { name: 'Incline Push-Ups', sets: 3, reps: '10-15' }]
@@ -157,54 +135,54 @@ function generateWorkoutPlan(data: OnboardingData) {
     core: [{ name: 'Plank', sets: 3, reps: '30-60s' }, { name: 'Hanging Leg Raises', sets: 3, reps: '10-15' }],
   };
 
-  type DayPlan = { name: string; exercises: { name: string; sets: number; reps: string }[] };
+  type DayPlan = { nameKey: string; exercises: { name: string; sets: number; reps: string }[] };
   const days: DayPlan[] = [];
 
-  if (split === 'full_body') {
+  if (splitKey === 'full_body') {
+    const labels = ['full_body_a', 'full_body_b', 'full_body_c'];
     for (let i = 0; i < Math.min(freq, 3); i++) {
       days.push({
-        name: `Full Body ${String.fromCharCode(65 + i)}`,
+        nameKey: labels[i],
         exercises: [exercises.legs[0], exercises.chest[0], exercises.back[0], exercises.shoulders[0], exercises.core[0]],
       });
     }
-  } else if (split === 'upper_lower') {
+  } else if (splitKey === 'upper_lower') {
     const count = Math.min(freq, 4);
     for (let i = 0; i < count; i++) {
       if (i % 2 === 0) {
-        days.push({ name: 'Upper Body', exercises: [...exercises.chest, ...exercises.back.slice(0, 2), ...exercises.arms.slice(0, 1)] });
+        days.push({ nameKey: 'upper_body', exercises: [...exercises.chest, ...exercises.back.slice(0, 2), ...exercises.arms.slice(0, 1)] });
       } else {
-        days.push({ name: 'Lower Body', exercises: [...exercises.legs, ...exercises.core] });
+        days.push({ nameKey: 'lower_body', exercises: [...exercises.legs, ...exercises.core] });
       }
     }
-  } else if (split === 'push_pull_legs') {
-    days.push({ name: 'Push', exercises: [...exercises.chest, ...exercises.shoulders.slice(0, 2), ...exercises.arms.filter(e => e.name.includes('Tricep') || e.name.includes('Diamond'))] });
-    days.push({ name: 'Pull', exercises: [...exercises.back, ...exercises.arms.filter(e => e.name.includes('Curl'))] });
-    days.push({ name: 'Legs', exercises: [...exercises.legs, ...exercises.core] });
+  } else if (splitKey === 'push_pull_legs') {
+    days.push({ nameKey: 'push', exercises: [...exercises.chest, ...exercises.shoulders.slice(0, 2), ...exercises.arms.filter(e => e.name.includes('Tricep') || e.name.includes('Diamond'))] });
+    days.push({ nameKey: 'pull', exercises: [...exercises.back, ...exercises.arms.filter(e => e.name.includes('Curl'))] });
+    days.push({ nameKey: 'legs', exercises: [...exercises.legs, ...exercises.core] });
     if (freq >= 5) {
-      days.push({ name: 'Push B', exercises: [exercises.chest[0], exercises.shoulders[0], exercises.arms[0]] });
-      days.push({ name: 'Pull B', exercises: [exercises.back[0], exercises.back[1] || exercises.back[0]] });
+      days.push({ nameKey: 'push_b', exercises: [exercises.chest[0], exercises.shoulders[0], exercises.arms[0]] });
+      days.push({ nameKey: 'pull_b', exercises: [exercises.back[0], exercises.back[1] || exercises.back[0]] });
     }
     if (freq >= 6) {
-      days.push({ name: 'Legs B', exercises: [exercises.legs[0], exercises.legs[1], exercises.core[0]] });
+      days.push({ nameKey: 'legs_b', exercises: [exercises.legs[0], exercises.legs[1], exercises.core[0]] });
     }
   } else {
-    // Body part split
-    days.push({ name: 'Chest & Triceps', exercises: [...exercises.chest, ...exercises.arms.filter(e => e.name.includes('Tricep') || e.name.includes('Diamond'))] });
-    days.push({ name: 'Back & Biceps', exercises: [...exercises.back, ...exercises.arms.filter(e => e.name.includes('Curl'))] });
-    days.push({ name: 'Shoulders & Core', exercises: [...exercises.shoulders, ...exercises.core] });
-    days.push({ name: 'Legs', exercises: [...exercises.legs] });
-    if (freq >= 5) days.push({ name: 'Arms & Abs', exercises: [...exercises.arms, ...exercises.core] });
+    days.push({ nameKey: 'chest_triceps', exercises: [...exercises.chest, ...exercises.arms.filter(e => e.name.includes('Tricep') || e.name.includes('Diamond'))] });
+    days.push({ nameKey: 'back_biceps', exercises: [...exercises.back, ...exercises.arms.filter(e => e.name.includes('Curl'))] });
+    days.push({ nameKey: 'shoulders_core', exercises: [...exercises.shoulders, ...exercises.core] });
+    days.push({ nameKey: 'legs', exercises: [...exercises.legs] });
+    if (freq >= 5) days.push({ nameKey: 'arms_abs', exercises: [...exercises.arms, ...exercises.core] });
   }
 
-  // Add cardio notes
-  let cardioNote = '';
-  if (data.cardio_preference === 'enjoy') cardioNote = 'Include 20-30 min of moderate cardio on rest days and 10 min post-workout.';
-  else if (data.cardio_preference === 'some') cardioNote = 'Include 15-20 min of light cardio 2-3 times per week.';
+  let cardioNoteKey: 'enjoy' | 'some' | '' = '';
+  if (data.cardio_preference === 'enjoy') cardioNoteKey = 'enjoy';
+  else if (data.cardio_preference === 'some') cardioNoteKey = 'some';
 
-  return { splitName, days: days.slice(0, freq), cardioNote, split };
+  return { splitKey, days: days.slice(0, freq), cardioNoteKey, split: splitKey };
 }
 
 export default function OnboardingView() {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<Partial<OnboardingData>>({});
   const [showPlan, setShowPlan] = useState(false);
@@ -256,7 +234,6 @@ export default function OnboardingView() {
 
       const finalSplit = plan?.split || 'full_body';
 
-      // Save onboarding data
       const { error } = await supabase.from('client_onboarding').upsert({
         user_id: user.id,
         training_focus: focusMap[data.fitness_goal || 'general_fitness'] || 'full_body',
@@ -273,10 +250,10 @@ export default function OnboardingView() {
 
       if (error) throw error;
 
-      // Save workout plan to database
       if (plan) {
+        const splitName = t(`onboardingExtra.splitNames.${plan.splitKey}`);
         const daysPayload = plan.days.map(day => ({
-          name: day.name,
+          name: t(`onboardingExtra.dayNames.${day.nameKey}`),
           exercises: day.exercises.map(ex => {
             const { min, max } = parseReps(ex.reps);
             return {
@@ -291,7 +268,7 @@ export default function OnboardingView() {
 
         const { error: planError } = await supabase.rpc('create_onboarding_workout_plan', {
           _user_id: user.id,
-          _plan_name: `${plan.splitName} Plan`,
+          _plan_name: `${splitName} Plan`,
           _split_type: finalSplit,
           _frequency: (data.training_frequency as number) || 3,
           _days: daysPayload,
@@ -299,15 +276,15 @@ export default function OnboardingView() {
 
         if (planError) {
           console.error('Failed to save workout plan:', planError);
-          toast.error('Programme saved but workout plan creation failed. Your trainer can set it up manually.');
+          toast.error(t('onboarding.planFailed'));
         }
       }
 
       setOnboardingCompleted(true);
-      toast.success('Programme generated! Your trainer may customise it further.');
+      toast.success(t('onboarding.programmeGenerated'));
       navigate('/dashboard');
     } catch (err: any) {
-      toast.error(err.message || 'Failed to save onboarding');
+      toast.error(err.message || t('errors.failedSaveOnboarding'));
     } finally {
       setSaving(false);
     }
@@ -318,10 +295,12 @@ export default function OnboardingView() {
       <div className="min-h-screen bg-background flex flex-col">
         <div className="px-5 pt-6 pb-2">
           <button onClick={() => setShowPlan(false)} className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
-            <ChevronLeft className="h-4 w-4" /> Back to questionnaire
+            <ChevronLeft className="h-4 w-4" /> {t('onboarding.backToQuestionnaire')}
           </button>
-          <h1 className="text-2xl font-display font-bold">Your Programme</h1>
-          <p className="text-muted-foreground text-sm mt-1">{plan.splitName} • {data.training_frequency} days/week</p>
+          <h1 className="text-2xl font-display font-bold">{t('onboarding.yourProgramme')}</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {t(`onboardingExtra.splitNames.${plan.splitKey}`)} • {t('onboarding.daysPerWeek', { n: data.training_frequency })}
+          </p>
         </div>
 
         <div className="flex-1 px-5 py-4 space-y-4 overflow-auto">
@@ -333,7 +312,9 @@ export default function OnboardingView() {
               transition={{ delay: i * 0.05 }}
               className="p-4 rounded-2xl bg-card border border-border"
             >
-              <h3 className="font-semibold text-sm mb-3">Day {i + 1}: {day.name}</h3>
+              <h3 className="font-semibold text-sm mb-3">
+                {t('onboardingExtra.dayLabel', { n: i + 1, name: t(`onboardingExtra.dayNames.${day.nameKey}`) })}
+              </h3>
               <div className="space-y-2">
                 {day.exercises.map((ex, j) => (
                   <div key={j} className="flex justify-between items-center text-sm">
@@ -345,16 +326,16 @@ export default function OnboardingView() {
             </motion.div>
           ))}
 
-          {plan.cardioNote && (
+          {plan.cardioNoteKey && (
             <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
-              <p className="text-sm text-foreground">🏃 <strong>Cardio:</strong> {plan.cardioNote}</p>
+              <p className="text-sm text-foreground">
+                🏃 <strong>{t('onboarding.cardio')}</strong> {t(`onboardingExtra.cardio.${plan.cardioNoteKey}`)}
+              </p>
             </div>
           )}
 
           <div className="p-4 rounded-2xl bg-muted border border-border">
-            <p className="text-xs text-muted-foreground">
-              ℹ️ This plan was auto-generated based on your answers. Your trainer may further customise it to suit your needs.
-            </p>
+            <p className="text-xs text-muted-foreground">{t('onboarding.autoGenerated')}</p>
           </div>
         </div>
 
@@ -364,7 +345,7 @@ export default function OnboardingView() {
             disabled={saving}
             className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base"
           >
-            {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Check className="h-5 w-5 mr-2" /> Confirm & Start</>}
+            {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Check className="h-5 w-5 mr-2" /> {t('onboarding.confirmStart')}</>}
           </Button>
         </div>
       </div>
@@ -373,7 +354,6 @@ export default function OnboardingView() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Progress */}
       <div className="px-5 pt-6 pb-2">
         <div className="flex gap-1.5">
           {steps.map((_, i) => (
@@ -388,16 +368,14 @@ export default function OnboardingView() {
         </div>
       </div>
 
-      {/* Back button */}
       {currentStep > 0 && (
         <div className="px-5 pt-2">
           <button onClick={handleBack} className="flex items-center gap-1 text-sm text-muted-foreground">
-            <ChevronLeft className="h-4 w-4" /> Back
+            <ChevronLeft className="h-4 w-4" /> {t('common.back')}
           </button>
         </div>
       )}
 
-      {/* Content */}
       <div className="flex-1 px-5 py-8">
         <AnimatePresence mode="wait">
           <motion.div
@@ -409,8 +387,8 @@ export default function OnboardingView() {
             className="space-y-8"
           >
             <div className="space-y-2">
-              <h1 className="text-2xl font-display font-bold">{step.title}</h1>
-              <p className="text-muted-foreground">{step.subtitle}</p>
+              <h1 className="text-2xl font-display font-bold">{t(`onboarding.steps.${step.key}.title`)}</h1>
+              <p className="text-muted-foreground">{t(`onboarding.steps.${step.key}.subtitle`)}</p>
             </div>
 
             {step.type === 'select' && step.options && (
@@ -426,7 +404,7 @@ export default function OnboardingView() {
                         : "border-border bg-card text-foreground hover:border-primary/30"
                     )}
                   >
-                    {opt.label}
+                    {t(`onboarding.options.${opt.optKey}`)}
                   </button>
                 ))}
               </div>
@@ -435,7 +413,7 @@ export default function OnboardingView() {
             {step.type === 'text' && (
               <div className="space-y-3">
                 <Textarea
-                  placeholder="E.g., Bad left knee, shoulder impingement..."
+                  placeholder={t('onboarding.injuriesPlaceholder')}
                   value={(data.injuries as string) || ''}
                   onChange={(e) => setData({ ...data, injuries: e.target.value })}
                   className="min-h-[120px] rounded-2xl bg-card border-border resize-none"
@@ -449,7 +427,7 @@ export default function OnboardingView() {
                       : "border-border bg-card text-foreground hover:border-primary/30"
                   )}
                 >
-                  ✅ None
+                  {t('onboardingExtra.none')}
                 </button>
               </div>
             )}
@@ -457,14 +435,13 @@ export default function OnboardingView() {
         </AnimatePresence>
       </div>
 
-      {/* Footer */}
       <div className="px-5 pb-8">
         <Button
           onClick={handleNext}
           disabled={!canProceed && step.type !== 'text'}
           className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base"
         >
-          {isLast ? 'Generate My Programme' : 'Continue'}
+          {isLast ? t('onboardingExtra.generateProgramme') : t('onboardingExtra.continue')}
           {!isLast && <ChevronRight className="h-5 w-5 ml-1" />}
         </Button>
       </div>
