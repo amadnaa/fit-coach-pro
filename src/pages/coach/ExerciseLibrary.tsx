@@ -180,6 +180,16 @@ export default function ExerciseLibrary() {
     fetchExercises();
   };
 
+  const handleDeleteById = async (id: string) => {
+    setDeleting(true);
+    const { error } = await supabase.from('exercises').delete().eq('id', id);
+    setDeleting(false);
+    setConfirmDeleteId(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success(t('coach.exerciseDeleted'));
+    fetchExercises();
+  };
+
   const isVideoUrl = (url: string) => {
     if (!url) return false;
     return url.includes('youtube') || url.includes('youtu.be') || url.includes('vimeo');
