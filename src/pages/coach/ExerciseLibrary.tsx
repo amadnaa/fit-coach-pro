@@ -61,6 +61,7 @@ export default function ExerciseLibrary() {
   const [editForm, setEditForm] = useState({ ...defaultForm });
   const [editUploading, setEditUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fetchExercises = async () => {
     const { data: { user } } = await supabase.auth.getUser();
