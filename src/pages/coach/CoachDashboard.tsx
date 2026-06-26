@@ -1,17 +1,32 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Search, Users, TrendingUp, Dumbbell, ClipboardList, X, Loader2 } from 'lucide-react';
-import { MobileLayout } from '@/components/layout/MobileLayout';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  Plus,
+  Search,
+  Users,
+  TrendingUp,
+  Dumbbell,
+  ClipboardList,
+  X,
+  Loader2,
+} from "lucide-react";
+import { MobileLayout } from "@/components/layout/MobileLayout";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface ClientRow {
   client_id: string;
@@ -29,25 +44,26 @@ interface RecentCheckIn {
 }
 
 export default function CoachDashboard() {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const { user } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [recentCheckins, setRecentCheckins] = useState<RecentCheckIn[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [weeklyWorkouts, setWeeklyWorkouts] = useState<string>('—');
+  const [weeklyWorkouts, setWeeklyWorkouts] = useState<string>("—");
   const [creating, setCreating] = useState(false);
   const [newClient, setNewClient] = useState({
-    full_name: '',
-    email: '',
-    phone: '',
-    dob: '',
-    gender: '',
-    height: '',
-    weight: '',
-    fitness_goal: '',
-    notes: '',
+    full_name: "",
+    email: "",
+    password: "",
+    phone: "",
+    dob: "",
+    gender: "",
+    height: "",
+    weight: "",
+    fitness_goal: "",
+    notes: "",
   });
 
   useEffect(() => {
@@ -57,36 +73,51 @@ export default function CoachDashboard() {
 
   const loadClients = async () => {
     if (!user) return;
-    const { data } = await supabase.from('coach_clients').select('client_id').eq('coach_id', user.id);
+    const { data } = await supabase
+      .from("coach_clients")
+      .select("client_id")
+      .eq("coach_id", user.id);
     if (!data) return;
-    const clientIds = data.map(d => d.client_id);
+    const clientIds = data.map((d) => d.client_id);
     if (clientIds.length === 0) return;
 
-    const { data: profiles } = await supabase.from('profiles').select('user_id, full_name').in('user_id', clientIds);
-    if (profiles) setClients(profiles.map(p => ({ client_id: p.user_id, full_name: p.full_name })));
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, full_name")
+      .in("user_id", clientIds);
+    if (profiles)
+      setClients(
+        profiles.map((p) => ({ client_id: p.user_id, full_name: p.full_name }))
+      );
 
-    const { data: checkins } = await supabase.from('weekly_check_ins')
-      .select('id, user_id, week_start, training_difficulty, recovery_level, energy_level')
-      .in('user_id', clientIds)
-      .order('created_at', { ascending: false })
+    const { data: checkins } = await supabase
+      .from("weekly_check_ins")
+      .select(
+        "id, user_id, week_start, training_difficulty, recovery_level, energy_level"
+      )
+      .in("user_id", clientIds)
+      .order("created_at", { ascending: false })
       .limit(5);
 
     if (checkins && profiles) {
-      const profileMap = new Map(profiles.map(p => [p.user_id, p.full_name]));
-      setRecentCheckins(checkins.map(ci => ({
-        ...ci,
-        client_name: profileMap.get(ci.user_id) || t('common.unknown'),
-      })));
+      const profileMap = new Map(profiles.map((p) => [p.user_id, p.full_name]));
+      setRecentCheckins(
+        checkins.map((ci) => ({
+          ...ci,
+          client_name: profileMap.get(ci.user_id) || t("common.unknown"),
+        }))
+      );
     }
 
     // Compute avg workouts/week across all clients (last 4 weeks)
     const fourWeeksAgo = new Date();
     fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
-    const { count: totalSessions } = await supabase.from('workout_sessions')
-      .select('id', { count: 'exact', head: true })
-      .in('user_id', clientIds)
-      .eq('completed', true)
-      .gte('started_at', fourWeeksAgo.toISOString());
+    const { count: totalSessions } = await supabase
+      .from("workout_sessions")
+      .select("id", { count: "exact", head: true })
+      .in("user_id", clientIds)
+      .eq("completed", true)
+      .gte("started_at", fourWeeksAgo.toISOString());
 
     if (totalSessions !== null && clientIds.length > 0) {
       const avg = (totalSessions / 4 / clientIds.length).toFixed(1);
@@ -96,15 +127,20 @@ export default function CoachDashboard() {
 
   const handleCreateClient = async () => {
     if (!newClient.full_name.trim() || !newClient.email.trim()) {
-      toast.error(t('errors.nameAndEmail'));
+      toast.error(t("errors.nameAndEmail"));
+      return;
+    }
+    if (!newClient.password.trim() || newClient.password.length < 8) {
+      toast.error("Password must be at least 8 characters");
       return;
     }
     setCreating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-client', {
+      const { data, error } = await supabase.functions.invoke("create-client", {
         body: {
           full_name: newClient.full_name.trim(),
           email: newClient.email.trim(),
+          password: newClient.password.trim(),
           notes: newClient.notes.trim(),
         },
       });
@@ -112,39 +148,83 @@ export default function CoachDashboard() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      toast.success(t('coach.clientCreated', { p: data.temp_password }));
+      toast.success(t("coach.clientCreated", { p: data.temp_password }));
       setShowCreateDialog(false);
-      setNewClient({ full_name: '', email: '', phone: '', dob: '', gender: '', height: '', weight: '', fitness_goal: '', notes: '' });
+      // AFTER
+      setNewClient({
+        full_name: "",
+        email: "",
+        password: "",
+        phone: "",
+        dob: "",
+        gender: "",
+        height: "",
+        weight: "",
+        fitness_goal: "",
+        notes: "",
+      });
       loadClients();
     } catch (err: any) {
-      toast.error(err.message || t('errors.failedCreateClient'));
+      toast.error(err.message || t("errors.failedCreateClient"));
     } finally {
       setCreating(false);
     }
   };
 
-  const filtered = clients.filter(c => c.full_name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = clients.filter((c) =>
+    c.full_name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <MobileLayout>
       <div className="px-5 pt-6 space-y-5">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between"
+        >
           <div>
-            <p className="text-muted-foreground text-sm">{t('coach.dashboardLabel')}</p>
-            <h1 className="text-2xl font-display font-bold">{t('coach.yourClients')}</h1>
+            <p className="text-muted-foreground text-sm">
+              {t("coach.dashboardLabel")}
+            </p>
+            <h1 className="text-2xl font-display font-bold">
+              {t("coach.yourClients")}
+            </h1>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)} size="icon" className="h-10 w-10 rounded-xl gradient-primary text-primary-foreground">
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            size="icon"
+            className="h-10 w-10 rounded-xl gradient-primary text-primary-foreground"
+          >
             <Plus className="h-5 w-5" />
           </Button>
         </motion.div>
 
         <div className="grid grid-cols-3 gap-3">
           {[
-            { icon: Users, value: String(clients.length), label: t('coach.active') },
-            { icon: Dumbbell, value: weeklyWorkouts, label: t('coach.workoutsPerWeek') },
-            { icon: TrendingUp, value: String(recentCheckins.length), label: t('coach.checkIns') },
+            {
+              icon: Users,
+              value: String(clients.length),
+              label: t("coach.active"),
+            },
+            {
+              icon: Dumbbell,
+              value: weeklyWorkouts,
+              label: t("coach.workoutsPerWeek"),
+            },
+            {
+              icon: TrendingUp,
+              value: String(recentCheckins.length),
+              label: t("coach.checkIns"),
+            },
           ].map((stat, i) => (
-            <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="p-3 rounded-xl bg-card border border-border text-center">
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="p-3 rounded-xl bg-card border border-border text-center"
+            >
               <stat.icon className="h-4 w-4 text-primary mx-auto mb-1" />
               <p className="text-lg font-display font-bold">{stat.value}</p>
               <p className="text-[10px] text-muted-foreground">{stat.label}</p>
@@ -153,19 +233,47 @@ export default function CoachDashboard() {
         </div>
 
         {recentCheckins.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2">
-            <h2 className="text-sm font-semibold flex items-center gap-1.5"><ClipboardList className="h-4 w-4 text-primary" /> {t('coach.recentCheckins')}</h2>
-            {recentCheckins.map(ci => (
-              <div key={ci.id} onClick={() => navigate(`/coach/client/${ci.user_id}`)}
-                className="p-3 rounded-xl bg-card border border-border cursor-pointer active:scale-[0.98] transition-transform">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="space-y-2"
+          >
+            <h2 className="text-sm font-semibold flex items-center gap-1.5">
+              <ClipboardList className="h-4 w-4 text-primary" />{" "}
+              {t("coach.recentCheckins")}
+            </h2>
+            {recentCheckins.map((ci) => (
+              <div
+                key={ci.id}
+                onClick={() => navigate(`/coach/client/${ci.user_id}`)}
+                className="p-3 rounded-xl bg-card border border-border cursor-pointer active:scale-[0.98] transition-transform"
+              >
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-sm font-medium">{ci.client_name}</p>
-                  <p className="text-[10px] text-muted-foreground">{format(new Date(ci.week_start), 'MMM d')}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {format(new Date(ci.week_start), "MMM d")}
+                  </p>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-[10px] text-muted-foreground">{t('coach.difficulty')}: <span className="text-foreground capitalize">{ci.training_difficulty}</span></span>
-                  <span className="text-[10px] text-muted-foreground">{t('coach.recovery')}: <span className="text-foreground capitalize">{ci.recovery_level}</span></span>
-                  <span className="text-[10px] text-muted-foreground">{t('coach.energy')}: <span className="text-foreground capitalize">{ci.energy_level}</span></span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {t("coach.difficulty")}:{" "}
+                    <span className="text-foreground capitalize">
+                      {ci.training_difficulty}
+                    </span>
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {t("coach.recovery")}:{" "}
+                    <span className="text-foreground capitalize">
+                      {ci.recovery_level}
+                    </span>
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {t("coach.energy")}:{" "}
+                    <span className="text-foreground capitalize">
+                      {ci.energy_level}
+                    </span>
+                  </span>
                 </div>
               </div>
             ))}
@@ -174,25 +282,42 @@ export default function CoachDashboard() {
 
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input placeholder={t('coach.searchClients')} value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 pl-9 rounded-xl bg-secondary border-0" />
+          <Input
+            placeholder={t("coach.searchClients")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-10 pl-9 rounded-xl bg-secondary border-0"
+          />
         </div>
 
         <div className="space-y-2">
           {filtered.map((client, i) => (
-            <motion.div key={client.client_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+            <motion.div
+              key={client.client_id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03 }}
               onClick={() => navigate(`/coach/client/${client.client_id}`)}
               className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border active:scale-[0.98] transition-transform cursor-pointer"
             >
               <div className="w-11 h-11 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
-                {client.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                {client.full_name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{client.full_name}</p>
+                <p className="font-medium text-sm truncate">
+                  {client.full_name}
+                </p>
               </div>
             </motion.div>
           ))}
           {filtered.length === 0 && clients.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">{t('coach.noClientsYet')}</p>
+            <p className="text-sm text-muted-foreground text-center py-8">
+              {t("coach.noClientsYet")}
+            </p>
           )}
         </div>
       </div>
@@ -206,41 +331,109 @@ export default function CoachDashboard() {
             className="w-full max-w-md bg-card border border-border rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-auto pb-20"
           >
             <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card rounded-t-3xl z-10">
-              <h2 className="text-lg font-display font-bold">{t('coach.createClient')}</h2>
-              <button onClick={() => setShowCreateDialog(false)} className="text-muted-foreground"><X className="h-5 w-5" /></button>
+              <h2 className="text-lg font-display font-bold">
+                {t("coach.createClient")}
+              </h2>
+              <button
+                onClick={() => setShowCreateDialog(false)}
+                className="text-muted-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
             <div className="p-5 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">{t('coach.fullName')} *</label>
-                <Input value={newClient.full_name} onChange={(e) => setNewClient({ ...newClient, full_name: e.target.value })} placeholder="John Smith" className="h-11 rounded-xl bg-secondary border-0" />
+                <label className="text-xs font-medium text-muted-foreground">
+                  {t("coach.fullName")} *
+                </label>
+                <Input
+                  value={newClient.full_name}
+                  onChange={(e) =>
+                    setNewClient({ ...newClient, full_name: e.target.value })
+                  }
+                  placeholder="John Smith"
+                  className="h-11 rounded-xl bg-secondary border-0"
+                />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">{t('coach.emailAddress')} *</label>
-                <Input type="email" value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} placeholder="john@example.com" className="h-11 rounded-xl bg-secondary border-0" />
+                <label className="text-xs font-medium text-muted-foreground">
+                  {t("coach.emailAddress")} *
+                </label>
+                <Input
+                  type="email"
+                  value={newClient.email}
+                  onChange={(e) =>
+                    setNewClient({ ...newClient, email: e.target.value })
+                  }
+                  placeholder="john@example.com"
+                  className="h-11 rounded-xl bg-secondary border-0"
+                />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">{t('coach.phoneNumber')} ({t('common.optional')})</label>
-                <Input value={newClient.phone} onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })} placeholder="+44 7700 900000" className="h-11 rounded-xl bg-secondary border-0" />
+                <label className="text-xs font-medium text-muted-foreground">
+                  Password *
+                </label>
+                <Input
+                  type="password"
+                  value={newClient.password}
+                  onChange={(e) =>
+                    setNewClient({ ...newClient, password: e.target.value })
+                  }
+                  placeholder="Min. 8 characters"
+                  className="h-11 rounded-xl bg-secondary border-0"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  {t("coach.phoneNumber")} ({t("common.optional")})
+                </label>
+                <Input
+                  value={newClient.phone}
+                  onChange={(e) =>
+                    setNewClient({ ...newClient, phone: e.target.value })
+                  }
+                  placeholder="+44 7700 900000"
+                  className="h-11 rounded-xl bg-secondary border-0"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">{t('coach.dob')}</label>
-                  <Input type="date" value={newClient.dob} onChange={(e) => setNewClient({ ...newClient, dob: e.target.value })} className="h-11 rounded-xl bg-secondary border-0" />
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("coach.dob")}
+                  </label>
+                  <Input
+                    type="date"
+                    value={newClient.dob}
+                    onChange={(e) =>
+                      setNewClient({ ...newClient, dob: e.target.value })
+                    }
+                    className="h-11 rounded-xl bg-secondary border-0"
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">{t('coach.gender')}</label>
-                  <Select value={newClient.gender} onValueChange={(v) => setNewClient({ ...newClient, gender: v })}>
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("coach.gender")}
+                  </label>
+                  <Select
+                    value={newClient.gender}
+                    onValueChange={(v) =>
+                      setNewClient({ ...newClient, gender: v })
+                    }
+                  >
                     <SelectTrigger className="h-11 rounded-xl bg-secondary border-0">
-                      <SelectValue placeholder={t('common.select')} />
+                      <SelectValue placeholder={t("common.select")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="male">{t('coach.male')}</SelectItem>
-                      <SelectItem value="female">{t('coach.female')}</SelectItem>
-                      <SelectItem value="other">{t('coach.other')}</SelectItem>
+                      <SelectItem value="male">{t("coach.male")}</SelectItem>
+                      <SelectItem value="female">
+                        {t("coach.female")}
+                      </SelectItem>
+                      <SelectItem value="other">{t("coach.other")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -248,38 +441,92 @@ export default function CoachDashboard() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">{t('coach.heightCm')}</label>
-                  <Input type="number" value={newClient.height} onChange={(e) => setNewClient({ ...newClient, height: e.target.value })} placeholder="175" className="h-11 rounded-xl bg-secondary border-0" />
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("coach.heightCm")}
+                  </label>
+                  <Input
+                    type="number"
+                    value={newClient.height}
+                    onChange={(e) =>
+                      setNewClient({ ...newClient, height: e.target.value })
+                    }
+                    placeholder="175"
+                    className="h-11 rounded-xl bg-secondary border-0"
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">{t('coach.weightKg')}</label>
-                  <Input type="number" value={newClient.weight} onChange={(e) => setNewClient({ ...newClient, weight: e.target.value })} placeholder="75" className="h-11 rounded-xl bg-secondary border-0" />
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("coach.weightKg")}
+                  </label>
+                  <Input
+                    type="number"
+                    value={newClient.weight}
+                    onChange={(e) =>
+                      setNewClient({ ...newClient, weight: e.target.value })
+                    }
+                    placeholder="75"
+                    className="h-11 rounded-xl bg-secondary border-0"
+                  />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">{t('coach.fitnessGoal')}</label>
-                <Select value={newClient.fitness_goal} onValueChange={(v) => setNewClient({ ...newClient, fitness_goal: v })}>
+                <label className="text-xs font-medium text-muted-foreground">
+                  {t("coach.fitnessGoal")}
+                </label>
+                <Select
+                  value={newClient.fitness_goal}
+                  onValueChange={(v) =>
+                    setNewClient({ ...newClient, fitness_goal: v })
+                  }
+                >
                   <SelectTrigger className="h-11 rounded-xl bg-secondary border-0">
-                    <SelectValue placeholder={t('coach.selectGoal')} />
+                    <SelectValue placeholder={t("coach.selectGoal")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="lose_fat">{t('onboarding.options.lose_fat')}</SelectItem>
-                    <SelectItem value="build_muscle">{t('onboarding.options.build_muscle')}</SelectItem>
-                    <SelectItem value="improve_endurance">{t('onboarding.options.improve_endurance')}</SelectItem>
-                    <SelectItem value="increase_strength">{t('onboarding.options.increase_strength')}</SelectItem>
-                    <SelectItem value="general_fitness">{t('onboarding.options.general_fitness')}</SelectItem>
+                    <SelectItem value="lose_fat">
+                      {t("onboarding.options.lose_fat")}
+                    </SelectItem>
+                    <SelectItem value="build_muscle">
+                      {t("onboarding.options.build_muscle")}
+                    </SelectItem>
+                    <SelectItem value="improve_endurance">
+                      {t("onboarding.options.improve_endurance")}
+                    </SelectItem>
+                    <SelectItem value="increase_strength">
+                      {t("onboarding.options.increase_strength")}
+                    </SelectItem>
+                    <SelectItem value="general_fitness">
+                      {t("onboarding.options.general_fitness")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">{t('coach.notes')}</label>
-                <Textarea value={newClient.notes} onChange={(e) => setNewClient({ ...newClient, notes: e.target.value })} placeholder={t('coach.notesPlaceholder')} className="min-h-[80px] rounded-xl bg-secondary border-0 resize-none" />
+                <label className="text-xs font-medium text-muted-foreground">
+                  {t("coach.notes")}
+                </label>
+                <Textarea
+                  value={newClient.notes}
+                  onChange={(e) =>
+                    setNewClient({ ...newClient, notes: e.target.value })
+                  }
+                  placeholder={t("coach.notesPlaceholder")}
+                  className="min-h-[80px] rounded-xl bg-secondary border-0 resize-none"
+                />
               </div>
 
-              <Button onClick={handleCreateClient} disabled={creating} className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-semibold">
-                {creating ? <Loader2 className="h-5 w-5 animate-spin" /> : t('coach.createClient')}
+              <Button
+                onClick={handleCreateClient}
+                disabled={creating}
+                className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-semibold"
+              >
+                {creating ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  t("coach.createClient")
+                )}
               </Button>
             </div>
           </motion.div>

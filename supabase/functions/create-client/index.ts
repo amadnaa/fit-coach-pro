@@ -33,19 +33,21 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Only coaches can create clients' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { full_name, email, notes } = await req.json();
+    // AFTER
+    const { full_name, email, password, notes } = await req.json();
 
     if (!email || !full_name) {
       return new Response(JSON.stringify({ error: 'Name and email are required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Generate a temporary password
-    const tempPassword = crypto.randomUUID().slice(0, 12) + 'A1!';
+    if (!password || password.length < 8) {
+      return new Response(JSON.stringify({ error: 'Password must be at least 8 characters' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     // Create the user via admin API
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
-      password: tempPassword,
+      password,
       email_confirm: true,
       user_metadata: { full_name },
     });
@@ -74,7 +76,7 @@ serve(async (req) => {
     });
 
     return new Response(
-      JSON.stringify({ success: true, client_id: clientId, temp_password: tempPassword }),
+      JSON.stringify({ success: true, client_id: clientId }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
