@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FitCoach</string>
+    <string name="title_activity_main">FitCoach</string>
+    <string name="package_name">app.lovable.fef919ecf8274c0aa634252bb24e84ae</string>
+    <string name="custom_url_scheme">app.lovable.fef919ecf8274c0aa634252bb24e84ae</string>
+</resources>

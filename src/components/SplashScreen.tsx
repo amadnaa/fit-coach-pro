@@ -37,7 +37,7 @@ export function SplashScreen({ show }: SplashScreenProps) {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="text-3xl font-display font-bold tracking-tight"
             >
-              FitCoach
+              La Fuerza
             </motion.h1>
 
             <motion.div

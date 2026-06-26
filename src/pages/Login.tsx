@@ -46,7 +46,7 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl overflow-hidden mb-2">
             <img
               src="/logo.jpg"
-              alt="FitCoach Logo"
+              alt="La Fuerza Logo"
               className="w-full h-full object-cover object-top"
             />
           </div>
