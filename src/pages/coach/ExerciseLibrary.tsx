@@ -229,20 +229,28 @@ export default function ExerciseLibrary() {
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.02 }}
-              onClick={() => openDetail(ex)}
-              className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border cursor-pointer active:scale-[0.98] transition-transform"
+              className="flex items-center gap-1 p-3 rounded-xl bg-card border border-border"
             >
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                {ex.video_url ? <Play className="h-4 w-4 text-primary" /> : <Play className="h-4 w-4 text-muted-foreground" />}
+              <div onClick={() => openDetail(ex)} className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer active:scale-[0.98] transition-transform">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  {ex.video_url ? <Play className="h-4 w-4 text-primary" /> : <Play className="h-4 w-4 text-muted-foreground" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{ex.name}</p>
+                  <p className="text-xs text-muted-foreground">{tCat(ex.category)} · {tCat(ex.muscle_group)} · {tCat(ex.movement_type)}</p>
+                </div>
+                <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0",
+                  ex.difficulty_level === 'beginner' ? 'bg-primary/10 text-primary' :
+                  ex.difficulty_level === 'intermediate' ? 'bg-warning/10 text-warning' : 'bg-destructive/10 text-destructive'
+                )}>{t(`coach.${ex.difficulty_level}`, { defaultValue: ex.difficulty_level })}</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{ex.name}</p>
-                <p className="text-xs text-muted-foreground">{tCat(ex.category)} · {tCat(ex.muscle_group)} · {tCat(ex.movement_type)}</p>
-              </div>
-              <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium",
-                ex.difficulty_level === 'beginner' ? 'bg-primary/10 text-primary' :
-                ex.difficulty_level === 'intermediate' ? 'bg-warning/10 text-warning' : 'bg-destructive/10 text-destructive'
-              )}>{t(`coach.${ex.difficulty_level}`, { defaultValue: ex.difficulty_level })}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(ex.id); }}
+                className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+                aria-label={t('common.delete')}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </motion.div>
           ))}
           {filtered.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">{t('coach.noExercisesFound')}</p>}
