@@ -383,6 +383,7 @@
     "exerciseUpdated": "¡Ejercicio actualizado!",
     "exerciseDeleted": "Ejercicio eliminado",
     "exerciseRemoved": "Ejercicio quitado",
+    "confirmDeleteExercise": "¿Seguro que quieres eliminar este ejercicio? Esta acción no se puede deshacer.",
     "editExercise": "Editar ejercicio",
     "updateExerciseDetails": "Actualiza los detalles del ejercicio",
     "noVideo": "Sin vídeo",
