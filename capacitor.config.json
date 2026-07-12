@@ -2,8 +2,7 @@
   "appId": "com.anete.lafuerza",
   "appName": "La Fuerza",
   "webDir": "dist",
-  "server": {
-    "url": "https://fef919ec-f827-4c0a-a634-252bb24e84ae.lovableproject.com?forceHideBadge=true",
-    "cleartext": true
+  "ios": {
+    "contentInset": "always"
   }
 }

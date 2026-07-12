@@ -44,12 +44,13 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Password must be at least 8 characters' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Create the user via admin API
+    // Create the user via admin API with the coach-provided initial password.
+    // must_change_password forces the client to set their own password on first login.
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name },
+      user_metadata: { full_name, must_change_password: true },
     });
 
     if (createError) {
@@ -59,21 +60,19 @@ serve(async (req) => {
     const clientId = newUser.user.id;
 
     // Assign client role
-    await adminClient.from('user_roles').insert({ user_id: clientId, role: 'client' });
+    const { error: roleError } = await adminClient.from('user_roles').insert({ user_id: clientId, role: 'client' });
 
     // Link coach to client
-    await adminClient.from('coach_clients').insert({ coach_id: caller.id, client_id: clientId });
+    const { error: linkError } = await adminClient.from('coach_clients').insert({ coach_id: caller.id, client_id: clientId });
 
-    // Update profile with notes if provided
-    if (notes) {
-      // Notes can be stored as part of the profile or a separate field - for now just ensure profile exists
+    // If the follow-up records failed, roll back the auth user so the coach can retry cleanly.
+    if (roleError || linkError) {
+      await adminClient.auth.admin.deleteUser(clientId);
+      return new Response(
+        JSON.stringify({ error: (roleError || linkError)?.message || 'Failed to finish setting up client' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-
-    // Send password reset email so client can set their own password
-    await adminClient.auth.admin.generateLink({
-      type: 'recovery',
-      email,
-    });
 
     return new Response(
       JSON.stringify({ success: true, client_id: clientId }),

@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useAccentColor } from "@/hooks/useAccentColor";
 import { SplashScreen } from "./components/SplashScreen";
 import Login from "./pages/Login";
+import SetPassword from "./pages/SetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ClientDashboard from "./pages/client/ClientDashboard";
@@ -53,6 +54,17 @@ function AppRoutes() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  // Forced first-login password change: clients created by a coach get a
+  // temporary password and must replace it before doing anything else.
+  if (user.user_metadata?.must_change_password === true) {
+    return (
+      <Routes>
+        <Route path="/set-password" element={<SetPassword />} />
+        <Route path="*" element={<Navigate to="/set-password" replace />} />
       </Routes>
     );
   }

@@ -148,7 +148,7 @@ export default function CoachDashboard() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      toast.success(t("coach.clientCreated", { p: data.temp_password }));
+      toast.success(t("coach.clientCreated"));
       setShowCreateDialog(false);
       // AFTER
       setNewClient({
