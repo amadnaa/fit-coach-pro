@@ -37,21 +37,34 @@
 - Replaced profile photo upload with Capacitor Camera on native while preserving web file input fallback.
 - Replaced YouTube `iframe` embeds with external browser on native to avoid WKWebView playback risk.
 
-## MANUAL STEPS
+## MANUAL STEPS (in order, for tomorrow)
 
-- Review and upload provisioning profile / App Store Connect settings.
-- Confirm privacy policy URL and metadata entries.
-- Confirm Play Console target SDK and privacy form entries.
-- Confirm any required icons/screenshots in the asset checklist.
+1. **Set the support email.** Replace `REPLACE-ME@example.com` in src/pages/Support.tsx, then `npm run build && npx cap sync`. The same address goes in privacy-policy.md and both store listings.
+2. **Host the privacy policy.** Fill in the [brackets] in privacy-policy.md and publish it at a public URL (coach's website / GitHub Pages / Notion). Both stores require the URL; Play also wants it as the account-deletion info URL.
+3. **Create demo reviewer accounts** (coach + client) in production Supabase, populate the client with a plan and some logs, and paste the credentials into review-notes.md → then into both consoles.
+4. **Generate missing store graphics** per asset-checklist.md: iPhone 6.9" screenshots, Play 512×512 icon (`sips -Z 512 assets/icon-only.png --out play-icon-512.png`), Play 1024×500 feature graphic, ≥2 Play screenshots.
+5. **Xcode (her Mac, her Apple Developer account):** open ios/App/App.xcworkspace → set Team/signing for com.anete.lafuerza → confirm PrivacyInfo.xcprivacy appears in the App target's Copy Bundle Resources → Archive → upload to App Store Connect.
+6. **App Store Connect:** create the app (bundle ID com.anete.lafuerza), paste store-listing.md fields, privacy questionnaire (data-safety.md maps 1:1 to Apple's categories), review notes from review-notes.md, attach screenshots, submit.
+7. **Play Console:** create the app (application ID com.anete.lafuerza — now correct in the repo), build a signed AAB (`cd android && JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./gradlew bundleRelease` after configuring signing in Play App Signing / a keystore), fill Data Safety form from data-safety.md, App access credentials from review-notes.md, upload listing assets, submit.
+8. **Android release signing** needs a keystore or Play App Signing enrollment — Play Console guides this on first upload; nothing in the repo blocks it.
 
 ## NOT DONE
 
-- Android build pending after Phase 5.
-- In-app support/contact screen pending.
+- **Push notifications** (Phase 3 item 4). Left out cleanly — nothing half-wired, no plugin installed, no permission prompt. NotificationCentre remains in-app only. To add later: (1) APNs key in the Apple Developer portal + FCM setup for Android, (2) a new Supabase table for device tokens (schema change — was out of bounds this session), (3) an edge function to send pushes, (4) @capacitor/push-notifications wiring. Roughly a day of work including testing.
+- **iPad layout** — intentionally dropped (TARGETED_DEVICE_FAMILY=1) per instructions.
+- **Report/block features** — intentionally not built; the moderation blocker was downgraded because coach–client pairing is closed.
+- **Pre-existing cosmetic toggles:** the 2FA switch and permission switches in PrivacySecurity.tsx only show toasts (no real function). Low rejection risk but a reviewer could notice; consider hiding the 2FA toggle before submission if in doubt (5-minute change, wasn't in scope).
+- **Bundle size:** the JS bundle is ~1.5 MB minified (Vite warning). Works fine; code-splitting is a later optimization.
 
-## TEST BEFORE SUBMITTING
+## TEST BEFORE SUBMITTING (on a physical iPhone)
 
-- External video links open in native browser on iOS.
-- Profile photo upload works via Capacitor Camera on iOS.
-- Exercise video upload remains functional in native mode.
-- Account deletion flow still works after code changes.
+1. **Exercise video links** open in the system browser (WorkoutView + ExerciseLibrary + ClientDashboard video buttons) — the Phase 1 fix.
+2. **Profile photo** via camera AND via photo library (Camera plugin, permission prompts should show the new usage strings).
+3. **Exercise video upload** (coach account) through the file input — including the "Take Video" option, which exercises the mic permission.
+4. **Haptics** fire on logging a set and finishing a workout.
+5. **Share Workout** on the completion screen opens the iOS share sheet.
+6. **Offline:** open the app with data once, enable Airplane Mode, force-quit, reopen → today's workout should load from cache in WorkoutView.
+7. **Account deletion end-to-end with a throwaway client account:** delete → confirm you land at login → confirm the login no longer works. (Hard 5.1.1(v) requirement.)
+8. **Export Data** button — known WKWebView limitation with blob downloads; if it does nothing on device, that's expected (not a store blocker, deletion is what's required). Note it for a future fix.
+9. **Forced password change** flow for a fresh coach-created client still works (untouched, but it gates first login).
+10. On **Android**: install app-debug.apk, confirm app name shows "La Fuerza", spot-check items 1–6.
