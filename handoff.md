@@ -11,6 +11,12 @@
   - Added ios/App/App/PrivacyInfo.xcprivacy: tracking=false, UserDefaults required-reason CA92.1, collected data types (email, name, photos/videos, fitness, other user content — all linked, none for tracking). Wired into the Xcode project as a bundle resource via project.pbxproj.
   - ITSAppUsesNonExemptEncryption confirmed present and `false` (HTTPS-only is exempt).
   - Removed accidentally committed .npm-cache/ files from git and added to .gitignore.
+- Phase 3: native capability (Guideline 4.2)
+  - @capacitor/haptics: medium impact on each logged set, success notification on workout completion (src/pages/client/WorkoutView.tsx, native-only, errors swallowed).
+  - @capacitor/share: "Share Workout" button on the workout-complete screen sharing a localized summary (name, sets, reps, duration). New i18n keys workout.shareWorkout / workout.shareText in en + es.
+  - @capacitor/preferences: offline cache of the active plan, workout list, and per-workout exercises, keyed per user id (src/lib/workoutCache.ts). WorkoutView falls back to cache only when the Supabase fetch returns an error (offline), never when the plan is genuinely empty.
+  - Push notifications NOT wired — see NOT DONE.
+  - npx cap sync run for both platforms; all 5 plugins registered on iOS and Android.
 
 ## DECISIONS
 

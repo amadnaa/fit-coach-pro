@@ -193,6 +193,8 @@
     "totalReps": "Reps totales",
     "exercisesCompleted": "{{a}}/{{b}} ejercicios completados",
     "backToDashboard": "Volver al inicio",
+    "shareWorkout": "Compartir entreno",
+    "shareText": "Acabo de terminar {{name}}: {{sets}} series, {{reps}} reps en {{time}} 💪",
     "swap": "Cambiar",
     "swapExercise": "Cambiar ejercicio",
     "alternatives": "Alternativas",

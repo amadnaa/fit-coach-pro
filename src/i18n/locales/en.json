@@ -193,6 +193,8 @@
     "totalReps": "Total Reps",
     "exercisesCompleted": "{{a}}/{{b}} exercises completed",
     "backToDashboard": "Back to Dashboard",
+    "shareWorkout": "Share Workout",
+    "shareText": "I just finished {{name}}: {{sets}} sets, {{reps}} reps in {{time}} 💪",
     "swap": "Swap",
     "swapExercise": "Swap Exercise",
     "alternatives": "Alternatives",

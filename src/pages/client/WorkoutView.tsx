@@ -32,6 +32,14 @@ import {
 import { useTranslation } from "react-i18next";
 import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
+import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
+import { Share } from "@capacitor/share";
+import {
+  cachePlan,
+  getCachedPlan,
+  cacheExercises,
+  getCachedExercises,
+} from "@/lib/workoutCache";
 
 interface SetLog {
   reps: number;
@@ -104,7 +112,7 @@ export default function WorkoutView() {
       setLoadingPlan(true);
 
       // Get active plan
-      const { data: planData } = await supabase
+      const { data: planData, error: planError } = await supabase
         .from("workout_plans")
         .select("id, name, cycle_week")
         .eq("client_id", user.id)
@@ -112,6 +120,20 @@ export default function WorkoutView() {
         .maybeSingle();
 
       if (!planData) {
+        // A fetch error (rather than a genuinely empty plan) usually means
+        // we're offline — fall back to the last cached plan.
+        if (planError) {
+          const cached = await getCachedPlan(user.id);
+          if (cached && cached.workouts.length > 0) {
+            setPlanInfo(cached.planInfo);
+            setActiveWorkouts(cached.workouts);
+            const dayParam = searchParams.get("day");
+            const matched = dayParam
+              ? cached.workouts.find((w) => w.id === dayParam)
+              : null;
+            setSelectedWorkoutId(matched ? matched.id : cached.workouts[0].id);
+          }
+        }
         setLoadingPlan(false);
         return;
       }
@@ -130,6 +152,10 @@ export default function WorkoutView() {
         return;
       }
 
+      cachePlan(user.id, {
+        planInfo: { cycle_week: planData.cycle_week, name: planData.name },
+        workouts: workoutsData,
+      });
       setActiveWorkouts(workoutsData);
       // Auto-select from query param or first workout
       const dayParam = searchParams.get("day");
@@ -151,13 +177,23 @@ export default function WorkoutView() {
       const workout = activeWorkouts.find((w) => w.id === selectedWorkoutId);
       if (workout) setWorkoutName(workout.name);
 
-      const { data: exData } = await supabase
+      const { data: fetchedData, error: exError } = await supabase
         .from("workout_exercises")
         .select(
           "id, exercise_id, sets, rep_range_min, rep_range_max, target_weight, sort_order, exercises(name, muscle_group, video_url, description)",
         )
         .eq("workout_id", selectedWorkoutId)
         .order("sort_order");
+
+      let exData = fetchedData;
+      if (exData && exData.length > 0) {
+        cacheExercises(user.id, selectedWorkoutId, exData);
+      } else if (exError) {
+        // Offline — fall back to the last cached exercise list for this workout
+        exData = (await getCachedExercises(user.id, selectedWorkoutId)) as
+          | typeof fetchedData
+          | null;
+      }
 
       if (exData && exData.length > 0) {
         const loaded: ExerciseState[] = exData.map((ex) => ({
@@ -262,6 +298,9 @@ export default function WorkoutView() {
   };
 
   const handleLogSet = async () => {
+    if (Capacitor.isNativePlatform()) {
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {});
+    }
     const newSets = [...completedSets];
     newSets[currentExercise] = [
       ...newSets[currentExercise],
@@ -335,6 +374,9 @@ export default function WorkoutView() {
 
     setWorkoutFinished(true);
     if (timerRef.current) clearInterval(timerRef.current);
+    if (Capacitor.isNativePlatform()) {
+      Haptics.notification({ type: NotificationType.Success }).catch(() => {});
+    }
     toast.success(t("workout.workoutSaved"));
   };
 
@@ -396,6 +438,26 @@ export default function WorkoutView() {
               b: exercises.length,
             })}
           </p>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                await Share.share({
+                  text: t("workout.shareText", {
+                    name: workoutName,
+                    sets: totalSets,
+                    reps: totalRepsCount,
+                    time: formatTime(elapsed),
+                  }),
+                });
+              } catch {
+                // user cancelled or share unavailable
+              }
+            }}
+            className="w-full h-14 rounded-2xl font-semibold"
+          >
+            {t("workout.shareWorkout")}
+          </Button>
           <Button
             onClick={() => navigate("/dashboard")}
             className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold"
