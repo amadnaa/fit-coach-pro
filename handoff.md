@@ -22,6 +22,14 @@
   - Privacy Policy and Terms confirmed reachable in-app: Profile menu links to /privacy-policy directly; /terms now linked from the Support screen (it previously had a route but no in-app link).
   - Account deletion flow verified intact: PrivacySecurity.tsx → supabase.functions.invoke('delete-account') → supabase/functions/delete-account/index.ts (verifies JWT, deletes with service role). None of this session's changes touch that path, auth, or the Supabase client.
   - Known limitation (pre-existing): the "Export Data" blob-URL download in PrivacySecurity.tsx is unreliable in WKWebView. Not a store requirement; flagged in TEST list.
+- Phase 5: Android parity
+  - Machine had no JDK (why the first gradle run silently no-oped). Installed Homebrew openjdk@21 (user-level) and wrote android/local.properties pointing at ~/Library/Android/sdk (gitignored, machine-specific).
+  - `./gradlew assembleDebug` BUILDS SUCCESSFULLY (only benign warnings from the Capacitor camera plugin).
+  - Fixed Android application ID: was still the Lovable-generated `app.lovable.fef919ec...` while iOS and capacitor.config already used `com.anete.lafuerza`. Updated build.gradle (namespace + applicationId), strings.xml (package_name, custom_url_scheme), and moved MainActivity.java to com/anete/lafuerza/. The Play application ID is permanent after first upload, so this had to happen before submission.
+  - Fixed Android app label: strings.xml still said "FitCoach" (rebrand had missed Android) → now "La Fuerza".
+  - Merged-manifest permissions verified: exactly INTERNET + VIBRATE (haptics) + one auto-generated system entry. Camera uses intent flow — no CAMERA permission needed, nothing extra to remove.
+  - targetSdkVersion = 36, minSdk 24, compileSdk 36 — exceeds Play's current API 35 minimum.
+  - Data Safety inputs captured in data-safety.md (Phase 6).
 
 ## DECISIONS
 

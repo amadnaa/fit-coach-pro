@@ -1,4 +1,4 @@
-package app.lovable.fef919ecf8274c0aa634252bb24e84ae;
+package com.anete.lafuerza;
 
 import com.getcapacitor.BridgeActivity;
 

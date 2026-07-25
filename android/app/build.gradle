@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "app.lovable.fef919ecf8274c0aa634252bb24e84ae"
+    namespace = "com.anete.lafuerza"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.lovable.fef919ecf8274c0aa634252bb24e84ae"
+        applicationId "com.anete.lafuerza"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
