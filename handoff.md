@@ -7,7 +7,7 @@
 - Phase 2: store compliance
   - TARGETED_DEVICE_FAMILY set to "1" (iPhone only) in both build configs (ios/App/App.xcodeproj/project.pbxproj).
   - UIRequiredDeviceCapabilities: replaced deprecated `armv7` with `arm64` (ios/App/App/Info.plist).
-  - NS*UsageDescription strings reviewed: all four (camera, photo library, photo library add, microphone) already name specific in-app actions and match real features (profile photos, check-in images, exercise video upload incl. WKWebView "Take Video" option). No changes needed.
+  - NS\*UsageDescription strings reviewed: all four (camera, photo library, photo library add, microphone) already name specific in-app actions and match real features (profile photos, check-in images, exercise video upload incl. WKWebView "Take Video" option). No changes needed.
   - Added ios/App/App/PrivacyInfo.xcprivacy: tracking=false, UserDefaults required-reason CA92.1, collected data types (email, name, photos/videos, fitness, other user content — all linked, none for tracking). Wired into the Xcode project as a bundle resource via project.pbxproj.
   - ITSAppUsesNonExemptEncryption confirmed present and `false` (HTTPS-only is exempt).
   - Removed accidentally committed .npm-cache/ files from git and added to .gitignore.
@@ -30,6 +30,10 @@
   - Merged-manifest permissions verified: exactly INTERNET + VIBRATE (haptics) + one auto-generated system entry. Camera uses intent flow — no CAMERA permission needed, nothing extra to remove.
   - targetSdkVersion = 36, minSdk 24, compileSdk 36 — exceeds Play's current API 35 minimum.
   - Data Safety inputs captured in data-safety.md (Phase 6).
+
+- Post-phase follow-up (review credentials)
+  - review-notes.md is now gitignored and untracked (it will hold live demo credentials); committed template lives in review-notes.example.md.
+  - New scripts/seed-review-accounts.ts (run with `npx tsx`, needs SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in env): creates demo coach + client mirroring the create-client edge function (user_roles, coach_clients, trigger-created profiles), with must_change_password explicitly OFF and onboarding pre-completed; seeds an active 2-day plan (6 exercises), 3 completed past workouts with per-set logs, food logs, bodyweight/steps, and a weekly check-in. Idempotent; prints credentials at the end. NOT yet run — she runs it against production tomorrow (MANUAL STEPS item 3).
 
 ## DECISIONS
 
