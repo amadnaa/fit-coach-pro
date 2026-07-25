@@ -343,6 +343,7 @@
     "darkMode": "Dark Mode",
     "privacySecurity": "Privacy & Security",
     "privacyPolicy": "Privacy Policy",
+    "helpSupport": "Help & Support",
     "language": "Language",
     "signOut": "Sign Out",
     "user": "user",
@@ -630,6 +631,14 @@
     "stretching": "Stretching", "other": "Other",
     "compound": "Compound", "isolation": "Isolation", "machine": "Machine", "bodyweight": "Bodyweight",
     "videoUploaded": "Video uploaded"
+  },
+  "supportPage": {
+    "title": "Help & Support",
+    "contactTitle": "Contact",
+    "contactBody": "Questions about your training plan, your account, or the app? Email us and we'll get back to you as soon as possible.",
+    "legalTitle": "Legal",
+    "privacyPolicy": "Privacy Policy",
+    "terms": "Terms of Service"
   },
   "privacyPolicyPage": {
     "title": "Privacy Policy",

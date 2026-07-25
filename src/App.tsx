@@ -28,6 +28,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
+import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ function AppRoutes() {
       <Route path="/privacy" element={<PrivacySecurity />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/support" element={<Support />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Coach Routes */}

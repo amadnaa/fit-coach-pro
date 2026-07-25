@@ -11,6 +11,7 @@ import {
   Camera,
   Lock,
   Check,
+  LifeBuoy,
 } from "lucide-react";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -346,6 +347,11 @@ export default function ProfileView() {
               icon: Shield,
               label: t("profile.privacyPolicy"),
               action: () => navigate("/privacy-policy"),
+            },
+            {
+              icon: LifeBuoy,
+              label: t("profile.helpSupport"),
+              action: () => navigate("/support"),
             },
           ].map((item, i) => (
             <motion.button

@@ -343,6 +343,7 @@
     "darkMode": "Modo oscuro",
     "privacySecurity": "Privacidad y seguridad",
     "privacyPolicy": "Política de privacidad",
+    "helpSupport": "Ayuda y soporte",
     "language": "Idioma",
     "signOut": "Cerrar sesión",
     "user": "usuario",
@@ -630,6 +631,14 @@
     "stretching": "Estiramientos", "other": "Otro",
     "compound": "Compuesto", "isolation": "Aislamiento", "machine": "Máquina", "bodyweight": "Peso corporal",
     "videoUploaded": "Vídeo subido"
+  },
+  "supportPage": {
+    "title": "Ayuda y soporte",
+    "contactTitle": "Contacto",
+    "contactBody": "¿Preguntas sobre tu plan de entrenamiento, tu cuenta o la app? Escríbenos y te responderemos lo antes posible.",
+    "legalTitle": "Legal",
+    "privacyPolicy": "Política de privacidad",
+    "terms": "Términos del servicio"
   },
   "privacyPolicyPage": {
     "title": "Política de privacidad",

@@ -17,6 +17,11 @@
   - @capacitor/preferences: offline cache of the active plan, workout list, and per-workout exercises, keyed per user id (src/lib/workoutCache.ts). WorkoutView falls back to cache only when the Supabase fetch returns an error (offline), never when the plan is genuinely empty.
   - Push notifications NOT wired — see NOT DONE.
   - npx cap sync run for both platforms; all 5 plugins registered on iOS and Android.
+- Phase 4: required in-app pages
+  - New Help & Support screen (src/pages/Support.tsx) with contact email (PLACEHOLDER — see MANUAL STEPS) and links to Privacy Policy and Terms. Reachable from Profile → "Help & Support". Route /support added additively to App.tsx (no auth/guard logic changed).
+  - Privacy Policy and Terms confirmed reachable in-app: Profile menu links to /privacy-policy directly; /terms now linked from the Support screen (it previously had a route but no in-app link).
+  - Account deletion flow verified intact: PrivacySecurity.tsx → supabase.functions.invoke('delete-account') → supabase/functions/delete-account/index.ts (verifies JWT, deletes with service role). None of this session's changes touch that path, auth, or the Supabase client.
+  - Known limitation (pre-existing): the "Export Data" blob-URL download in PrivacySecurity.tsx is unreliable in WKWebView. Not a store requirement; flagged in TEST list.
 
 ## DECISIONS
 
