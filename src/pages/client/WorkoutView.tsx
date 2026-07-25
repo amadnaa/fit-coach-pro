@@ -1,22 +1,43 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUp, ArrowRight, ArrowDown, Check, RefreshCw, Play, ChevronLeft, Square, Clock, Trophy, ChevronDown, ChevronUp, Video, Dumbbell } from 'lucide-react';
-import { MobileLayout } from '@/components/layout/MobileLayout';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useTranslation } from 'react-i18next';
-
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowUp,
+  ArrowRight,
+  ArrowDown,
+  Check,
+  RefreshCw,
+  Play,
+  ChevronLeft,
+  Square,
+  Clock,
+  Trophy,
+  ChevronDown,
+  ChevronUp,
+  Video,
+  Dumbbell,
+} from "lucide-react";
+import { MobileLayout } from "@/components/layout/MobileLayout";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 
 interface SetLog {
   reps: number;
   weight: number;
   completed: boolean;
-  arrow?: 'up' | 'maintain' | 'down';
+  arrow?: "up" | "maintain" | "down";
 }
 
 interface AlternativeExercise {
@@ -64,23 +85,30 @@ export default function WorkoutView() {
   const [alternatives, setAlternatives] = useState<AlternativeExercise[]>([]);
   const [loadingAlternatives, setLoadingAlternatives] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState(true);
-  const [workoutName, setWorkoutName] = useState('Push Day');
-  const [planInfo, setPlanInfo] = useState<{ cycle_week: number; name: string } | null>(null);
-  const [activeWorkouts, setActiveWorkouts] = useState<{ id: string; name: string; day_number: number }[]>([]);
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
+  const [workoutName, setWorkoutName] = useState("Push Day");
+  const [planInfo, setPlanInfo] = useState<{
+    cycle_week: number;
+    name: string;
+  } | null>(null);
+  const [activeWorkouts, setActiveWorkouts] = useState<
+    { id: string; name: string; day_number: number }[]
+  >([]);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
+    null,
+  );
 
   // Load exercises from active workout plan
   useEffect(() => {
     if (!user) return;
     const loadPlan = async () => {
       setLoadingPlan(true);
-      
+
       // Get active plan
       const { data: planData } = await supabase
-        .from('workout_plans')
-        .select('id, name, cycle_week')
-        .eq('client_id', user.id)
-        .eq('is_active', true)
+        .from("workout_plans")
+        .select("id, name, cycle_week")
+        .eq("client_id", user.id)
+        .eq("is_active", true)
         .maybeSingle();
 
       if (!planData) {
@@ -92,10 +120,10 @@ export default function WorkoutView() {
 
       // Get workouts for this plan
       const { data: workoutsData } = await supabase
-        .from('workouts')
-        .select('id, name, day_number')
-        .eq('plan_id', planData.id)
-        .order('day_number');
+        .from("workouts")
+        .select("id, name, day_number")
+        .eq("plan_id", planData.id)
+        .order("day_number");
 
       if (!workoutsData || workoutsData.length === 0) {
         setLoadingPlan(false);
@@ -104,9 +132,13 @@ export default function WorkoutView() {
 
       setActiveWorkouts(workoutsData);
       // Auto-select from query param or first workout
-      const dayParam = searchParams.get('day');
-      const matchedWorkout = dayParam ? workoutsData.find(w => w.id === dayParam) : null;
-      setSelectedWorkoutId(matchedWorkout ? matchedWorkout.id : workoutsData[0].id);
+      const dayParam = searchParams.get("day");
+      const matchedWorkout = dayParam
+        ? workoutsData.find((w) => w.id === dayParam)
+        : null;
+      setSelectedWorkoutId(
+        matchedWorkout ? matchedWorkout.id : workoutsData[0].id,
+      );
       setLoadingPlan(false);
     };
     loadPlan();
@@ -116,24 +148,30 @@ export default function WorkoutView() {
   useEffect(() => {
     if (!selectedWorkoutId || !user) return;
     const loadExercises = async () => {
-      const workout = activeWorkouts.find(w => w.id === selectedWorkoutId);
+      const workout = activeWorkouts.find((w) => w.id === selectedWorkoutId);
       if (workout) setWorkoutName(workout.name);
 
       const { data: exData } = await supabase
-        .from('workout_exercises')
-        .select('id, exercise_id, sets, rep_range_min, rep_range_max, target_weight, sort_order, exercises(name, muscle_group, video_url, description)')
-        .eq('workout_id', selectedWorkoutId)
-        .order('sort_order');
+        .from("workout_exercises")
+        .select(
+          "id, exercise_id, sets, rep_range_min, rep_range_max, target_weight, sort_order, exercises(name, muscle_group, video_url, description)",
+        )
+        .eq("workout_id", selectedWorkoutId)
+        .order("sort_order");
 
       if (exData && exData.length > 0) {
-        const loaded: ExerciseState[] = exData.map(ex => ({
-          name: (ex.exercises as any)?.name || 'Unknown',
+        const loaded: ExerciseState[] = exData.map((ex) => ({
+          name: (ex.exercises as any)?.name || "Unknown",
           targetSets: ex.sets,
           repMin: ex.rep_range_min,
           repMax: ex.rep_range_max,
           targetWeight: ex.target_weight || 0,
           sets: [],
-          muscleGroup: ((ex.exercises as any)?.muscle_group || 'other').charAt(0).toUpperCase() + ((ex.exercises as any)?.muscle_group || 'other').slice(1),
+          muscleGroup:
+            ((ex.exercises as any)?.muscle_group || "other")
+              .charAt(0)
+              .toUpperCase() +
+            ((ex.exercises as any)?.muscle_group || "other").slice(1),
           workoutExerciseId: ex.id,
           exerciseId: ex.exercise_id,
           videoUrl: (ex.exercises as any)?.video_url,
@@ -157,13 +195,15 @@ export default function WorkoutView() {
         setElapsed(Math.floor((Date.now() - startTime.getTime()) / 1000));
       }, 1000);
     }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [workoutStarted, startTime, workoutFinished]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
+    return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
   const exercise = exercises[currentExercise];
@@ -175,9 +215,11 @@ export default function WorkoutView() {
 
     const ex = exercises[index];
     // Fetch alternatives from same muscle group
-    const { data } = await supabase.from('exercises').select('id, name, muscle_group, movement_type, video_url')
-      .eq('muscle_group', ex.muscleGroup.toLowerCase())
-      .neq('name', ex.name)
+    const { data } = await supabase
+      .from("exercises")
+      .select("id, name, muscle_group, movement_type, video_url")
+      .eq("muscle_group", ex.muscleGroup.toLowerCase())
+      .neq("name", ex.name)
       .limit(10);
 
     setAlternatives((data || []) as AlternativeExercise[]);
@@ -190,13 +232,14 @@ export default function WorkoutView() {
     updated[swapIndex] = {
       ...updated[swapIndex],
       name: alt.name,
-      muscleGroup: alt.muscle_group.charAt(0).toUpperCase() + alt.muscle_group.slice(1),
+      muscleGroup:
+        alt.muscle_group.charAt(0).toUpperCase() + alt.muscle_group.slice(1),
       exerciseId: alt.id,
       videoUrl: alt.video_url,
     };
     setExercises(updated);
     setSwapDialogOpen(false);
-    toast.success(t('workout.swappedTo', { name: alt.name }));
+    toast.success(t("workout.swappedTo", { name: alt.name }));
   };
 
   const handleStartWorkout = async () => {
@@ -205,27 +248,35 @@ export default function WorkoutView() {
     setStartTime(now);
 
     if (user) {
-      const { data } = await supabase.from('workout_sessions').insert({
-        user_id: user.id,
-        started_at: now.toISOString(),
-        total_exercises: exercises.length,
-      }).select('id').single();
+      const { data } = await supabase
+        .from("workout_sessions")
+        .insert({
+          user_id: user.id,
+          started_at: now.toISOString(),
+          total_exercises: exercises.length,
+        })
+        .select("id")
+        .single();
       if (data) setSessionId(data.id);
     }
   };
 
   const handleLogSet = async () => {
     const newSets = [...completedSets];
-    newSets[currentExercise] = [...newSets[currentExercise], { reps, weight, completed: true }];
+    newSets[currentExercise] = [
+      ...newSets[currentExercise],
+      { reps, weight, completed: true },
+    ];
     setCompletedSets(newSets);
 
     // Save to workout_logs
     if (user && exercise.workoutExerciseId) {
-      await supabase.from('workout_logs').insert({
+      await supabase.from("workout_logs").insert({
         user_id: user.id,
         workout_exercise_id: exercise.workoutExerciseId,
         set_number: newSets[currentExercise].length,
-        reps, weight,
+        reps,
+        weight,
       });
     }
 
@@ -246,72 +297,110 @@ export default function WorkoutView() {
     }
   };
 
-  const handleArrow = (direction: 'up' | 'maintain' | 'down') => {
+  const handleArrow = (direction: "up" | "maintain" | "down") => {
     const newSets = [...completedSets];
-    const lastSet = newSets[currentExercise][newSets[currentExercise].length - 1];
+    const lastSet =
+      newSets[currentExercise][newSets[currentExercise].length - 1];
     if (lastSet) lastSet.arrow = direction;
     setCompletedSets(newSets);
   };
 
   const handleEndWorkout = async () => {
     const now = new Date();
-    const durationSeconds = startTime ? Math.floor((now.getTime() - startTime.getTime()) / 1000) : 0;
+    const durationSeconds = startTime
+      ? Math.floor((now.getTime() - startTime.getTime()) / 1000)
+      : 0;
     const totalSets = completedSets.reduce((sum, sets) => sum + sets.length, 0);
-    const totalReps = completedSets.reduce((sum, sets) => sum + sets.reduce((s, set) => s + set.reps, 0), 0);
-    const exercisesCompleted = completedSets.filter(sets => sets.length > 0).length;
+    const totalReps = completedSets.reduce(
+      (sum, sets) => sum + sets.reduce((s, set) => s + set.reps, 0),
+      0,
+    );
+    const exercisesCompleted = completedSets.filter(
+      (sets) => sets.length > 0,
+    ).length;
 
     if (user && sessionId) {
-      await supabase.from('workout_sessions').update({
-        ended_at: now.toISOString(),
-        duration_seconds: durationSeconds,
-        exercises_completed: exercisesCompleted,
-        total_sets_completed: totalSets,
-        total_reps: totalReps,
-        completed: true,
-      }).eq('id', sessionId);
+      await supabase
+        .from("workout_sessions")
+        .update({
+          ended_at: now.toISOString(),
+          duration_seconds: durationSeconds,
+          exercises_completed: exercisesCompleted,
+          total_sets_completed: totalSets,
+          total_reps: totalReps,
+          completed: true,
+        })
+        .eq("id", sessionId);
     }
 
     setWorkoutFinished(true);
     if (timerRef.current) clearInterval(timerRef.current);
-    toast.success(t('workout.workoutSaved'));
+    toast.success(t("workout.workoutSaved"));
   };
 
   // Summary screen
   if (workoutFinished) {
     const totalSets = completedSets.reduce((sum, sets) => sum + sets.length, 0);
-    const totalRepsCount = completedSets.reduce((sum, sets) => sum + sets.reduce((s, set) => s + set.reps, 0), 0);
-    const exercisesCompleted = completedSets.filter(sets => sets.length > 0).length;
+    const totalRepsCount = completedSets.reduce(
+      (sum, sets) => sum + sets.reduce((s, set) => s + set.reps, 0),
+      0,
+    );
+    const exercisesCompleted = completedSets.filter(
+      (sets) => sets.length > 0,
+    ).length;
 
     return (
       <MobileLayout hideNav>
         <div className="px-5 pt-12 space-y-6 flex flex-col items-center text-center">
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 15 }}>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", damping: 15 }}
+          >
             <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center">
               <Trophy className="h-10 w-10 text-primary-foreground" />
             </div>
           </motion.div>
           <div>
-            <h1 className="text-2xl font-display font-bold">{t('workout.workoutComplete')}</h1>
-            <p className="text-muted-foreground text-sm mt-1">{t('workout.greatSession')}</p>
+            <h1 className="text-2xl font-display font-bold">
+              {t("workout.workoutComplete")}
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              {t("workout.greatSession")}
+            </p>
           </div>
           <div className="grid grid-cols-3 gap-4 w-full">
             <div className="p-4 rounded-2xl bg-card border border-border">
               <Clock className="h-5 w-5 text-primary mx-auto mb-1" />
               <p className="text-lg font-bold">{formatTime(elapsed)}</p>
-              <p className="text-[10px] text-muted-foreground">{t('workout.duration')}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {t("workout.duration")}
+              </p>
             </div>
             <div className="p-4 rounded-2xl bg-card border border-border">
               <p className="text-lg font-bold">{totalSets}</p>
-              <p className="text-[10px] text-muted-foreground">{t('workout.sets')}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {t("workout.sets")}
+              </p>
             </div>
             <div className="p-4 rounded-2xl bg-card border border-border">
               <p className="text-lg font-bold">{totalRepsCount}</p>
-              <p className="text-[10px] text-muted-foreground">{t('workout.totalReps')}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {t("workout.totalReps")}
+              </p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">{t('workout.exercisesCompleted', { a: exercisesCompleted, b: exercises.length })}</p>
-          <Button onClick={() => navigate('/dashboard')} className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold">
-            {t('workout.backToDashboard')}
+          <p className="text-sm text-muted-foreground">
+            {t("workout.exercisesCompleted", {
+              a: exercisesCompleted,
+              b: exercises.length,
+            })}
+          </p>
+          <Button
+            onClick={() => navigate("/dashboard")}
+            className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold"
+          >
+            {t("workout.backToDashboard")}
           </Button>
         </div>
       </MobileLayout>
@@ -324,13 +413,18 @@ export default function WorkoutView() {
         <div className="px-5 pt-6 space-y-6">
           <h1 className="text-2xl font-display font-bold">{workoutName}</h1>
           <p className="text-muted-foreground text-sm">
-            {planInfo ? t('workout.cycle', { name: planInfo.name, n: planInfo.cycle_week }) : ''}
+            {planInfo
+              ? t("workout.cycle", {
+                  name: planInfo.name,
+                  n: planInfo.cycle_week,
+                })
+              : ""}
           </p>
 
           {/* Workout Day Selector */}
           {activeWorkouts.length > 1 && (
             <div className="flex gap-2 overflow-x-auto pb-1">
-              {activeWorkouts.map(w => (
+              {activeWorkouts.map((w) => (
                 <button
                   key={w.id}
                   onClick={() => setSelectedWorkoutId(w.id)}
@@ -338,107 +432,168 @@ export default function WorkoutView() {
                     "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border",
                     selectedWorkoutId === w.id
                       ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card border-border text-muted-foreground hover:border-primary/30"
+                      : "bg-card border-border text-muted-foreground hover:border-primary/30",
                   )}
                 >
-                  {t('workout.dayN', { n: w.day_number, name: w.name })}
+                  {t("workout.dayN", { n: w.day_number, name: w.name })}
                 </button>
               ))}
             </div>
           )}
 
           {loadingPlan ? (
-            <div className="p-8 text-center text-muted-foreground text-sm">{t('workout.loadingPlan')}</div>
+            <div className="p-8 text-center text-muted-foreground text-sm">
+              {t("workout.loadingPlan")}
+            </div>
           ) : exercises.length === 0 ? (
             <div className="p-8 text-center space-y-2">
               <Dumbbell className="h-8 w-8 text-muted-foreground mx-auto" />
-              <p className="text-sm text-muted-foreground">{t('workout.noPlan')}</p>
-              <p className="text-xs text-muted-foreground">{t('workout.coachWillSet')}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("workout.noPlan")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t("workout.coachWillSet")}
+              </p>
             </div>
           ) : (
-          <div className="space-y-3">
-            {exercises.map((ex, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
-                <div className="rounded-2xl bg-card border border-border overflow-hidden">
-                  {/* Exercise Header */}
-                  <div
-                    className="flex items-center gap-3 p-4 cursor-pointer"
-                    onClick={() => setExpandedExercise(expandedExercise === i ? null : i)}
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">{i + 1}</div>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{ex.name}</p>
-                      <p className="text-xs text-muted-foreground">{ex.targetSets} sets · {ex.repMin}-{ex.repMax} reps · {ex.targetWeight}kg</p>
-                    </div>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleOpenSwap(i); }}
-                      className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+            <div className="space-y-3">
+              {exercises.map((ex, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <div className="rounded-2xl bg-card border border-border overflow-hidden">
+                    {/* Exercise Header */}
+                    <div
+                      className="flex items-center gap-3 p-4 cursor-pointer"
+                      onClick={() =>
+                        setExpandedExercise(expandedExercise === i ? null : i)
+                      }
                     >
-                      <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                    {expandedExercise === i ? (
-                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </div>
-
-                  {/* Expanded Details */}
-                  <AnimatePresence>
-                    {expandedExercise === i && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                        {i + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{ex.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {ex.targetSets} sets · {ex.repMin}-{ex.repMax} reps ·{" "}
+                          {ex.targetWeight}kg
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenSwap(i);
+                        }}
+                        className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
                       >
-                        <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{ex.muscleGroup}</span>
+                        <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                      {expandedExercise === i ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+
+                    {/* Expanded Details */}
+                    <AnimatePresence>
+                      {expandedExercise === i && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                                {ex.muscleGroup}
+                              </span>
+                            </div>
+                            {ex.videoUrl && (
+                              <div className="rounded-xl overflow-hidden bg-secondary">
+                                {ex.videoUrl.includes("youtube") ||
+                                ex.videoUrl.includes("youtu.be") ? (
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      if (Capacitor.isNativePlatform()) {
+                                        await Browser.open({
+                                          url: ex.videoUrl,
+                                        });
+                                      } else {
+                                        window.open(
+                                          ex.videoUrl,
+                                          "_blank",
+                                          "noopener,noreferrer",
+                                        );
+                                      }
+                                    }}
+                                    className="w-full text-left flex items-center gap-2 p-3 text-sm text-primary hover:underline"
+                                  >
+                                    <Video className="h-4 w-4" />{" "}
+                                    {t("workout.watchVideo")}
+                                  </button>
+                                ) : (
+                                  <video
+                                    src={ex.videoUrl}
+                                    controls
+                                    className="w-full h-32 object-cover"
+                                  />
+                                )}
+                              </div>
+                            )}
+                            {ex.description && (
+                              <p className="text-xs text-muted-foreground">
+                                {ex.description}
+                              </p>
+                            )}
+                            <div className="grid grid-cols-3 gap-2 text-center">
+                              <div className="p-2 rounded-lg bg-secondary">
+                                <p className="text-sm font-bold">
+                                  {ex.targetSets}
+                                </p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {t("workout.sets")}
+                                </p>
+                              </div>
+                              <div className="p-2 rounded-lg bg-secondary">
+                                <p className="text-sm font-bold">
+                                  {ex.repMin}-{ex.repMax}
+                                </p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {t("workout.reps")}
+                                </p>
+                              </div>
+                              <div className="p-2 rounded-lg bg-secondary">
+                                <p className="text-sm font-bold">
+                                  {ex.targetWeight}kg
+                                </p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {t("workout.target")}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                          {ex.videoUrl && (
-                            <div className="rounded-xl overflow-hidden bg-secondary">
-                              {ex.videoUrl.includes('youtube') || ex.videoUrl.includes('youtu.be') ? (
-                                <a href={ex.videoUrl} target="_blank" rel="noopener noreferrer"
-                                  className="flex items-center gap-2 p-3 text-sm text-primary hover:underline">
-                                  <Video className="h-4 w-4" /> {t('workout.watchVideo')}
-                                </a>
-                              ) : (
-                                <video src={ex.videoUrl} controls className="w-full h-32 object-cover" />
-                              )}
-                            </div>
-                          )}
-                          {ex.description && (
-                            <p className="text-xs text-muted-foreground">{ex.description}</p>
-                          )}
-                          <div className="grid grid-cols-3 gap-2 text-center">
-                            <div className="p-2 rounded-lg bg-secondary">
-                              <p className="text-sm font-bold">{ex.targetSets}</p>
-                              <p className="text-[10px] text-muted-foreground">{t('workout.sets')}</p>
-                            </div>
-                            <div className="p-2 rounded-lg bg-secondary">
-                              <p className="text-sm font-bold">{ex.repMin}-{ex.repMax}</p>
-                              <p className="text-[10px] text-muted-foreground">{t('workout.reps')}</p>
-                            </div>
-                            <div className="p-2 rounded-lg bg-secondary">
-                              <p className="text-sm font-bold">{ex.targetWeight}kg</p>
-                              <p className="text-[10px] text-muted-foreground">{t('workout.target')}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           )}
 
           {exercises.length > 0 && (
-          <Button onClick={handleStartWorkout} className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base">
-            <Play className="h-5 w-5 mr-2" /> {t('dashboard.startWorkout')}
-          </Button>
+            <Button
+              onClick={handleStartWorkout}
+              className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base"
+            >
+              <Play className="h-5 w-5 mr-2" /> {t("dashboard.startWorkout")}
+            </Button>
           )}
         </div>
 
@@ -446,11 +601,15 @@ export default function WorkoutView() {
         <Dialog open={swapDialogOpen} onOpenChange={setSwapDialogOpen}>
           <DialogContent className="max-w-sm mx-auto">
             <DialogHeader>
-              <DialogTitle className="text-lg">{t('workout.swapExercise')}</DialogTitle>
+              <DialogTitle className="text-lg">
+                {t("workout.swapExercise")}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {loadingAlternatives ? (
-                <div className="py-8 text-center text-sm text-muted-foreground">{t('workout.loadingAlternatives')}</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  {t("workout.loadingAlternatives")}
+                </div>
               ) : alternatives.length > 0 ? (
                 alternatives.map((alt) => (
                   <button
@@ -463,13 +622,19 @@ export default function WorkoutView() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{alt.name}</p>
-                      <p className="text-[10px] text-muted-foreground capitalize">{alt.muscle_group} · {alt.movement_type}</p>
+                      <p className="text-[10px] text-muted-foreground capitalize">
+                        {alt.muscle_group} · {alt.movement_type}
+                      </p>
                     </div>
-                    {alt.video_url && <Video className="h-3.5 w-3.5 text-muted-foreground" />}
+                    {alt.video_url && (
+                      <Video className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
                   </button>
                 ))
               ) : (
-                <div className="py-8 text-center text-sm text-muted-foreground">{t('workout.noAlternatives')}</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  {t("workout.noAlternatives")}
+                </div>
               )}
             </div>
           </DialogContent>
@@ -483,16 +648,25 @@ export default function WorkoutView() {
       <div className="px-5 pt-6 space-y-5">
         {/* Header with timer */}
         <div className="flex items-center gap-3">
-          <button onClick={() => setWorkoutStarted(false)} className="text-muted-foreground">
+          <button
+            onClick={() => setWorkoutStarted(false)}
+            className="text-muted-foreground"
+          >
             <ChevronLeft className="h-6 w-6" />
           </button>
           <div className="flex-1">
-            <p className="text-xs text-muted-foreground">{t('workout.exerciseOf', { a: currentExercise + 1, b: exercises.length })}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("workout.exerciseOf", {
+                a: currentExercise + 1,
+                b: exercises.length,
+              })}
+            </p>
             <h2 className="font-display font-bold text-lg">{exercise.name}</h2>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs px-2 py-1 rounded-full bg-secondary text-muted-foreground font-mono">
-              <Clock className="h-3 w-3 inline mr-1" />{formatTime(elapsed)}
+              <Clock className="h-3 w-3 inline mr-1" />
+              {formatTime(elapsed)}
             </span>
             <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
               {exercise.muscleGroup}
@@ -503,60 +677,138 @@ export default function WorkoutView() {
         {/* Progress Dots */}
         <div className="flex gap-1.5">
           {exercises.map((_, i) => (
-            <div key={i} className={cn("h-1.5 rounded-full flex-1 transition-colors",
-              i < currentExercise ? "bg-primary" : i === currentExercise ? "bg-primary/50" : "bg-secondary")} />
+            <div
+              key={i}
+              className={cn(
+                "h-1.5 rounded-full flex-1 transition-colors",
+                i < currentExercise
+                  ? "bg-primary"
+                  : i === currentExercise
+                  ? "bg-primary/50"
+                  : "bg-secondary",
+              )}
+            />
           ))}
         </div>
 
         {/* Set Info */}
         <div className="text-center py-4 space-y-1">
-          <p className="text-muted-foreground text-sm">{t('workout.setOf', { a: completedSets[currentExercise].length + 1, b: exercise.targetSets })}</p>
-          <p className="text-sm text-muted-foreground">{t('workout.targetReps', { min: exercise.repMin, max: exercise.repMax, w: exercise.targetWeight })}</p>
+          <p className="text-muted-foreground text-sm">
+            {t("workout.setOf", {
+              a: completedSets[currentExercise].length + 1,
+              b: exercise.targetSets,
+            })}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {t("workout.targetReps", {
+              min: exercise.repMin,
+              max: exercise.repMax,
+              w: exercise.targetWeight,
+            })}
+          </p>
         </div>
 
         {/* Input Area */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground text-center block">{t('workout.weightKg')}</label>
+            <label className="text-xs text-muted-foreground text-center block">
+              {t("workout.weightKg")}
+            </label>
             <div className="flex items-center gap-2">
-              <button onClick={() => setWeight(Math.max(0, weight - 2.5))} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold">−</button>
-              <div className="flex-1 h-14 rounded-xl bg-card border border-border flex items-center justify-center text-2xl font-display font-bold">{weight}</div>
-              <button onClick={() => setWeight(weight + 2.5)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold">+</button>
+              <button
+                onClick={() => setWeight(Math.max(0, weight - 2.5))}
+                className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold"
+              >
+                −
+              </button>
+              <div className="flex-1 h-14 rounded-xl bg-card border border-border flex items-center justify-center text-2xl font-display font-bold">
+                {weight}
+              </div>
+              <button
+                onClick={() => setWeight(weight + 2.5)}
+                className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold"
+              >
+                +
+              </button>
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground text-center block">{t('workout.reps')}</label>
+            <label className="text-xs text-muted-foreground text-center block">
+              {t("workout.reps")}
+            </label>
             <div className="flex items-center gap-2">
-              <button onClick={() => setReps(Math.max(0, reps - 1))} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold">−</button>
-              <div className="flex-1 h-14 rounded-xl bg-card border border-border flex items-center justify-center text-2xl font-display font-bold">{reps}</div>
-              <button onClick={() => setReps(reps + 1)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold">+</button>
+              <button
+                onClick={() => setReps(Math.max(0, reps - 1))}
+                className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold"
+              >
+                −
+              </button>
+              <div className="flex-1 h-14 rounded-xl bg-card border border-border flex items-center justify-center text-2xl font-display font-bold">
+                {reps}
+              </div>
+              <button
+                onClick={() => setReps(reps + 1)}
+                className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-lg font-bold"
+              >
+                +
+              </button>
             </div>
           </div>
         </div>
 
         {/* Log Set Button */}
-        <Button onClick={handleLogSet} disabled={reps === 0} className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base">
-          <Check className="h-5 w-5 mr-2" /> {t('workout.logSet')}
+        <Button
+          onClick={handleLogSet}
+          disabled={reps === 0}
+          className="w-full h-14 rounded-2xl gradient-primary text-primary-foreground font-semibold text-base"
+        >
+          <Check className="h-5 w-5 mr-2" /> {t("workout.logSet")}
         </Button>
 
         {/* End Workout Button */}
-        <Button onClick={handleEndWorkout} variant="outline" className="w-full h-12 rounded-2xl border-destructive text-destructive hover:bg-destructive/10 font-semibold text-sm">
-          <Square className="h-4 w-4 mr-2" /> {t('workout.endWorkout')}
+        <Button
+          onClick={handleEndWorkout}
+          variant="outline"
+          className="w-full h-12 rounded-2xl border-destructive text-destructive hover:bg-destructive/10 font-semibold text-sm"
+        >
+          <Square className="h-4 w-4 mr-2" /> {t("workout.endWorkout")}
         </Button>
 
         {/* Arrow Method */}
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground text-center">{t('workout.howFelt')}</p>
+          <p className="text-xs text-muted-foreground text-center">
+            {t("workout.howFelt")}
+          </p>
           <div className="flex gap-3 justify-center">
             {[
-              { dir: 'up' as const, icon: ArrowUp, label: t('workout.increase'), color: 'text-primary' },
-              { dir: 'maintain' as const, icon: ArrowRight, label: t('workout.maintain'), color: 'text-warning' },
-              { dir: 'down' as const, icon: ArrowDown, label: t('workout.decrease'), color: 'text-destructive' },
+              {
+                dir: "up" as const,
+                icon: ArrowUp,
+                label: t("workout.increase"),
+                color: "text-primary",
+              },
+              {
+                dir: "maintain" as const,
+                icon: ArrowRight,
+                label: t("workout.maintain"),
+                color: "text-warning",
+              },
+              {
+                dir: "down" as const,
+                icon: ArrowDown,
+                label: t("workout.decrease"),
+                color: "text-destructive",
+              },
             ].map(({ dir, icon: Icon, label, color }) => (
-              <button key={dir} onClick={() => handleArrow(dir)}
-                className="flex flex-col items-center gap-1 px-4 py-3 rounded-xl bg-card border border-border hover:border-primary/50 transition-colors">
+              <button
+                key={dir}
+                onClick={() => handleArrow(dir)}
+                className="flex flex-col items-center gap-1 px-4 py-3 rounded-xl bg-card border border-border hover:border-primary/50 transition-colors"
+              >
                 <Icon className={cn("h-5 w-5", color)} />
-                <span className="text-[10px] text-muted-foreground">{label}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  {label}
+                </span>
               </button>
             ))}
           </div>
@@ -565,13 +817,34 @@ export default function WorkoutView() {
         {/* Completed Sets */}
         <AnimatePresence>
           {completedSets[currentExercise].length > 0 && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
-              <p className="text-xs text-muted-foreground">{t('workout.completedSets')}</p>
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="space-y-2"
+            >
+              <p className="text-xs text-muted-foreground">
+                {t("workout.completedSets")}
+              </p>
               {completedSets[currentExercise].map((set, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-                  <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">{i + 1}</div>
-                  <span className="text-sm">{set.weight}kg × {set.reps} reps</span>
-                  {set.arrow && <span className="ml-auto text-xs text-muted-foreground">{set.arrow === 'up' ? '↑' : set.arrow === 'down' ? '↓' : '→'}</span>}
+                <div
+                  key={i}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                    {i + 1}
+                  </div>
+                  <span className="text-sm">
+                    {set.weight}kg × {set.reps} reps
+                  </span>
+                  {set.arrow && (
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {set.arrow === "up"
+                        ? "↑"
+                        : set.arrow === "down"
+                        ? "↓"
+                        : "→"}
+                    </span>
+                  )}
                 </div>
               ))}
             </motion.div>
