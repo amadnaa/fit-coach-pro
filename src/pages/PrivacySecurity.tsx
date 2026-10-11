@@ -171,16 +171,7 @@ export default function PrivacySecurity() {
 
         <Section title={t('privacy.accountSecurity')} icon={Lock} delay={0.15}>
           <div className="space-y-3">
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <p className="text-sm font-medium">{t('privacy.twoFA')}</p>
-                <p className="text-xs text-muted-foreground">{t('privacy.twoFADesc')}</p>
-              </div>
-              <Switch onCheckedChange={(checked) => {
-                toast.info(checked ? t('privacy.twoFAEnabled') : t('privacy.twoFADisabled'));
-              }} />
-            </div>
-            <div className="border-t border-border pt-3">
+            <div>
               <p className="text-sm font-medium mb-1">{t('privacy.activeSessions')}</p>
               <p className="text-xs text-muted-foreground mb-2">{t('privacy.currentDevice')}</p>
               <Button variant="outline" size="sm" className="rounded-xl text-xs" onClick={handleSignOutAll}>
