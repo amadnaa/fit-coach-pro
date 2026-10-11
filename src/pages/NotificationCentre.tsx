@@ -21,6 +21,8 @@ interface Notification {
   body: string;
   sender_id: string | null;
   sender_name?: string;
+  recipient_id: string | null;
+  recipient_name?: string;
   is_broadcast: boolean;
   read: boolean;
   created_at: string;
@@ -51,7 +53,7 @@ export default function NotificationCentre() {
         { event: 'INSERT', schema: 'public', table: 'notifications' },
         (payload) => {
           const n = payload.new as any;
-          if (n.recipient_id === user.id || n.is_broadcast) {
+          if (n.recipient_id === user.id || n.is_broadcast || n.sender_id === user.id) {
             fetchNotifications();
           }
         }
@@ -68,16 +70,20 @@ export default function NotificationCentre() {
       .limit(50);
 
     if (data) {
-      const senderIds = [...new Set(data.filter(n => n.sender_id).map(n => n.sender_id!))];
-      let senderMap = new Map<string, string>();
-      if (senderIds.length > 0) {
-        const { data: profiles } = await supabase.from('profiles').select('user_id, full_name').in('user_id', senderIds);
-        if (profiles) senderMap = new Map(profiles.map(p => [p.user_id, p.full_name]));
+      const peopleIds = [...new Set(data.flatMap(n => [n.sender_id, n.recipient_id]).filter(Boolean) as string[])];
+      let nameMap = new Map<string, string>();
+      if (peopleIds.length > 0) {
+        const { data: profiles } = await supabase.from('profiles').select('user_id, full_name').in('user_id', peopleIds);
+        if (profiles) nameMap = new Map(profiles.map(p => [p.user_id, p.full_name]));
       }
-      setNotifications(data.map(n => ({ ...n, sender_name: n.sender_id ? senderMap.get(n.sender_id) || t('notifCentre.unknown') : t('notifCentre.system') })));
+      setNotifications(data.map(n => ({
+        ...n,
+        sender_name: n.sender_id ? nameMap.get(n.sender_id) || t('notifCentre.unknown') : t('notifCentre.system'),
+        recipient_name: n.recipient_id ? nameMap.get(n.recipient_id) || t('notifCentre.unknown') : undefined,
+      })));
 
-      // Mark unread as read
-      const unreadIds = data.filter(n => !n.read).map(n => n.id);
+      // Mark unread as read (only ones addressed to me, not ones I sent)
+      const unreadIds = data.filter(n => !n.read && n.sender_id !== user?.id).map(n => n.id);
       if (unreadIds.length > 0) {
         await supabase.from('notifications').update({ read: true }).in('id', unreadIds);
       }
@@ -100,21 +106,24 @@ export default function NotificationCentre() {
     if (!form.body.trim() || !user) return;
     setSending(true);
 
-    if (form.recipientId === 'all') {
-      await supabase.from('notifications').insert({
+    const { error } = form.recipientId === 'all'
+      ? await supabase.from('notifications').insert({
         sender_id: user.id,
         title: form.title.trim(),
         body: form.body.trim(),
         is_broadcast: true,
-      });
-    } else {
-      await supabase.from('notifications').insert({
+      })
+      : await supabase.from('notifications').insert({
         sender_id: user.id,
         recipient_id: form.recipientId,
         title: form.title.trim(),
         body: form.body.trim(),
         is_broadcast: false,
       });
+    if (error) {
+      toast.error(error.message);
+      setSending(false);
+      return;
     }
 
     toast.success(t('notifications.sentToast'));
@@ -170,11 +179,15 @@ export default function NotificationCentre() {
           ) : (
             notifications.map((n, i) => (
               <motion.div key={n.id} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}
-                className={cn("p-4 rounded-xl bg-card border border-border space-y-1", !n.read && "border-primary/30")}>
+                className={cn("p-4 rounded-xl bg-card border border-border space-y-1", !n.read && n.sender_id !== user?.id && "border-primary/30")}>
                 {n.title && <p className="text-sm font-semibold">{n.title}</p>}
                 <p className="text-sm text-foreground">{n.body}</p>
                 <div className="flex items-center gap-2 pt-1">
-                  <p className="text-[10px] text-muted-foreground">{n.sender_name}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {n.sender_id === user?.id
+                      ? `${t('notifCentre.sent')}${n.recipient_name ? ' · ' + t('notifCentre.toClient', { name: n.recipient_name }) : ''}`
+                      : n.sender_name}
+                  </p>
                   <span className="text-[10px] text-muted-foreground">·</span>
                   <p className="text-[10px] text-muted-foreground">{format(new Date(n.created_at), 'MMM d, HH:mm')}</p>
                   {n.is_broadcast && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{t('notifications.broadcast')}</span>}

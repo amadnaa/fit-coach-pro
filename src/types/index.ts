@@ -20,7 +20,7 @@ export interface Client {
   onboarding_completed: boolean;
 }
 
-export type ExerciseCategory = 'warmup' | 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'legs' | 'glutes' | 'hamstrings' | 'quads' | 'core' | 'cardio' | 'stretching' | 'other';
+export type ExerciseCategory = 'warmup' | 'strength' | 'stretching' | 'cardio';
 
 export interface Exercise {
   id: string;
@@ -36,7 +36,7 @@ export interface Exercise {
   category: ExerciseCategory;
 }
 
-export type MuscleGroup = 'glutes' | 'quads' | 'hamstrings' | 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'core';
+export type MuscleGroup = 'glutes' | 'quads' | 'hamstrings' | 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'core' | 'full_body';
 
 export type MovementType = 'compound' | 'isolation' | 'machine' | 'bodyweight';
 

@@ -139,13 +139,23 @@ export default function CoachDashboard() {
       const { data, error } = await supabase.functions.invoke("create-client", {
         body: {
           full_name: newClient.full_name.trim(),
-          email: newClient.email.trim(),
+          email: newClient.email.trim().toLowerCase(),
           password: newClient.password.trim(),
           notes: newClient.notes.trim(),
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // supabase-js only says "Edge Function returned a non-2xx status code";
+        // the function's real reason is in the response body.
+        let reason = "";
+        try {
+          reason = (await (error as any).context?.json())?.error ?? "";
+        } catch {
+          /* body was not JSON */
+        }
+        throw new Error(reason || error.message);
+      }
       if (data?.error) throw new Error(data.error);
 
       toast.success(t("coach.clientCreated"));
@@ -165,7 +175,12 @@ export default function CoachDashboard() {
       });
       loadClients();
     } catch (err: any) {
-      toast.error(err.message || t("errors.failedCreateClient"));
+      const msg: string = err.message || "";
+      toast.error(
+        /already (been )?registered|already exists/i.test(msg)
+          ? t("errors.emailAlreadyRegistered")
+          : msg || t("errors.failedCreateClient"),
+      );
     } finally {
       setCreating(false);
     }

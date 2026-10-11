@@ -33,8 +33,10 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Only coaches can create clients' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // AFTER
-    const { full_name, email, password, notes } = await req.json();
+    const body = await req.json();
+    const full_name = typeof body.full_name === 'string' ? body.full_name.trim() : '';
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const password = typeof body.password === 'string' ? body.password : '';
 
     if (!email || !full_name) {
       return new Response(JSON.stringify({ error: 'Name and email are required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });

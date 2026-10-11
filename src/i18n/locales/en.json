@@ -34,6 +34,7 @@
     "system": "System"
   },
   "errors": {
+    "emailAlreadyRegistered": "A user with this email already exists. Use a different email, or ask the client to sign in.",
     "somethingWentWrong": "Something went wrong",
     "unexpected": "The app ran into an unexpected error. Try restarting.",
     "restart": "Restart App",
@@ -511,6 +512,12 @@
     "deletedToast": "Your account has been permanently deleted."
   },
   "clientDetail": {
+    "newPlan": "New plan",
+    "addDay": "Add day",
+    "dayName": "Day {{n}}",
+    "dayAdded": "Day added",
+    "setActive": "Make active",
+    "planActivated": "Plan is now active",
     "client": "Client",
     "overview": "Overview",
     "program": "Program",
@@ -588,6 +595,8 @@
     "back": "Back"
   },
   "notifCentre": {
+    "sent": "Sent",
+    "toClient": "To {{name}}",
     "system": "System",
     "unknown": "Unknown"
   },
@@ -625,6 +634,8 @@
     }
   },
   "exCat": {
+    "strength": "Strength",
+    "full_body": "Full body",
     "warmup": "Warmup", "chest": "Chest", "back": "Back", "shoulders": "Shoulders",
     "biceps": "Biceps", "triceps": "Triceps", "legs": "Legs", "glutes": "Glutes",
     "hamstrings": "Hamstrings", "quads": "Quads", "core": "Core", "cardio": "Cardio",

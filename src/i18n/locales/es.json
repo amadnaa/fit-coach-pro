@@ -34,6 +34,7 @@
     "system": "Sistema"
   },
   "errors": {
+    "emailAlreadyRegistered": "Ya existe un usuario con este correo. Usa otro correo o pide al cliente que inicie sesión.",
     "somethingWentWrong": "Algo salió mal",
     "unexpected": "La aplicación encontró un error inesperado. Intenta reiniciar.",
     "restart": "Reiniciar la app",
@@ -511,6 +512,12 @@
     "deletedToast": "Tu cuenta se ha eliminado de forma permanente."
   },
   "clientDetail": {
+    "newPlan": "Nuevo plan",
+    "addDay": "Añadir día",
+    "dayName": "Día {{n}}",
+    "dayAdded": "Día añadido",
+    "setActive": "Activar",
+    "planActivated": "El plan está activo",
     "client": "Cliente",
     "overview": "Resumen",
     "program": "Programa",
@@ -588,6 +595,8 @@
     "back": "Atrás"
   },
   "notifCentre": {
+    "sent": "Enviado",
+    "toClient": "Para {{name}}",
     "system": "Sistema",
     "unknown": "Desconocido"
   },
@@ -625,6 +634,8 @@
     }
   },
   "exCat": {
+    "strength": "Fuerza",
+    "full_body": "Cuerpo completo",
     "warmup": "Calentamiento", "chest": "Pecho", "back": "Espalda", "shoulders": "Hombros",
     "biceps": "Bíceps", "triceps": "Tríceps", "legs": "Piernas", "glutes": "Glúteos",
     "hamstrings": "Isquiotibiales", "quads": "Cuádriceps", "core": "Core", "cardio": "Cardio",

@@ -223,8 +223,10 @@ export default function ClientDetailView() {
       });
 
     // Fetch available exercises
-    supabase.from('exercises').select('id, name, muscle_group').order('name')
-      .then(({ data }) => { if (data) setAvailableExercises(data); });
+    supabase.from('exercises').select('*').order('name')
+      .then(({ data }) => {
+        if (data) setAvailableExercises((data as any[]).filter(e => !e.archived).map(e => ({ id: e.id, name: e.name, muscle_group: e.muscle_group })));
+      });
   }, [clientId]);
 
   // Fetch workouts + exercises when plan changes
@@ -353,29 +355,61 @@ export default function ClientDetailView() {
     fetchPlanWorkouts();
   };
 
+  const refreshPlans = async (selectId?: string) => {
+    const { data } = await supabase.from('workout_plans').select('*').eq('client_id', clientId!).order('created_at', { ascending: false });
+    if (data) {
+      setPlans(data as WorkoutPlan[]);
+      setSelectedPlanId(selectId ?? data.find(p => p.is_active)?.id ?? data[0]?.id ?? null);
+    }
+  };
+
+  // The client app loads "the" active plan, so only one plan may be active.
+  const activatePlan = async (planId: string) => {
+    const { error: offErr } = await supabase.from('workout_plans').update({ is_active: false }).eq('client_id', clientId!).neq('id', planId);
+    const { error } = offErr ? { error: offErr } : await supabase.from('workout_plans').update({ is_active: true }).eq('id', planId);
+    if (error) { toast.error(error.message); return; }
+    toast.success(t('clientDetail.planActivated'));
+    refreshPlans(planId);
+  };
+
   const createPlanFromScratch = async () => {
     if (!clientId || !newPlanName.trim()) { toast.error(t('errors.planNameRequired')); return; }
     try {
-      const { error } = await supabase.from('workout_plans').insert({
+      const days = Math.min(Math.max(newPlanFrequency || 1, 1), 7);
+      await supabase.from('workout_plans').update({ is_active: false }).eq('client_id', clientId);
+      const { data: plan, error } = await supabase.from('workout_plans').insert({
         client_id: clientId,
         name: newPlanName.trim(),
         split_type: newPlanSplit,
-        frequency: newPlanFrequency,
+        frequency: days,
         cycle_week: 1,
         is_active: true,
-      });
+      }).select('id').single();
       if (error) throw error;
+      // Create the training days up front so the coach can open each one and add exercises.
+      const { error: daysError } = await supabase.from('workouts').insert(
+        Array.from({ length: days }, (_, i) => ({ plan_id: plan.id, name: t('clientDetail.dayName', { n: i + 1 }), day_number: i + 1 }))
+      );
+      if (daysError) throw daysError;
       toast.success(t('coach.planCreated'));
       setShowCreatePlanDialog(false);
       setNewPlanName('');
-      const { data: newPlans } = await supabase.from('workout_plans').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
-      if (newPlans) {
-        setPlans(newPlans as WorkoutPlan[]);
-        setSelectedPlanId(newPlans[0]?.id || null);
-      }
+      await refreshPlans(plan.id);
     } catch (err: any) {
       toast.error(err.message || t('errors.failedToCreatePlan'));
     }
+  };
+
+  const addDayToPlan = async () => {
+    if (!selectedPlanId) return;
+    const next = workouts.reduce((max, w) => Math.max(max, w.day_number), 0) + 1;
+    const { data, error } = await supabase.from('workouts')
+      .insert({ plan_id: selectedPlanId, name: t('clientDetail.dayName', { n: next }), day_number: next })
+      .select('id').single();
+    if (error) { toast.error(error.message); return; }
+    toast.success(t('clientDetail.dayAdded'));
+    await fetchPlanWorkouts();
+    setExpandedWorkout(data.id);
   };
 
   return (
@@ -459,7 +493,15 @@ export default function ClientDetailView() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <Button size="sm" variant="outline" className="rounded-xl h-9 shrink-0" onClick={() => setShowCreatePlanDialog(true)}>
+                    <Plus className="h-3.5 w-3.5 mr-1" /> {t('clientDetail.newPlan')}
+                  </Button>
                 </div>
+                {selectedPlanId && !plans.find(p => p.id === selectedPlanId)?.is_active && (
+                  <Button size="sm" variant="outline" className="w-full rounded-xl" onClick={() => activatePlan(selectedPlanId)}>
+                    {t('clientDetail.setActive')}
+                  </Button>
+                )}
 
                 {loadingProgram ? (
                   <div className="py-8 text-center text-sm text-muted-foreground">{t('clientDetail.loadingProgram')}</div>
@@ -589,6 +631,11 @@ export default function ClientDetailView() {
                       )}
                     </div>
                   ))
+                )}
+                {!loadingProgram && selectedPlanId && (
+                  <Button size="sm" variant="outline" className="w-full rounded-xl border-dashed" onClick={addDayToPlan}>
+                    <Plus className="h-3.5 w-3.5 mr-1" /> {t('clientDetail.addDay')}
+                  </Button>
                 )}
               </>
             )}

@@ -49,31 +49,31 @@ import type { ExerciseCategory, MuscleGroup, MovementType } from "@/types";
 
 const allCategories: ExerciseCategory[] = [
   "warmup",
-  "chest",
-  "back",
-  "shoulders",
-  "biceps",
-  "triceps",
-  "legs",
-  "glutes",
-  "hamstrings",
-  "quads",
-  "core",
-  "cardio",
+  "strength",
   "stretching",
-  "other",
+  "cardio",
 ];
 const muscleGroups: MuscleGroup[] = [
   "chest",
   "back",
   "shoulders",
+  "biceps",
+  "triceps",
   "quads",
   "hamstrings",
   "glutes",
-  "biceps",
-  "triceps",
   "core",
+  "full_body",
 ];
+
+// Older exercises used muscle groups (chest, legs, ...) as their category.
+// Anything that is not one of the four real categories counts as strength.
+const normalizeCategory = (c: string | null | undefined): ExerciseCategory =>
+  allCategories.includes(c as ExerciseCategory)
+    ? (c as ExerciseCategory)
+    : "strength";
+const normalizeMuscleGroup = (g: string | null | undefined): MuscleGroup =>
+  muscleGroups.includes(g as MuscleGroup) ? (g as MuscleGroup) : "full_body";
 const movementTypes: MovementType[] = [
   "compound",
   "isolation",
@@ -92,6 +92,7 @@ interface ExerciseRow {
   rep_range_min: number;
   rep_range_max: number;
   category: string;
+  archived?: boolean | null;
 }
 
 const defaultForm = {
@@ -103,7 +104,7 @@ const defaultForm = {
   difficulty_level: "intermediate",
   rep_range_min: 8,
   rep_range_max: 12,
-  category: "other" as string,
+  category: "strength" as string,
 };
 
 export default function ExerciseLibrary() {
@@ -139,12 +140,15 @@ export default function ExerciseLibrary() {
     if (!user) return;
     const { data } = await supabase
       .from("exercises")
-      .select(
-        "id, name, description, video_url, muscle_group, movement_type, difficulty_level, rep_range_min, rep_range_max, category",
-      )
+      .select("*")
       .eq("created_by", user.id)
       .order("name");
-    if (data) setExercises(data);
+    if (data)
+      setExercises(
+        (data as ExerciseRow[])
+          .filter((e) => !e.archived)
+          .map((e) => ({ ...e, category: normalizeCategory(e.category) })),
+      );
   };
 
   useEffect(() => {
@@ -242,12 +246,12 @@ export default function ExerciseLibrary() {
       name: ex.name,
       description: ex.description || "",
       video_url: ex.video_url || "",
-      muscle_group: ex.muscle_group,
+      muscle_group: normalizeMuscleGroup(ex.muscle_group),
       movement_type: ex.movement_type,
       difficulty_level: ex.difficulty_level,
       rep_range_min: ex.rep_range_min,
       rep_range_max: ex.rep_range_max,
-      category: ex.category,
+      category: normalizeCategory(ex.category),
     });
   };
 
@@ -282,34 +286,30 @@ export default function ExerciseLibrary() {
     fetchExercises();
   };
 
-  const handleDelete = async () => {
-    if (!selectedExercise) return;
+  // Exercises that are used in a client's plan can't be hard-deleted (the
+  // plan and the client's logged sets still point at them), so those get
+  // archived instead: hidden from the library and from "add exercise".
+  const deleteExercise = async (id: string) => {
     setDeleting(true);
-    const { error } = await supabase
-      .from("exercises")
-      .delete()
-      .eq("id", selectedExercise.id);
+    let { error } = await supabase.from("exercises").delete().eq("id", id);
+    if (error?.code === "23503") {
+      ({ error } = await supabase
+        .from("exercises")
+        .update({ archived: true })
+        .eq("id", id));
+    }
     setDeleting(false);
     if (error) {
       toast.error(error.message);
       return;
     }
     toast.success(t("coach.exerciseDeleted"));
-    setSelectedExercise(null);
-    fetchExercises();
+    setExercises((list) => list.filter((e) => e.id !== id));
   };
 
   const handleDeleteById = async (id: string) => {
-    setDeleting(true);
-    const { error } = await supabase.from("exercises").delete().eq("id", id);
-    setDeleting(false);
+    await deleteExercise(id);
     setConfirmDeleteId(null);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(t("coach.exerciseDeleted"));
-    fetchExercises();
   };
 
   const openUrl = async (url: string) => {
@@ -548,9 +548,12 @@ export default function ExerciseLibrary() {
                   <Pencil className="h-4 w-4 mr-1" /> {t("common.edit")}
                 </Button>
                 <Button
-                  onClick={handleDelete}
+                  onClick={() => {
+                    setConfirmDeleteId(selectedExercise.id);
+                    setSelectedExercise(null);
+                  }}
                   disabled={deleting}
-                  className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   <Trash2 className="h-4 w-4 mr-1" />{" "}
                   {deleting ? "..." : t("common.delete")}
