@@ -172,6 +172,7 @@ export type Database = {
       exercises: {
         Row: {
           alternatives: string[] | null
+          archived: boolean
           category: string
           created_at: string
           created_by: string | null
@@ -187,6 +188,7 @@ export type Database = {
         }
         Insert: {
           alternatives?: string[] | null
+          archived?: boolean
           category?: string
           created_at?: string
           created_by?: string | null
@@ -202,6 +204,7 @@ export type Database = {
         }
         Update: {
           alternatives?: string[] | null
+          archived?: boolean
           category?: string
           created_at?: string
           created_by?: string | null
