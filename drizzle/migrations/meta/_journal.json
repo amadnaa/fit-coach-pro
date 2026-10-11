@@ -8,6 +8,13 @@
       "when": 1791701017723,
       "tag": "0000_exercises_archived_and_notif_policy",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791701025263,
+      "tag": "0001_drop_coach_add_clients_policy",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Coaches can add clients" ON public.coach_clients;
